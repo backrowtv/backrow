@@ -1,0 +1,48 @@
+# NPM ignore file - controls what's excluded when publishing
+# Note: This is a private Next.js app, not a publishable package
+
+# Development/Testing
+/e2e/
+/playwright-report/
+/blob-report/
+/test-results/
+/coverage/
+*.spec.ts
+*.test.ts
+
+# Build artifacts
+/.next/
+/out/
+/build/
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env*
+!.env.example
+
+# Documentation
+/docs/
+*.md
+!README.md
+
+# Scripts
+/scripts/
+
+# Config files not needed in package
+.eslintrc*
+.prettierrc*
+tsconfig*.json
+playwright.config.ts
+vitest.config.ts
+next.config.ts
+
+# Misc
+.DS_Store
+*.pem
+*.log
+.vercel

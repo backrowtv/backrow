@@ -1,0 +1,15 @@
+/* Custom Carousel Effect Styles */
+.swiper-carousel {
+  perspective: 1200px;
+  overflow: visible;
+}
+
+.swiper-carousel .swiper-wrapper {
+  transform-style: preserve-3d;
+}
+
+.swiper-carousel .swiper-slide {
+  backface-visibility: hidden;
+  transition-property: transform, opacity;
+  transition-timing-function: ease-out;
+}

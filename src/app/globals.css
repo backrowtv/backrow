@@ -1,0 +1,1855 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   SAGE GREEN DESIGN SYSTEM
+   Realtime Colors palette with Perfect Fourth type scale
+   ============================================ */
+
+/* Base Variables */
+/* Fonts: Onest (headings), Poppins (body) */
+:root {
+  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Onest', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-brand: var(--font-brand), 'Righteous', cursive;
+  --radius: 0.5rem;
+}
+
+/* ============================================
+   LIGHT MODE - HSL Color System
+   ============================================ */
+
+:root {
+  /* Text Color Scale (HSL values) */
+  --text-50: 162 38% 95%;
+  --text-100: 160 41% 90%;
+  --text-200: 160 41% 80%;
+  --text-300: 160 41% 70%;
+  --text-400: 160 41% 60%;
+  --text-500: 160 41% 50%;
+  --text-600: 160 41% 40%;
+  --text-700: 160 41% 30%;
+  --text-800: 160 41% 20%;
+  --text-900: 160 41% 10%;
+  --text-950: 156 38% 5%;
+  
+  /* Background Color Scale (HSL values) - Available for highlights */
+  --background-50: 158 44% 95%;
+  --background-100: 157 45% 90%;
+  --background-200: 158 43% 80%;
+  --background-300: 158 44% 70%;
+  --background-400: 158 44% 60%;
+  --background-500: 158 44% 50%;
+  --background-600: 158 44% 40%;
+  --background-700: 158 44% 30%;
+  --background-800: 158 43% 20%;
+  --background-900: 157 45% 10%;
+  --background-950: 158 44% 5%;
+  
+  /* Primary Color Scale (HSL values - Green) */
+  --primary-50: 160 23% 95%;
+  --primary-100: 157 25% 90%;
+  --primary-200: 157 25% 80%;
+  --primary-300: 155 25% 70%;
+  --primary-400: 155 25% 60%;
+  --primary-500: 156 25% 50%;
+  --primary-600: 155 25% 40%;
+  --primary-700: 155 25% 30%;
+  --primary-800: 157 25% 20%;
+  --primary-900: 157 25% 10%;
+  --primary-950: 150 23% 5%;
+  
+  /* Secondary Color Scale (HSL values - Blue) */
+  --secondary-50: 202 62% 95%;
+  --secondary-100: 204 65% 90%;
+  --secondary-200: 203 65% 80%;
+  --secondary-300: 203 63% 70%;
+  --secondary-400: 203 64% 60%;
+  --secondary-500: 203 64% 50%;
+  --secondary-600: 203 64% 40%;
+  --secondary-700: 203 63% 30%;
+  --secondary-800: 203 65% 20%;
+  --secondary-900: 204 65% 10%;
+  --secondary-950: 203 62% 5%;
+  
+  /* Accent Color Scale (HSL values - Blue) */
+  --accent-50: 204 38% 95%;
+  --accent-100: 206 41% 90%;
+  --accent-200: 207 41% 80%;
+  --accent-300: 207 41% 70%;
+  --accent-400: 207 41% 60%;
+  --accent-500: 207 41% 50%;
+  --accent-600: 207 41% 40%;
+  --accent-700: 207 41% 30%;
+  --accent-800: 207 41% 20%;
+  --accent-900: 206 41% 10%;
+  --accent-950: 210 38% 5%;
+
+  /* Core Backgrounds - Warm cream */
+  --background: hsl(35 10% 95%);
+  --surface: hsl(35 10% 93%);
+  --surface-0: hsl(35 10% 95%);
+  --surface-1: hsl(35 10% 93%);
+  --surface-2: hsl(35 10% 89%);
+  --surface-3: hsl(35 10% 85%);
+  --surface-4: hsl(35 10% 80%);
+  --card: hsl(35 8% 97%);
+  --elevated: hsl(35 5% 99%);
+  --popover: hsl(35 5% 99%);
+
+  /* Text - Dark for contrast on white */
+  --foreground: hsl(0 0% 9%);
+  --text-primary: hsl(0 0% 9%);
+  --text-secondary: hsl(0 0% 32%);
+  --text-muted: hsl(0 0% 45%);
+  --text-disabled: hsl(0 0% 64%);
+
+  /* Borders - Subtle warm gray */
+  --border: hsl(35 8% 85%);
+  --border-hover: hsl(35 6% 75%);
+  --input: hsl(35 8% 85%);
+
+  /* Interactive Colors */
+  --primary: hsl(var(--primary-500));
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(var(--secondary-100));
+  --secondary-foreground: hsl(var(--secondary-900));
+  --muted: hsl(35 10% 89%);
+  --muted-foreground: hsl(35 6% 45%);
+  --accent: hsl(var(--accent-500));
+  --accent-foreground: hsl(0 0% 100%);
+
+  /* Link color - uses accent for visibility */
+  --link: hsl(var(--accent-600));
+  --link-hover: hsl(var(--accent-700));
+
+  /* Interactive States */
+  --hover: hsl(var(--primary-500) / 0.08);
+  --pressed: hsl(var(--primary-500) / 0.16);
+  --focus-ring: hsl(var(--accent-500) / 0.5);
+  --ring: hsl(var(--accent-500) / 0.5);
+
+  /* Active/Selected State Tokens — Solid fills, no transparency */
+  --active-bg: var(--surface-3);
+  --active-text: var(--text-primary);
+  --active-border: var(--border-hover);
+  --active-indicator: var(--primary);
+  --active-primary-bg: hsl(var(--primary-500));
+  --active-primary-text: hsl(0 0% 100%);
+  --active-primary-border: hsl(var(--primary-600));
+  --active-info-bg: hsl(var(--secondary-500));
+  --active-info-text: hsl(0 0% 100%);
+  --active-info-border: hsl(var(--secondary-600));
+  --active-success-bg: hsl(155 32% 38%);
+  --active-success-text: hsl(0 0% 100%);
+  --active-warning-bg: hsl(38 70% 48%);
+  --active-warning-text: hsl(0 0% 100%);
+  --active-error-bg: hsl(0 70% 48%);
+  --active-error-text: hsl(0 0% 100%);
+
+  /* Semantic Colors */
+  --destructive: hsl(0 84% 50%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --success: hsl(155 32% 38%);
+  --warning: hsl(38 92% 50%);
+  --error: hsl(0 84% 50%);
+  --info: hsl(var(--secondary-500));
+
+  /* Rating Star Color - Gold/Amber for visual ratings */
+  --rating-star: hsl(45 93% 47%);
+
+  /* Vote Colors */
+  --upvote: hsl(var(--primary-500));
+  --upvote-hover: hsl(var(--primary-600));
+  --downvote: hsl(var(--accent-500));
+  --downvote-hover: hsl(var(--accent-600));
+
+  /* Thread Colors - Narwhal-style cycling colors for comment depth */
+  --thread-color-0: hsl(156 30% 45%);  /* Sage green */
+  --thread-color-1: hsl(203 65% 50%);  /* Blue */
+  --thread-color-2: hsl(207 45% 50%);  /* Accent blue */
+  --thread-color-3: hsl(175 40% 42%);  /* Teal */
+  --thread-color-4: hsl(38 75% 50%);   /* Amber */
+  --thread-color-5: hsl(280 50% 55%);  /* Purple */
+
+  /* Genre tag colors (H S% L%) — used via hsl(var(--genre-*) / alpha) */
+  --genre-action:       0 70% 38%;
+  --genre-adventure:   25 65% 36%;
+  --genre-animation:  290 45% 42%;
+  --genre-comedy:      45 75% 38%;
+  --genre-crime:      230 50% 38%;
+  --genre-documentary: 160 30% 38%;
+  --genre-drama:      200 45% 38%;
+  --genre-family:     175 45% 36%;
+  --genre-fantasy:    280 50% 40%;
+  --genre-history:     35 55% 36%;
+  --genre-horror:     340 55% 38%;
+  --genre-music:      320 50% 40%;
+  --genre-mystery:    210 45% 38%;
+  --genre-romance:    350 55% 40%;
+  --genre-scifi:      190 55% 34%;
+  --genre-tvmovie:      0  0% 45%;
+  --genre-thriller:   260 45% 40%;
+  --genre-war:         15 60% 36%;
+  --genre-western:     38 65% 36%;
+  --genre-fallback:     0  0% 45%;
+
+  /* Crew role colors */
+  --role-director:    156 30% 36%;
+  --role-writer:       45 70% 36%;
+  --role-screenplay:   38 65% 36%;
+  --role-composer:    280 50% 40%;
+  --role-cinematography: 200 45% 38%;
+  --role-editor:      175 45% 36%;
+  --role-production:   25 60% 36%;
+  --role-costume:     320 50% 40%;
+  --role-fallback:      0  0% 45%;
+
+  /* Shadows - Subtle depth */
+  --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.05);
+  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.07), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
+  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
+  --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.05);
+
+  /* Glass Effect Variables - Light Mode (light frosted glass) */
+  /* Nav bar & menu panel derive from theme background for tinted glass */
+  --glass-bg: linear-gradient(180deg, rgb(from var(--background) r g b / 0.85) 0%, rgb(from var(--background) r g b / 0.75) 100%);
+  --glass-bg-subtle: linear-gradient(180deg, rgb(from var(--background) r g b / 0.7) 0%, rgb(from var(--background) r g b / 0.6) 100%);
+  --glass-bg-button: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.85) 100%);
+  --glass-bg-button-secondary: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.65) 100%);
+  --glass-bg-slider: linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.03) 100%);
+  --glass-bg-expanded: linear-gradient(180deg, rgb(from var(--background) r g b / 0.97) 0%, rgb(from var(--background) r g b / 0.98) 100%);
+  --glass-border: rgba(0,0,0,0.12);
+  --glass-border-subtle: rgba(0,0,0,0.08);
+  --glass-text: hsl(0 0% 9%);
+  --glass-text-muted: rgba(0,0,0,0.7);
+  --glass-text-subtle: rgba(0,0,0,0.5);
+  --glass-icon: hsl(0 0% 9%);
+  --glass-icon-muted: rgba(0,0,0,0.5);
+  --glass-highlight-top: linear-gradient(90deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.5) 100%);
+  --glass-highlight-bottom: linear-gradient(90deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.02) 100%);
+  --glass-highlight-edge: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
+  --glass-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  --glass-shadow-button: inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.08);
+  --glass-shadow-slider: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.03), 0 0 0 1px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+  --glass-bg-menu: linear-gradient(180deg, rgb(from var(--background) r g b / 0.72) 0%, rgb(from var(--background) r g b / 0.75) 100%);
+  --glass-shadow-menu: 0 -4px 24px rgba(0,0,0,0.08), inset 0 0.5px 0 rgba(255,255,255,0.5);
+  --glass-backdrop: rgba(0,0,0,0.2);
+
+  /* Theater Glow - Light Mode (dark vignette for depth and focus) */
+  /* Mobile: softer */
+  --theater-glow: rgba(0, 0, 0, 0.12);
+  --theater-glow-spread: rgba(0, 0, 0, 0.08);
+  --theater-glow-top: rgba(0, 0, 0, 0.1);
+
+  /* Embossed/Raised Effect - Light Mode (more pronounced 3D raised effect) */
+  --emboss-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 2px 4px rgba(0,0,0,0.03),
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 -1px 0 rgba(0,0,0,0.06);
+  --emboss-border: rgba(0,0,0,0.15);
+  --emboss-highlight: rgba(255,255,255,0.5);
+  --zebra-alt: rgba(0,0,0,0.045);
+
+  /* Debossed/Sunken Carousel Trough - Light Mode (Shadow Box Effect) */
+  --debossed-bg: hsl(35 8% 88%);
+  --debossed-shadow:
+    inset 0 10px 28px rgba(0,0,0,0.3),
+    inset 0 5px 12px rgba(0,0,0,0.2),
+    inset 0 2px 5px rgba(0,0,0,0.15),
+    inset 0 -3px 10px rgba(255,255,255,0.6),
+    inset 0 -1px 3px rgba(255,255,255,0.9);
+  --debossed-border: rgba(0,0,0,0.18);
+
+  /* Charts - Using primary/accent scales */
+  --chart-1: hsl(var(--primary-500));
+  --chart-2: hsl(var(--secondary-500));
+  --chart-3: hsl(var(--accent-500));
+  --chart-4: hsl(var(--primary-400));
+  --chart-5: hsl(var(--secondary-400));
+
+  /* Sidebar - Light warm gray */
+  --sidebar: hsl(35 10% 91%);
+  --sidebar-foreground: hsl(35 10% 15%);
+  --sidebar-primary: hsl(var(--primary-500));
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(35 10% 87%);
+  --sidebar-accent-foreground: hsl(35 10% 15%);
+  --sidebar-border: hsl(35 8% 82%);
+  --sidebar-ring: hsl(var(--accent-500) / 0.5);
+
+  /* Card Foreground */
+  --card-foreground: hsl(0 0% 9%);
+  --popover-foreground: hsl(0 0% 9%);
+}
+
+/* ============================================
+   DARK MODE - HSL Color System
+   ============================================ */
+
+.dark {
+  /* Text Color Scale - Inverted (HSL values) */
+  --text-50: 156 38% 5%;
+  --text-100: 160 41% 10%;
+  --text-200: 159 39% 20%;
+  --text-300: 159 40% 30%;
+  --text-400: 159 40% 40%;
+  --text-500: 159 40% 50%;
+  --text-600: 159 40% 60%;
+  --text-700: 159 40% 70%;
+  --text-800: 159 39% 80%;
+  --text-900: 160 41% 90%;
+  --text-950: 162 38% 95%;
+  
+  /* Background Color Scale - Inverted (HSL values, for highlights) */
+  --background-50: 158 44% 5%;
+  --background-100: 157 45% 10%;
+  --background-200: 158 43% 20%;
+  --background-300: 158 44% 30%;
+  --background-400: 158 44% 40%;
+  --background-500: 158 44% 50%;
+  --background-600: 158 44% 60%;
+  --background-700: 158 44% 70%;
+  --background-800: 158 43% 80%;
+  --background-900: 157 45% 90%;
+  --background-950: 158 44% 95%;
+  
+  /* Primary Color Scale - Green */
+  --primary-50: 150 23% 5%;
+  --primary-100: 157 25% 10%;
+  --primary-200: 155 25% 20%;
+  --primary-300: 155 25% 30%;
+  --primary-400: 154 25% 40%;
+  --primary-500: 155 25% 50%;
+  --primary-600: 154 25% 60%;
+  --primary-700: 155 25% 70%;
+  --primary-800: 155 25% 80%;
+  --primary-900: 157 25% 90%;
+  --primary-950: 160 23% 95%;
+  
+  /* Secondary Color Scale - Blue */
+  --secondary-50: 203 62% 5%;
+  --secondary-100: 204 65% 10%;
+  --secondary-200: 203 65% 20%;
+  --secondary-300: 203 63% 30%;
+  --secondary-400: 203 64% 40%;
+  --secondary-500: 203 64% 50%;
+  --secondary-600: 203 64% 60%;
+  --secondary-700: 203 63% 70%;
+  --secondary-800: 203 65% 80%;
+  --secondary-900: 204 65% 90%;
+  --secondary-950: 202 62% 95%;
+  
+  /* Accent Color Scale - Blue */
+  --accent-50: 210 38% 5%;
+  --accent-100: 206 41% 10%;
+  --accent-200: 207 41% 20%;
+  --accent-300: 207 41% 30%;
+  --accent-400: 207 41% 40%;
+  --accent-500: 207 41% 50%;
+  --accent-600: 207 41% 60%;
+  --accent-700: 207 41% 70%;
+  --accent-800: 207 41% 80%;
+  --accent-900: 206 41% 90%;
+  --accent-950: 204 38% 95%;
+
+  /* Core Backgrounds - Warm dark brown */
+  --background: hsl(35 10% 10%);
+  --surface: hsl(35 10% 13%);
+  --surface-0: hsl(35 10% 10%);
+  --surface-1: hsl(35 10% 13%);
+  --surface-2: hsl(35 10% 17%);
+  --surface-3: hsl(35 10% 21%);
+  --surface-4: hsl(35 10% 26%);
+  --card: hsl(35 8% 8%);
+  --elevated: hsl(35 8% 12%);
+  --popover: hsl(35 8% 12%);
+
+  /* Text - Light for contrast on dark */
+  --foreground: hsl(0 0% 95%);
+  --text-primary: hsl(0 0% 95%);
+  --text-secondary: hsl(0 0% 70%);
+  --text-muted: hsl(0 0% 55%);
+  --text-disabled: hsl(0 0% 40%);
+
+  /* Borders - Warm dark */
+  --border: hsl(35 8% 20%);
+  --border-hover: hsl(35 6% 30%);
+  --input: hsl(35 8% 20%);
+
+  /* Interactive Colors */
+  --primary: hsl(var(--primary-500));
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(var(--secondary-800));
+  --secondary-foreground: hsl(var(--secondary-100));
+  --muted: hsl(35 10% 15%);
+  --muted-foreground: hsl(35 6% 55%);
+  --accent: hsl(var(--accent-500));
+  --accent-foreground: hsl(0 0% 100%);
+
+  /* Link color - uses accent for visibility */
+  --link: hsl(var(--accent-400));
+  --link-hover: hsl(var(--accent-300));
+
+  /* Interactive States */
+  --hover: hsl(var(--primary-500) / 0.12);
+  --pressed: hsl(var(--primary-500) / 0.24);
+  --focus-ring: hsl(var(--accent-500) / 0.5);
+  --ring: hsl(var(--accent-500) / 0.5);
+
+  /* Active/Selected State Tokens — Solid fills, no transparency */
+  --active-bg: var(--surface-3);
+  --active-text: var(--text-primary);
+  --active-border: var(--border-hover);
+  --active-indicator: var(--primary);
+  --active-primary-bg: hsl(var(--primary-500));
+  --active-primary-text: hsl(0 0% 100%);
+  --active-primary-border: hsl(var(--primary-600));
+  --active-info-bg: hsl(var(--secondary-500));
+  --active-info-text: hsl(0 0% 100%);
+  --active-info-border: hsl(var(--secondary-600));
+  --active-success-bg: hsl(155 32% 32%);
+  --active-success-text: hsl(0 0% 95%);
+  --active-warning-bg: hsl(38 60% 38%);
+  --active-warning-text: hsl(0 0% 95%);
+  --active-error-bg: hsl(0 60% 38%);
+  --active-error-text: hsl(0 0% 95%);
+
+  /* Semantic Colors */
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --success: hsl(155 32% 48%);
+  --warning: hsl(38 92% 50%);
+  --error: hsl(0 84% 60%);
+  --info: hsl(var(--secondary-500));
+
+  /* Rating Star Color - Gold/Amber for visual ratings (slightly brighter in dark mode) */
+  --rating-star: hsl(45 93% 52%);
+
+  /* Vote Colors */
+  --upvote: hsl(var(--primary-500));
+  --upvote-hover: hsl(var(--primary-600));
+  --downvote: hsl(var(--accent-500));
+  --downvote-hover: hsl(var(--accent-600));
+
+  /* Thread Colors - Narwhal-style cycling colors for comment depth (brighter in dark mode) */
+  --thread-color-0: hsl(156 35% 55%);  /* Sage green */
+  --thread-color-1: hsl(203 70% 58%);  /* Blue */
+  --thread-color-2: hsl(207 50% 58%);  /* Accent blue */
+  --thread-color-3: hsl(175 45% 50%);  /* Teal */
+  --thread-color-4: hsl(38 80% 55%);   /* Amber */
+  --thread-color-5: hsl(280 55% 62%);  /* Purple */
+
+  /* Genre tag colors — lighter for dark backgrounds */
+  --genre-action:       0 65% 68%;
+  --genre-adventure:   25 60% 66%;
+  --genre-animation:  290 45% 72%;
+  --genre-comedy:      45 70% 68%;
+  --genre-crime:      230 50% 70%;
+  --genre-documentary: 160 30% 65%;
+  --genre-drama:      200 45% 68%;
+  --genre-family:     175 45% 65%;
+  --genre-fantasy:    280 50% 72%;
+  --genre-history:     35 55% 66%;
+  --genre-horror:     340 50% 68%;
+  --genre-music:      320 45% 72%;
+  --genre-mystery:    210 45% 70%;
+  --genre-romance:    350 50% 70%;
+  --genre-scifi:      190 50% 65%;
+  --genre-tvmovie:      0  0% 60%;
+  --genre-thriller:   260 45% 72%;
+  --genre-war:         15 55% 66%;
+  --genre-western:     38 60% 66%;
+  --genre-fallback:     0  0% 60%;
+
+  /* Crew role colors */
+  --role-director:    156 35% 62%;
+  --role-writer:       45 65% 66%;
+  --role-screenplay:   38 60% 66%;
+  --role-composer:    280 50% 72%;
+  --role-cinematography: 200 45% 68%;
+  --role-editor:      175 45% 65%;
+  --role-production:   25 55% 66%;
+  --role-costume:     320 45% 72%;
+  --role-fallback:      0  0% 60%;
+
+  /* Shadows - More prominent in dark mode */
+  --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.35), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
+  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
+  --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.45), 0 8px 10px -6px hsl(0 0% 0% / 0.3);
+  --shadow-glow: 0 0 20px hsl(var(--accent-500) / 0.2);
+
+  /* Glass Effect Variables - Dark Mode (light glass on dark background) */
+  /* Nav bar & menu panel derive from theme background for tinted glass */
+  --glass-bg: linear-gradient(180deg, rgb(from var(--background) r g b / 0.7) 0%, rgb(from var(--background) r g b / 0.8) 100%);
+  --glass-bg-subtle: linear-gradient(180deg, rgb(from var(--background) r g b / 0.5) 0%, rgb(from var(--background) r g b / 0.65) 100%);
+  --glass-bg-button: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.12) 100%);
+  --glass-bg-button-secondary: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.05) 100%);
+  --glass-bg-slider: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.05) 100%);
+  --glass-bg-expanded: linear-gradient(180deg, rgb(from var(--background) r g b / 0.92) 0%, rgb(from var(--background) r g b / 0.95) 100%);
+  --glass-border: rgba(255,255,255,0.1);
+  --glass-border-subtle: rgba(255,255,255,0.08);
+  --glass-text: hsl(0 0% 100%);
+  --glass-text-muted: rgba(255,255,255,0.7);
+  --glass-text-subtle: rgba(255,255,255,0.5);
+  --glass-icon: hsl(0 0% 100%);
+  --glass-icon-muted: rgba(255,255,255,0.5);
+  --glass-highlight-top: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.1) 100%);
+  --glass-highlight-bottom: linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.05) 100%);
+  --glass-highlight-edge: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%);
+  --glass-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --glass-shadow-button: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.25);
+  --glass-shadow-slider: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.15);
+  --glass-bg-menu: linear-gradient(180deg, rgb(from var(--background) r g b / 0.75) 0%, rgb(from var(--background) r g b / 0.78) 100%);
+  --glass-shadow-menu: 0 -4px 24px rgba(0,0,0,0.25), inset 0 0.5px 0 rgba(255,255,255,0.15);
+  --glass-backdrop: rgba(0,0,0,0.4);
+
+  /* Theater Glow - Dark Mode (bright projection glow, dramatic) */
+  /* Mobile: softer */
+  --theater-glow: rgba(255, 255, 255, 0.18);
+  --theater-glow-spread: rgba(255, 255, 255, 0.1);
+  --theater-glow-top: rgba(255, 255, 255, 0.14);
+
+  /* Embossed/Raised Effect - Dark Mode (more pronounced 3D raised effect) */
+  --emboss-shadow:
+    0 1px 3px rgba(0,0,0,0.3),
+    0 3px 6px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+  --emboss-border: rgba(255,255,255,0.18);
+  --emboss-highlight: rgba(255,255,255,0.08);
+  --zebra-alt: rgba(255,255,255,0.055);
+
+  /* Debossed/Sunken Carousel Trough - Dark Mode (Backlit Glass Shelf Effect) */
+  --debossed-bg: hsl(35 10% 5%);
+  --debossed-shadow:
+    inset 0 6px 16px rgba(0,0,0,0.6),
+    inset 0 3px 8px rgba(0,0,0,0.5),
+    inset 0 1px 3px rgba(0,0,0,0.4),
+    inset 0 -8px 24px rgba(200,220,255,0.06),
+    inset 0 -4px 12px rgba(255,255,255,0.04),
+    0 0 40px rgba(200,220,255,0.02);
+  --debossed-border: rgba(255,255,255,0.08);
+
+  /* Charts - Using color scales */
+  --chart-1: hsl(var(--primary-600));
+  --chart-2: hsl(var(--secondary-500));
+  --chart-3: hsl(var(--accent-500));
+  --chart-4: hsl(var(--primary-400));
+  --chart-5: hsl(var(--secondary-400));
+
+  /* Sidebar - Warm dark */
+  --sidebar: hsl(35 10% 7%);
+  --sidebar-foreground: hsl(35 5% 95%);
+  --sidebar-primary: hsl(var(--primary-500));
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(35 10% 15%);
+  --sidebar-accent-foreground: hsl(35 5% 95%);
+  --sidebar-border: hsl(35 8% 20%);
+  --sidebar-ring: hsl(var(--accent-500) / 0.5);
+
+  /* Card Foreground */
+  --card-foreground: hsl(0 0% 95%);
+  --popover-foreground: hsl(var(--text-950));
+}
+
+/* ============================================
+   ADMIN DASHBOARD THEME
+   Blue-slate accent on cool dark backgrounds.
+   Applied via .admin-theme class on top of .dark
+   ============================================ */
+
+.dark .admin-theme {
+  /* Primary - Blue-slate instead of sage green */
+  --primary-50: 220 70% 5%;
+  --primary-100: 220 65% 10%;
+  --primary-200: 220 60% 20%;
+  --primary-300: 220 55% 30%;
+  --primary-400: 220 55% 42%;
+  --primary-500: 220 70% 50%;
+  --primary-600: 220 70% 60%;
+  --primary-700: 220 65% 70%;
+  --primary-800: 220 60% 80%;
+  --primary-900: 220 55% 90%;
+  --primary-950: 220 50% 95%;
+
+  /* Cool dark backgrounds (neutral-blue instead of warm brown) */
+  --background: hsl(222 15% 8%);
+  --surface: hsl(222 14% 11%);
+  --surface-0: hsl(222 15% 8%);
+  --surface-1: hsl(222 14% 11%);
+  --surface-2: hsl(222 13% 15%);
+  --surface-3: hsl(222 12% 19%);
+  --surface-4: hsl(222 11% 24%);
+  --card: hsl(222 15% 9%);
+  --elevated: hsl(222 14% 12%);
+  --popover: hsl(222 14% 12%);
+
+  /* Borders - Cool neutral */
+  --border: hsl(222 10% 20%);
+  --border-hover: hsl(222 8% 30%);
+  --input: hsl(222 10% 20%);
+
+  /* Primary interactive */
+  --primary: hsl(var(--primary-500));
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-hover: hsl(220 70% 45%);
+
+  /* Muted/Accent */
+  --muted: hsl(222 13% 15%);
+  --muted-foreground: hsl(222 8% 55%);
+  --accent: hsl(220 70% 50%);
+  --accent-foreground: hsl(0 0% 100%);
+
+  /* Interactive States */
+  --hover: hsl(220 70% 50% / 0.12);
+  --pressed: hsl(220 70% 50% / 0.24);
+  --focus-ring: hsl(220 70% 50% / 0.5);
+  --ring: hsl(220 70% 50% / 0.5);
+
+  /* Sidebar within admin */
+  --sidebar: hsl(222 15% 6%);
+  --sidebar-foreground: hsl(222 5% 95%);
+  --sidebar-primary: hsl(var(--primary-500));
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(222 13% 15%);
+  --sidebar-accent-foreground: hsl(222 5% 95%);
+  --sidebar-border: hsl(222 10% 18%);
+
+  /* Debossed elements */
+  --debossed-bg: hsl(222 15% 5%);
+}
+
+/* Admin theme - light mode variant */
+:root:not(.dark) .admin-theme {
+  /* Primary - Blue-slate (light mode scale) */
+  --primary-50: 220 70% 95%;
+  --primary-100: 220 65% 90%;
+  --primary-200: 220 60% 80%;
+  --primary-300: 220 55% 70%;
+  --primary-400: 220 55% 58%;
+  --primary-500: 220 70% 50%;
+  --primary-600: 220 70% 40%;
+  --primary-700: 220 65% 30%;
+  --primary-800: 220 60% 20%;
+  --primary-900: 220 55% 10%;
+  --primary-950: 220 50% 5%;
+
+  /* Cool light backgrounds (neutral-blue tint instead of warm cream) */
+  --background: hsl(222 12% 96%);
+  --surface: hsl(222 10% 93%);
+  --surface-0: hsl(222 12% 96%);
+  --surface-1: hsl(222 10% 93%);
+  --surface-2: hsl(222 10% 89%);
+  --surface-3: hsl(222 8% 85%);
+  --surface-4: hsl(222 8% 80%);
+  --card: hsl(222 10% 97%);
+  --elevated: hsl(222 8% 99%);
+  --popover: hsl(222 8% 99%);
+
+  /* Borders - Cool neutral */
+  --border: hsl(222 8% 85%);
+  --border-hover: hsl(222 6% 75%);
+  --input: hsl(222 8% 85%);
+
+  /* Primary interactive */
+  --primary: hsl(var(--primary-500));
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-hover: hsl(220 70% 45%);
+
+  /* Muted/Accent */
+  --muted: hsl(222 10% 89%);
+  --muted-foreground: hsl(222 6% 45%);
+  --accent: hsl(220 70% 50%);
+  --accent-foreground: hsl(0 0% 100%);
+
+  /* Interactive States */
+  --hover: hsl(220 70% 50% / 0.08);
+  --pressed: hsl(220 70% 50% / 0.16);
+  --focus-ring: hsl(220 70% 50% / 0.5);
+  --ring: hsl(220 70% 50% / 0.5);
+
+  /* Sidebar within admin */
+  --sidebar: hsl(222 10% 91%);
+  --sidebar-foreground: hsl(222 10% 15%);
+  --sidebar-primary: hsl(var(--primary-500));
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(222 10% 87%);
+  --sidebar-accent-foreground: hsl(222 10% 15%);
+  --sidebar-border: hsl(222 8% 82%);
+
+  /* Debossed elements */
+  --debossed-bg: hsl(222 10% 88%);
+}
+
+/* ============================================
+   TYPOGRAPHY SYSTEM - 1.333 Perfect Fourth Scale
+   ============================================ */
+
+:root {
+  /* Headings - PT Serif */
+  --font-h1-size: 3.157rem;
+  --font-h1-weight: 700;
+  --font-h1-line: 1.1;
+  --font-h1-spacing: -0.02em;
+
+  --font-h2-size: 2.369rem;
+  --font-h2-weight: 700;
+  --font-h2-line: 1.2;
+  --font-h2-spacing: -0.015em;
+
+  /* Subheadings - Cormorant */
+  --font-h3-size: 1.777rem;
+  --font-h3-weight: 600;
+  --font-h3-line: 1.3;
+  --font-h3-spacing: -0.01em;
+
+  --font-h4-size: 1.333rem;
+  --font-h4-weight: 500;
+  --font-h4-line: 1.4;
+  --font-h4-spacing: 0;
+
+  /* Body - Hind Guntur */
+  --font-body-lg-size: 1.125rem;
+  --font-body-lg-weight: 400;
+  --font-body-lg-line: 1.6;
+
+  --font-body-size: 1rem;
+  --font-body-weight: 400;
+  --font-body-line: 1.5;
+
+  --font-body-sm-size: 0.875rem;
+  --font-body-sm-weight: 400;
+  --font-body-sm-line: 1.5;
+
+  /* UI */
+  --font-button-size: 0.875rem;
+  --font-button-weight: 500;
+  --font-caption-size: 0.75rem;
+  --font-caption-weight: 400;
+  --font-overline-size: 0.6875rem;
+  --font-overline-weight: 500;
+}
+
+/* Desktop Typography - Scaled up */
+@media (min-width: 1024px) {
+  :root {
+    --font-h1-size: 4.209rem;
+    --font-h2-size: 3.157rem;
+    --font-h3-size: 2.369rem;
+    --font-h4-size: 1.777rem;
+  }
+}
+
+/* Desktop Theater Glow - Intense projection effect */
+@media (min-width: 1024px) {
+  :root {
+    /* Light Mode - intense dark vignette */
+    --theater-glow: rgba(0, 0, 0, 0.35);
+    --theater-glow-spread: rgba(0, 0, 0, 0.22);
+    --theater-glow-top: rgba(0, 0, 0, 0.28);
+  }
+  
+  .dark {
+    /* Dark Mode - dramatic bright projection glow */
+    --theater-glow: rgba(255, 255, 255, 0.45);
+    --theater-glow-spread: rgba(255, 255, 255, 0.28);
+    --theater-glow-top: rgba(255, 255, 255, 0.38);
+  }
+}
+
+/* ============================================
+   SPACING SYSTEM
+   ============================================ */
+
+:root {
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+
+  --padding-button-y: 0.625rem;
+  --padding-button-x: 1rem;
+  --padding-card-mobile: 1rem;
+  --padding-card-desktop: 1.25rem;
+  --padding-input-y: 0.625rem;
+  --padding-input-x: 0.75rem;
+}
+
+/* ============================================
+   ANIMATION SYSTEM
+   ============================================ */
+
+:root {
+  /* Easing curves for buttery smooth animations */
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* Premium smooth exit */
+  --easing-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --easing-smooth: cubic-bezier(0.25, 0.1, 0.25, 1); /* Natural feel */
+
+  /* Duration scale - longer = smoother perceived transitions */
+  --duration-instant: 100ms;  /* Active states, clicks */
+  --duration-fast: 200ms;     /* Hover effects, quick feedback */
+  --duration-normal: 400ms;   /* Content reveals, modals */
+  --duration-slow: 600ms;     /* Hero animations */
+
+  /* Preset transitions (use sparingly - prefer specific properties) */
+  --transition-card: all 200ms var(--easing-out-expo);
+  --transition-smooth: all 400ms var(--easing-out-expo);
+}
+
+/* Unified focus ring utility - use on interactive elements for consistent focus styling */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+  box-shadow: 0 0 0 2px var(--ring), 0 0 0 4px var(--background);
+}
+
+/* ============================================
+   TAILWIND THEME INTEGRATION
+   ============================================ */
+
+@theme inline {
+  /* Core Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-brand: var(--font-brand);
+  
+  /* Sidebar */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  
+  /* Charts */
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  
+  /* Core UI */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  
+  /* Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Color Scales - Text (HSL) */
+  --color-text-50: hsl(var(--text-50));
+  --color-text-100: hsl(var(--text-100));
+  --color-text-200: hsl(var(--text-200));
+  --color-text-300: hsl(var(--text-300));
+  --color-text-400: hsl(var(--text-400));
+  --color-text-500: hsl(var(--text-500));
+  --color-text-600: hsl(var(--text-600));
+  --color-text-700: hsl(var(--text-700));
+  --color-text-800: hsl(var(--text-800));
+  --color-text-900: hsl(var(--text-900));
+  --color-text-950: hsl(var(--text-950));
+  
+  /* Color Scales - Background (HSL) */
+  --color-bg-50: hsl(var(--background-50));
+  --color-bg-100: hsl(var(--background-100));
+  --color-bg-200: hsl(var(--background-200));
+  --color-bg-300: hsl(var(--background-300));
+  --color-bg-400: hsl(var(--background-400));
+  --color-bg-500: hsl(var(--background-500));
+  --color-bg-600: hsl(var(--background-600));
+  --color-bg-700: hsl(var(--background-700));
+  --color-bg-800: hsl(var(--background-800));
+  --color-bg-900: hsl(var(--background-900));
+  --color-bg-950: hsl(var(--background-950));
+  
+  /* Color Scales - Primary (HSL) */
+  --color-primary-50: hsl(var(--primary-50));
+  --color-primary-100: hsl(var(--primary-100));
+  --color-primary-200: hsl(var(--primary-200));
+  --color-primary-300: hsl(var(--primary-300));
+  --color-primary-400: hsl(var(--primary-400));
+  --color-primary-500: hsl(var(--primary-500));
+  --color-primary-600: hsl(var(--primary-600));
+  --color-primary-700: hsl(var(--primary-700));
+  --color-primary-800: hsl(var(--primary-800));
+  --color-primary-900: hsl(var(--primary-900));
+  --color-primary-950: hsl(var(--primary-950));
+  
+  /* Color Scales - Secondary (HSL) */
+  --color-secondary-50: hsl(var(--secondary-50));
+  --color-secondary-100: hsl(var(--secondary-100));
+  --color-secondary-200: hsl(var(--secondary-200));
+  --color-secondary-300: hsl(var(--secondary-300));
+  --color-secondary-400: hsl(var(--secondary-400));
+  --color-secondary-500: hsl(var(--secondary-500));
+  --color-secondary-600: hsl(var(--secondary-600));
+  --color-secondary-700: hsl(var(--secondary-700));
+  --color-secondary-800: hsl(var(--secondary-800));
+  --color-secondary-900: hsl(var(--secondary-900));
+  --color-secondary-950: hsl(var(--secondary-950));
+  
+  /* Color Scales - Accent (HSL) */
+  --color-accent-50: hsl(var(--accent-50));
+  --color-accent-100: hsl(var(--accent-100));
+  --color-accent-200: hsl(var(--accent-200));
+  --color-accent-300: hsl(var(--accent-300));
+  --color-accent-400: hsl(var(--accent-400));
+  --color-accent-500: hsl(var(--accent-500));
+  --color-accent-600: hsl(var(--accent-600));
+  --color-accent-700: hsl(var(--accent-700));
+  --color-accent-800: hsl(var(--accent-800));
+  --color-accent-900: hsl(var(--accent-900));
+  --color-accent-950: hsl(var(--accent-950));
+  
+  /* Animations */
+  --animate-shiny-text: shiny-text 8s infinite;
+  @keyframes shiny-text {
+    0%, 90%, 100% { background-position: calc(-100% - var(--shiny-width)) 0; }
+    30%, 60% { background-position: calc(100% + var(--shiny-width)) 0; }
+  }
+  --animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
+  @keyframes ripple {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(0.9); }
+  }
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+body {
+  font-family: var(--font-geist-sans), var(--font-sans), system-ui, sans-serif;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Prevent layout shift when scrollbar appears/disappears (e.g., when modals open) */
+  scrollbar-gutter: stable;
+  overflow-y: scroll; /* Always show scrollbar to prevent layout shift */
+  /* Mobile: scale up all text by 1 step via root font-size */
+  font-size: 112.5%; /* 18px base on mobile */
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 100%; /* 16px base on desktop */
+  }
+}
+
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--duration-normal) var(--easing-out-expo);
+  animation-fill-mode: forwards;
+}
+
+/* Slower fade-in variant for page-level content */
+.animate-fade-in-slow {
+  animation: fadeIn var(--duration-slow) var(--easing-out-expo);
+  animation-fill-mode: forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp var(--duration-slow) var(--easing-out);
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--duration-fast) var(--easing-out);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Star favorite animation - pop & glow effect */
+@keyframes star-favorite {
+  0% { 
+    transform: scale(1) rotate(0deg); 
+  }
+  15% { 
+    transform: scale(0.7) rotate(-15deg); 
+  }
+  30% { 
+    transform: scale(1.3) rotate(10deg); 
+    filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.6));
+  }
+  45% { 
+    transform: scale(0.95) rotate(-5deg); 
+  }
+  60% { 
+    transform: scale(1.15) rotate(3deg); 
+    filter: drop-shadow(0 0 12px rgba(234, 179, 8, 0.8));
+  }
+  75% { 
+    transform: scale(1.05) rotate(-1deg); 
+  }
+  100% { 
+    transform: scale(1) rotate(0deg); 
+    filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.4));
+  }
+}
+
+/* Star unfavorite animation - subtle shrink */
+@keyframes star-unfavorite {
+  0% { 
+    transform: scale(1); 
+    filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.4));
+  }
+  50% { 
+    transform: scale(0.85); 
+    filter: none;
+  }
+  100% { 
+    transform: scale(1); 
+    filter: none;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, var(--surface-1) 0%, var(--surface-3) 20%, var(--surface-1) 40%, var(--surface-1) 100%);
+  background-size: 1000px 100%;
+}
+
+/* Toast animations */
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toast-exit {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+@keyframes collapsible-down {
+  from { height: 0; opacity: 0; }
+  to { height: var(--radix-collapsible-content-height); opacity: 1; }
+}
+
+@keyframes collapsible-up {
+  from { height: var(--radix-collapsible-content-height); opacity: 1; }
+  to { height: 0; opacity: 0; }
+}
+
+.animate-collapsible-down {
+  animation: collapsible-down var(--duration-normal) var(--easing-out-expo);
+}
+
+.animate-collapsible-up {
+  animation: collapsible-up var(--duration-fast) var(--easing-in);
+}
+
+/* ============================================
+   MENU ANIMATIONS - Smooth, unified timing
+   ============================================ */
+
+:root {
+  --menu-duration: 400ms;
+  --menu-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes menu-fade-in {
+  from { 
+    opacity: 0; 
+    transform: scale(0.98) translateY(-4px);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes menu-fade-out {
+  from { 
+    opacity: 1; 
+    transform: scale(1) translateY(0);
+  }
+  to { 
+    opacity: 0; 
+    transform: scale(0.98) translateY(-4px);
+  }
+}
+
+@keyframes menu-expand {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+    max-height: 40px;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    max-height: min(70vh, 500px);
+  }
+}
+
+@keyframes menu-collapse {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    max-height: min(70vh, 500px);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+    max-height: 40px;
+  }
+}
+
+/* Roll-down animation for dropdown menus (profile, notifications) */
+@keyframes dropdown-roll-down {
+  0% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes dropdown-roll-up {
+  0% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+
+/* Apply roll-down animation to dropdown menus with variant */
+[data-variant="rollDown"] {
+  transform-origin: top center !important;
+}
+
+[data-variant="rollDown"][data-state="open"] {
+  animation: dropdown-roll-down 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+[data-variant="rollDown"][data-state="closed"] {
+  animation: dropdown-roll-up 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+/* Staggered item animation for rollDown menus */
+@keyframes dropdown-item-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-variant="rollDown"][data-state="open"] > * {
+  opacity: 0;
+  animation: dropdown-item-in 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+[data-variant="rollDown"][data-state="open"] > *:nth-child(1) { animation-delay: 50ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(2) { animation-delay: 80ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(3) { animation-delay: 110ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(4) { animation-delay: 140ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(5) { animation-delay: 170ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(6) { animation-delay: 200ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(7) { animation-delay: 230ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(8) { animation-delay: 260ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(9) { animation-delay: 290ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(10) { animation-delay: 320ms; }
+[data-variant="rollDown"][data-state="open"] > *:nth-child(n+11) { animation-delay: 350ms; }
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+
+.skeleton {
+  background: var(--surface-2);
+  animation: skeleton-pulse 2.5s var(--easing-smooth) infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-pulse {
+  0% { opacity: 0.9; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0.9; }
+}
+
+/* Skeleton fade-out when content loads */
+.skeleton-exit {
+  animation: skeleton-fade-out var(--duration-normal) var(--easing-out-expo) forwards;
+}
+
+@keyframes skeleton-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  }
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Debossed Carousel Trough - Shadow Box container for scrolling movie lists */
+.carousel-trough {
+  position: relative;
+  background:
+    radial-gradient(ellipse 80% 100% at 50% 50%,
+      hsl(35 8% 94%) 0%,
+      hsl(35 8% 90%) 40%,
+      hsl(35 8% 84%) 100%
+    ),
+    linear-gradient(180deg,
+      rgba(0,0,0,0.06) 0%,
+      transparent 25%,
+      transparent 85%,
+      rgba(255,255,255,0.08) 100%
+    );
+  box-shadow: var(--debossed-shadow);
+  border: 1px solid var(--debossed-border);
+  border-top-color: rgba(0,0,0,0.15);
+  border-bottom-color: rgba(255,255,255,0.2);
+  border-radius: 0.75rem;
+  margin-top: -0.25rem;
+}
+
+.dark .carousel-trough {
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 130%,
+      rgba(200,220,255,0.07) 0%,
+      rgba(200,220,255,0.025) 50%,
+      transparent 80%
+    ),
+    linear-gradient(180deg,
+      rgba(0,0,0,0.35) 0%,
+      rgba(0,0,0,0.15) 15%,
+      transparent 40%,
+      rgba(200,220,255,0.02) 90%,
+      rgba(200,220,255,0.04) 100%
+    ),
+    var(--debossed-bg);
+  border-top-color: rgba(0,0,0,0.4);
+  border-bottom-color: rgba(200,220,255,0.12);
+}
+
+
+/* Poster Card - subtle shadow effect for movie posters */
+.poster-card-embossed {
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.08),
+    0 4px 8px rgba(0,0,0,0.06);
+}
+
+.dark .poster-card-embossed {
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.3),
+    0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   FOCUS STYLES - WCAG 2.1 Compliant
+   ============================================ */
+
+/*
+ * Focus Indicator System - Accessibility
+ *
+ * We disable the default browser outline and use our own focus ring.
+ * This ensures consistent, visible focus indicators that meet WCAG 2.1 AA.
+ *
+ * Components can override with their own focus styles using Tailwind utilities
+ * like focus-visible:ring-2 focus-visible:ring-[var(--primary)]
+ */
+:focus {
+  outline: none;
+}
+
+/* Default focus ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Remove focus ring when using mouse (for elements that specifically need it) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Interactive elements that need visible focus indicators */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[role="checkbox"]:focus-visible,
+[role="radio"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================
+   REDDIT-STYLE DISCUSSION THREAD STYLES
+   ============================================ */
+
+/* Thread connector line */
+.thread-line {
+  position: absolute;
+  left: 16px;
+  top: 40px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.thread-line:hover {
+  background: var(--border-hover);
+}
+
+/* Collapse toggle */
+.collapse-line {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  cursor: pointer;
+  background: var(--border);
+  transition: background 150ms ease;
+}
+
+.collapse-line:hover {
+  background: var(--text-muted);
+}
+
+/* Vote buttons */
+.vote-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  transition: all 150ms ease;
+  color: var(--text-muted);
+  }
+
+.vote-button:hover {
+  background: var(--hover);
+}
+
+.vote-button.upvoted {
+  color: var(--upvote);
+}
+
+.vote-button.downvoted {
+  color: var(--downvote);
+}
+
+/* Comment highlight on link */
+.comment-highlighted {
+  background: var(--hover);
+  animation: highlight-fade 2s ease-out forwards;
+}
+
+@keyframes highlight-fade {
+  0% { background: var(--hover); }
+  100% { background: transparent; }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   BASE LAYER
+   ============================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  /* Suppress the colored outline ring inside tiptap editors */
+  .ProseMirror,
+  .ProseMirror * {
+    outline-color: transparent !important;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Links use accent color for visibility */
+  a:not([class*="btn"]):not([class*="button"]):not([class*="text-"]):not([role="button"]) {
+    color: var(--link);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  a:not([class*="btn"]):not([class*="button"]):not([class*="text-"]):not([role="button"]):hover {
+    color: var(--link-hover);
+    text-decoration: none;
+  }
+}
+
+/* ============================================
+   MOBILE UI ANIMATIONS & MICRO-INTERACTIONS
+   Warby Parker-inspired smooth transitions
+   ============================================ */
+
+/* Slide in from bottom (for sheets) - buttery smooth */
+@keyframes slide-in-bottom {
+  from { 
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-out-bottom {
+  from { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to { 
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom var(--duration-normal) var(--easing-out-expo) forwards;
+}
+
+.animate-slide-out-bottom {
+  animation: slide-out-bottom var(--duration-fast) var(--easing-in) forwards;
+}
+
+/* Slide in from left (for sidebars) - buttery smooth */
+@keyframes slide-in-left {
+  from { 
+    transform: translateX(-100%);
+  }
+  to { 
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-left {
+  from { 
+    transform: translateX(0);
+  }
+  to { 
+    transform: translateX(-100%);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--duration-normal) var(--easing-out-expo) forwards;
+}
+
+.animate-slide-out-left {
+  animation: slide-out-left var(--duration-fast) var(--easing-in) forwards;
+}
+
+/* Tab indicator slide */
+@keyframes tab-indicator-slide {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-tab-indicator {
+  animation: tab-indicator-slide 200ms var(--easing-out) forwards;
+  transform-origin: left center;
+}
+
+/* Stagger children animation - smooth cascade effect */
+.stagger-children > * {
+  animation: fadeIn var(--duration-normal) var(--easing-out-expo) forwards;
+  opacity: 0;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 540ms; }
+
+/* Pull to refresh indicator */
+@keyframes pull-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-pull-rotate {
+  animation: pull-rotate 1s linear infinite;
+}
+
+/* Safe area padding utilities */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile touch highlight removal */
+@media (hover: none) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Smooth momentum scrolling for iOS */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Backdrop blur support check */
+@supports (backdrop-filter: blur(12px)) {
+  .supports-backdrop-blur {
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* iOS-style rubber band effect prevention */
+.prevent-overscroll {
+  overscroll-behavior: none;
+}
+
+/* Mobile-specific hover state removal */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-no-hover:hover {
+    background: inherit;
+    transform: none;
+  }
+}
+
+/* ============================================
+   CLUB THEME ACCENT COLORS
+   Dynamic theming for individual club pages
+   ============================================ */
+
+/* Club theme accent colors are set dynamically by ClubThemeProvider.
+   When no club theme is set, components should use fallbacks like:
+   var(--club-accent, var(--text-primary)) or var(--club-accent, var(--primary)) */
+
+/* Club-themed button variant */
+.btn-club-accent {
+  background-color: var(--club-accent);
+  color: white;
+  transition: all 150ms ease;
+}
+
+.btn-club-accent:hover {
+  filter: brightness(1.1);
+}
+
+/* Club accent text */
+.text-club-accent {
+  color: var(--club-accent);
+}
+
+/* Club accent background */
+.bg-club-accent {
+  background-color: var(--club-accent);
+}
+
+.bg-club-accent-muted {
+  background-color: var(--club-accent-muted);
+}
+
+.bg-club-accent-light {
+  background-color: var(--club-accent-light);
+}
+
+/* Club accent border */
+.border-club-accent {
+  border-color: var(--club-accent);
+}
+
+.border-club-accent-muted {
+  border-color: var(--club-accent-muted);
+}
+
+/* Club accent ring (focus state) */
+.ring-club-accent {
+  --tw-ring-color: var(--club-accent);
+}
+
+/* Club-themed card with subtle accent border */
+.card-club-themed {
+  border: 1px solid var(--club-accent-muted);
+  transition: border-color 150ms ease;
+}
+
+.card-club-themed:hover {
+  border-color: var(--club-accent-light);
+}
+
+/* Club-themed badge */
+.badge-club {
+  background-color: var(--club-accent-muted);
+  color: var(--club-accent);
+  font-weight: 500;
+}
+
+/* Club-themed progress bar */
+.progress-club-accent {
+  background-color: var(--club-accent);
+}
+
+/* Club-themed link */
+.link-club-accent {
+  color: var(--club-accent);
+  transition: opacity 150ms ease;
+}
+
+.link-club-accent:hover {
+  opacity: 0.8;
+}
+
+/* Club accent divider */
+.divider-club-accent {
+  background: linear-gradient(90deg, transparent, var(--club-accent-light), transparent);
+  height: 1px;
+}
+
+/* Club-themed tab indicator */
+.tab-indicator-club {
+  background-color: var(--club-accent);
+}
+
+/* Club-themed checkbox/radio accent */
+.checkbox-club-accent:checked {
+  background-color: var(--club-accent);
+  border-color: var(--club-accent);
+}
+
+/* Club-themed switch */
+.switch-club-accent[data-state="checked"] {
+  background-color: var(--club-accent);
+}
+
+/* ============================================
+   DE-BOSSED SEARCH INPUT STYLES
+   Sunken/pressed-in effect for search boxes
+   ============================================ */
+
+:root {
+  /* De-bossed Search Input - Light Mode */
+  --search-debossed-bg: hsl(35 10% 91%);
+  --search-debossed-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  --search-debossed-border: rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  /* De-bossed Search Input - Dark Mode */
+  --search-debossed-bg: hsl(35 10% 5%);
+  --search-debossed-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.03);
+  --search-debossed-border: rgba(255, 255, 255, 0.08);
+}
+
+/* De-bossed search input class */
+.search-input-debossed {
+  background: var(--search-debossed-bg) !important;
+  box-shadow: var(--search-debossed-shadow) !important;
+  border-color: var(--search-debossed-border) !important;
+  transition: box-shadow 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.search-input-debossed:hover {
+  border-color: var(--border-hover) !important;
+}
+
+.search-input-debossed:focus,
+.search-input-debossed:focus-visible {
+  box-shadow:
+    var(--search-debossed-shadow),
+    0 0 0 2px var(--ring) !important;
+  border-color: transparent !important;
+}
+
+/* For containers wrapping search inputs (like CommandInput wrapper) */
+.search-container-debossed {
+  background: var(--search-debossed-bg);
+  box-shadow: var(--search-debossed-shadow);
+  border-color: var(--search-debossed-border);
+  border-radius: var(--radius);
+}
+
+/* ============================================
+   FLIP CLOCK COUNTDOWN OVERRIDES
+   Stable divider line that doesn't animate
+   ============================================ */
+
+/* Add a stable divider line overlay that doesn't participate in the flip animation */
+._2EBbg::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: var(--fcc-divider-height, 1px);
+  background-color: var(--fcc-divider-color, rgba(0, 0, 0, 0.3));
+  transform: translateY(-50%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Color theme overrides — must come after :root and .dark base declarations */
+@import "./theme-colors.css";
