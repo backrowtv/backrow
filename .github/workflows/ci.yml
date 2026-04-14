@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: read
+  statuses: read
+  pull-requests: read
+
+jobs:
+  check:
+    name: Typecheck · Lint · Unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.12
+
+      - name: Cache Bun install + Next build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            .next/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint -- --max-warnings=0
+
+      - name: Unit tests (Vitest — cache/)
+        run: bun run test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PREVIEW_SUPABASE_URL || 'http://localhost:54321' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PREVIEW_SUPABASE_ANON_KEY || 'test-anon-key' }}
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 30
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.12
+
+      - name: Cache Bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Wait for Vercel preview deployment
+        id: preview
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          REPO: ${{ github.repository }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          set -e
+          DEPLOY_URL=""
+          # Try SHA-based lookup first (accurate when Vercel actually built this commit)
+          for i in $(seq 1 36); do
+            if DEPS=$(gh api "repos/$REPO/commits/$SHA/deployments" 2>/dev/null); then
+              IDS=$(echo "$DEPS" | jq -r '.[] | select(.environment=="Preview") | .id')
+              for ID in $IDS; do
+                if STATS=$(gh api "repos/$REPO/deployments/$ID/statuses" 2>/dev/null); then
+                  URL=$(echo "$STATS" | jq -r '[.[] | select(.state=="success") | .environment_url] | first // empty')
+                  if [ -n "$URL" ] && [ "$URL" != "null" ]; then
+                    DEPLOY_URL="$URL"
+                    break 2
+                  fi
+                fi
+              done
+            fi
+            echo "($i/36) Waiting for per-SHA Vercel success event..."
+            sleep 10
+          done
+          # Fallback: branch alias (handles workflow-only commits where Ignored Build Step skipped)
+          if [ -z "$DEPLOY_URL" ]; then
+            SLUG=$(echo "$HEAD_REF" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+            DEPLOY_URL="https://backrow-git-${SLUG}-backrow.vercel.app"
+            echo "No per-SHA success; falling back to branch alias: $DEPLOY_URL"
+          fi
+          echo "Preview URL: $DEPLOY_URL"
+          for i in $(seq 1 60); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "x-vercel-protection-bypass: $BYPASS" "$DEPLOY_URL/")
+            if [ "$CODE" = "200" ]; then
+              echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+              echo "Preview reachable."
+              exit 0
+            fi
+            echo "Got $CODE, retrying..."
+            sleep 5
+          done
+          echo "::error::Preview not reachable (last code $CODE)"
+          exit 1
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Seed test factory
+        run: bun tsx scripts/test-factory --scenario=tiny
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PREVIEW_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PREVIEW_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Integration tests (Vitest — actions/)
+        run: bun run test:integration
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PREVIEW_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PREVIEW_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run E2E smoke tests
+        run: bun run test:e2e -- e2e/smoke.spec.ts
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PREVIEW_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PREVIEW_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

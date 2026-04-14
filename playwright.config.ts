@@ -1,0 +1,37 @@
+import { defineConfig, devices } from "@playwright/test";
+
+// CI targets a live deployment (Vercel preview) via PLAYWRIGHT_BASE_URL; locally
+// Playwright boots `bun run dev` and hits localhost. See docs/development.md.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const isRemoteTarget = !!process.env.PLAYWRIGHT_BASE_URL;
+const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypass ? { "x-vercel-protection-bypass": bypass } : undefined;
+
+export default defineConfig({
+  testDir: "./e2e",
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: "html",
+  use: {
+    baseURL,
+    extraHTTPHeaders,
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+  webServer: isRemoteTarget
+    ? undefined
+    : {
+        command: "bun run dev",
+        url: "http://localhost:3000",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      },
+});
