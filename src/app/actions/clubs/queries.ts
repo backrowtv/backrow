@@ -9,15 +9,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags } from "@/lib/cache/invalidate";
 import { type FestivalPhase } from "@/lib/phase-labels";
 
 /**
- * Get club by slug (cached for 1 hour)
+ * Get club by slug (cached for 1 hour).
+ * Tagged with the resolved club id so `invalidateClub(clubId)` busts it.
  */
 export async function getClubBySlug(slug: string) {
   "use cache";
   cacheLife("hours");
-  cacheTag("club", `club-${slug}`);
 
   const supabase = await createClient();
 
@@ -32,6 +33,9 @@ export async function getClubBySlug(slug: string) {
     return null;
   }
 
+  if (club?.id) cacheTag(CacheTags.club(club.id as string));
+  cacheTag(CacheTags.clubsIndex());
+
   return club;
 }
 
@@ -41,7 +45,7 @@ export async function getClubBySlug(slug: string) {
 export async function getClubMembers(clubId: string) {
   "use cache";
   cacheLife("hours");
-  cacheTag("club", `club-${clubId}`, "members");
+  cacheTag(CacheTags.club(clubId));
 
   const supabase = await createClient();
 
@@ -64,7 +68,7 @@ export async function getClubMembers(clubId: string) {
 export async function getClubById(clubId: string) {
   "use cache";
   cacheLife("hours");
-  cacheTag("club", `club-${clubId}`);
+  cacheTag(CacheTags.club(clubId));
 
   const supabase = await createClient();
 

@@ -34,12 +34,9 @@ export function NominationForm({ festivalId, clubId: _clubId }: NominationFormPr
       )}
 
       <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: "var(--text-secondary)" }}
-        >
+        <span className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
           Select Movie *
-        </label>
+        </span>
         <MovieSearch
           onSelect={setSelectedMovieId}
           selectedMovieId={selectedMovieId}

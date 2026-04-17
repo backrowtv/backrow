@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival, invalidateClub } from "@/lib/cache/invalidate";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { normalizeRating, INTERNAL_RATING_SCALE } from "@/lib/ratings/normalize";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
@@ -159,17 +159,15 @@ export async function createRating(prevState: unknown, formData: FormData) {
         return { error: error.message };
       }
 
-      // Get movie info for logging and club/festival slugs
-      const [{ data: nominationData }, { data: clubData }, { data: festivalData }] =
-        await Promise.all([
-          supabase
-            .from("nominations")
-            .select("tmdb_id, movies:tmdb_id(title)")
-            .eq("id", nominationId)
-            .single(),
-          supabase.from("clubs").select("slug").eq("id", festival.club_id).single(),
-          supabase.from("festivals").select("slug").eq("id", festivalId).single(),
-        ]);
+      // Get movie info for logging + club slug for the watched-event hook
+      const [{ data: nominationData }, { data: clubData }] = await Promise.all([
+        supabase
+          .from("nominations")
+          .select("tmdb_id, movies:tmdb_id(title)")
+          .eq("id", nominationId)
+          .single(),
+        supabase.from("clubs").select("slug").eq("id", festival.club_id).single(),
+      ]);
 
       // Sync to generic_ratings for endless/non-themed festivals
       if (shouldSyncToGeneric && nominationData?.tmdb_id) {
@@ -197,10 +195,7 @@ export async function createRating(prevState: unknown, formData: FormData) {
         }
       }
 
-      revalidatePath(
-        `/club/${clubData?.slug || festival.club_id}/festival/${festivalData?.slug || festivalId}`
-      );
-      revalidatePath(`/club/${clubData?.slug || festival.club_id}`);
+      await invalidateFestival(festivalId, { clubId: festival.club_id });
 
       const movieInfo = Array.isArray(nominationData?.movies)
         ? nominationData.movies[0]
@@ -227,15 +222,14 @@ export async function createRating(prevState: unknown, formData: FormData) {
     return { error: error.message };
   }
 
-  // Get movie info for logging and club/festival slugs
-  const [{ data: nominationData }, { data: clubData }, { data: festivalData }] = await Promise.all([
+  // Get movie info for logging + club slug for the watched-event hook
+  const [{ data: nominationData }, { data: clubData }] = await Promise.all([
     supabase
       .from("nominations")
       .select("tmdb_id, movie:movies(title)")
       .eq("id", nominationId)
       .maybeSingle(),
     supabase.from("clubs").select("slug, name").eq("id", festival.club_id).maybeSingle(),
-    supabase.from("festivals").select("slug").eq("id", festivalId).maybeSingle(),
   ]);
 
   // Sync to generic_ratings for endless/non-themed festivals
@@ -292,9 +286,7 @@ export async function createRating(prevState: unknown, formData: FormData) {
     console.error("Rating achievement check failed:", e);
   }
 
-  const clubSlug = clubData?.slug || festival.club_id;
-  const festivalSlug = festivalData?.slug || festivalId;
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true };
 }
 
@@ -513,13 +505,7 @@ export async function deleteEndlessRating(festivalId: string, nominationId: stri
     }
   }
 
-  const { data: clubData } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  revalidatePath(`/club/${clubData?.slug || festival.club_id}`);
+  invalidateClub(festival.club_id);
 
   return { success: true };
 }

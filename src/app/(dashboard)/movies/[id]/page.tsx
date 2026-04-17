@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   getMovieDetails,
   getPosterUrl,
@@ -6,6 +7,9 @@ import {
   type TMDBMovie,
 } from "@/lib/tmdb/client";
 import { createClient } from "@/lib/supabase/server";
+import { getMovieForSeo } from "@/lib/seo/fetchers";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { MovieJsonLd } from "@/components/seo/JsonLd";
 import { getMovieBySlug, getMovie, cacheMovie } from "@/app/actions/movies";
 import { getMovieLinkPreferences } from "@/app/actions/navigation-preferences";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +32,35 @@ import { notFound, redirect } from "next/navigation";
 
 interface MoviePageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: MoviePageProps): Promise<Metadata> {
+  const { id } = await params;
+  const movie = await getMovieForSeo(id);
+  if (!movie) {
+    return { title: "Movie not found · BackRow", robots: { index: false, follow: false } };
+  }
+  const canonicalId = movie.slug ?? String(movie.tmdb_id);
+  const url = absoluteUrl(`/movies/${canonicalId}`);
+  const titleWithYear = movie.year ? `${movie.title} (${movie.year})` : movie.title;
+  const description =
+    movie.overview?.slice(0, 160) ||
+    movie.tagline ||
+    `${titleWithYear} — ratings and reviews from BackRow movie clubs.`;
+  return {
+    title: `${titleWithYear} · BackRow`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: titleWithYear,
+      description,
+      url,
+      type: "video.movie",
+      siteName: "BackRow",
+    },
+    twitter: { card: "summary_large_image", title: titleWithYear, description },
+    robots: movie.slug ? { index: true, follow: true } : { index: false, follow: true },
+  };
 }
 
 export default async function MoviePage({ params }: MoviePageProps) {
@@ -320,6 +353,19 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
   return (
     <div className="bg-[var(--background)]">
+      <MovieJsonLd
+        movie={{
+          tmdb_id: finalTmdbId,
+          slug: dbMovie?.slug ?? null,
+          title: movie.title,
+          year: movie.release_date ? Number(movie.release_date.slice(0, 4)) : null,
+          director: movie.credits?.crew?.find((c) => c.job === "Director")?.name ?? null,
+          poster_url: posterUrl,
+          overview: movie.overview ?? null,
+          cast: movie.credits?.cast?.slice(0, 10).map((c) => c.name) ?? null,
+          genres: movie.genres?.map((g) => g.name) ?? null,
+        }}
+      />
       {/* Hero Section - Compact */}
       <div className="relative w-full h-[250px] lg:h-[350px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/30 to-transparent z-10" />
@@ -375,82 +421,84 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 </div>
                 {/* External Links - Logo buttons (rendered in user's preferred order) */}
                 <div className="flex items-center justify-between">
-                  {visibleLinksOrdered.length > 0 && <div className="flex items-center gap-2 flex-wrap">
-                    {visibleLinksOrdered.map((linkType) => {
-                      if (linkType === "imdb" && movie.external_ids?.imdb_id) {
-                        return (
-                          <ExternalLink
-                            key={linkType}
-                            href={`https://www.imdb.com/title/${movie.external_ids.imdb_id}`}
-                            logo="imdb"
-                            label="View on IMDb"
-                          />
-                        );
-                      }
-                      if (linkType === "letterboxd") {
-                        return (
-                          <ExternalLink
-                            key={linkType}
-                            href={`https://letterboxd.com/tmdb/${finalTmdbId}`}
-                            logo="letterboxd"
-                            label="View on Letterboxd"
-                          />
-                        );
-                      }
-                      if (linkType === "trakt") {
-                        return (
-                          <ExternalLink
-                            key={linkType}
-                            href={`https://trakt.tv/search/tmdb/${finalTmdbId}?id_type=movie`}
-                            logo="trakt"
-                            label="View on Trakt"
-                          />
-                        );
-                      }
-                      if (linkType === "tmdb") {
-                        return (
-                          <ExternalLink
-                            key={linkType}
-                            href={`https://www.themoviedb.org/movie/${finalTmdbId}`}
-                            logo="tmdb"
-                            label="View on TMDB"
-                          />
-                        );
-                      }
-                      if (linkType === "wikipedia") {
-                        return movie.external_ids?.wikidata_id ? (
-                          <ExternalLink
-                            key={linkType}
-                            href={`https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/${movie.external_ids.wikidata_id}`}
-                            logo="wikipedia"
-                            label="View on Wikipedia"
-                          />
-                        ) : (
-                          <ExternalLink
-                            key={linkType}
-                            href={`https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(movie.title + (movie.release_date ? ` (${new Date(movie.release_date).getFullYear()} film)` : " (film)"))}`}
-                            logo="wikipedia"
-                            label="Search on Wikipedia"
-                          />
-                        );
-                      }
-                      return null;
-                    })}
-                  </div>}
+                  {visibleLinksOrdered.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {visibleLinksOrdered.map((linkType) => {
+                        if (linkType === "imdb" && movie.external_ids?.imdb_id) {
+                          return (
+                            <ExternalLink
+                              key={linkType}
+                              href={`https://www.imdb.com/title/${movie.external_ids.imdb_id}`}
+                              logo="imdb"
+                              label="View on IMDb"
+                            />
+                          );
+                        }
+                        if (linkType === "letterboxd") {
+                          return (
+                            <ExternalLink
+                              key={linkType}
+                              href={`https://letterboxd.com/tmdb/${finalTmdbId}`}
+                              logo="letterboxd"
+                              label="View on Letterboxd"
+                            />
+                          );
+                        }
+                        if (linkType === "trakt") {
+                          return (
+                            <ExternalLink
+                              key={linkType}
+                              href={`https://trakt.tv/search/tmdb/${finalTmdbId}?id_type=movie`}
+                              logo="trakt"
+                              label="View on Trakt"
+                            />
+                          );
+                        }
+                        if (linkType === "tmdb") {
+                          return (
+                            <ExternalLink
+                              key={linkType}
+                              href={`https://www.themoviedb.org/movie/${finalTmdbId}`}
+                              logo="tmdb"
+                              label="View on TMDB"
+                            />
+                          );
+                        }
+                        if (linkType === "wikipedia") {
+                          return movie.external_ids?.wikidata_id ? (
+                            <ExternalLink
+                              key={linkType}
+                              href={`https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/${movie.external_ids.wikidata_id}`}
+                              logo="wikipedia"
+                              label="View on Wikipedia"
+                            />
+                          ) : (
+                            <ExternalLink
+                              key={linkType}
+                              href={`https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(movie.title + (movie.release_date ? ` (${new Date(movie.release_date).getFullYear()} film)` : " (film)"))}`}
+                              logo="wikipedia"
+                              label="Search on Wikipedia"
+                            />
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  )}
                   {user && (
                     <div className="ml-auto">
-                    <FavoriteButton
-                      tmdbId={finalTmdbId}
-                      itemType="movie"
-                      title={movie.title}
-                      imagePath={movie.poster_path}
-                      subtitle={
-                        movie.release_date
-                          ? new Date(movie.release_date).getFullYear().toString()
-                          : null
-                      }
-                      existingFavoriteId={existingFavoriteId}
-                    />
+                      <FavoriteButton
+                        tmdbId={finalTmdbId}
+                        itemType="movie"
+                        title={movie.title}
+                        imagePath={movie.poster_path}
+                        subtitle={
+                          movie.release_date
+                            ? new Date(movie.release_date).getFullYear().toString()
+                            : null
+                        }
+                        existingFavoriteId={existingFavoriteId}
+                      />
                     </div>
                   )}
                 </div>

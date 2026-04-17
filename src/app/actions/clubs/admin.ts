@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub, invalidateDiscover } from "@/lib/cache/invalidate";
 import { generateClubSlug } from "./_helpers";
 
 /**
@@ -46,9 +46,7 @@ export async function fixClubSlug(clubId: string) {
       return { error: error.message };
     }
 
-    revalidatePath("/");
-    revalidatePath("/clubs");
-    revalidatePath(`/club/${correctSlug}`);
+    invalidateClub(clubId);
 
     return { success: true, oldSlug: club.slug, newSlug: correctSlug };
   }
@@ -92,8 +90,8 @@ export async function fixAllClubSlugs() {
     }
   }
 
-  revalidatePath("/");
-  revalidatePath("/clubs");
+  for (const u of updates) invalidateClub(u.id);
+  invalidateDiscover();
 
   return { success: true, updated: updates };
 }

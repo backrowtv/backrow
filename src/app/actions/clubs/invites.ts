@@ -11,6 +11,9 @@ import { createClient } from "@/lib/supabase/server";
 import { randomBytes } from "crypto";
 import { sendEmail } from "@/lib/email/resend";
 import { inviteEmailHtml } from "@/lib/email/templates/render";
+import { actionRateLimit, actionRateLimitByUser } from "@/lib/security/action-rate-limit";
+import { requireHuman } from "@/lib/security/botid";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 const TOKEN_EXPIRY_DAYS = 7;
 
@@ -21,6 +24,15 @@ const TOKEN_EXPIRY_DAYS = 7;
 export async function createInviteToken(
   clubId: string
 ): Promise<{ token: string; expiresAt: string } | { error: string }> {
+  const rateCheck = await actionRateLimit("createInviteToken", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
+  const human = await requireHuman();
+  if (!human.ok) return { error: human.error };
+
   const supabase = await createClient();
 
   const {
@@ -29,6 +41,17 @@ export async function createInviteToken(
 
   if (!user) {
     return { error: "You must be signed in to create invite links" };
+  }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
+
+  const dailyCheck = await actionRateLimitByUser("createInviteToken:daily", user.id, {
+    limit: 50,
+    windowMs: 24 * 60 * 60 * 1000,
+  });
+  if (!dailyCheck.success) {
+    return { error: "You've hit today's invite-link generation limit. Try again tomorrow." };
   }
 
   // Check if club exists and is private
@@ -142,6 +165,12 @@ export async function sendInviteEmails(
   results: Array<{ email: string; success: boolean; error?: string }>;
   error?: string;
 }> {
+  const rateCheck = await actionRateLimit("sendInviteEmails", {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { results: [], error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -151,6 +180,9 @@ export async function sendInviteEmails(
   if (!user) {
     return { results: [], error: "You must be signed in to send invites" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { results: [], error: verified.error };
 
   // Validate email count
   if (emails.length === 0) {
@@ -214,7 +246,8 @@ export async function sendInviteEmails(
   const inviterName = inviterProfile?.display_name || inviterProfile?.username || undefined;
 
   // Build invite URL
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://backrow.tv";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://backrow.tv";
   const isPrivate = club.privacy === "private";
   let inviteUrl: string;
 
@@ -257,7 +290,7 @@ export async function sendInviteEmails(
   const results = sendResults.map((result, i) => ({
     email: emails[i],
     success: result.status === "fulfilled",
-    error: result.status === "rejected" ? (result.reason?.message || "Failed to send") : undefined,
+    error: result.status === "rejected" ? result.reason?.message || "Failed to send" : undefined,
   }));
 
   return { results };

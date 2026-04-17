@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { invalidateMember } from "@/lib/cache/invalidate";
 import type { RatingRubric } from "@/types/club-settings";
 import type { UserRubric, FestivalRubricLock, ActionResult } from "./rubrics.types";
 
@@ -627,7 +628,7 @@ export async function setClubRubricPreference(
     return { error: error.message };
   }
 
-  revalidatePath(`/club`);
+  invalidateMember(clubId, user.id);
   revalidatePath("/profile/settings/ratings");
   return { success: true };
 }

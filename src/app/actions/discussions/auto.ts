@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateDiscussion } from "@/lib/cache/invalidate";
 import { generateSlug, ensureUniqueSlug } from "./helpers";
 import { generateMovieSlug } from "@/lib/movies/slugs";
 import { handleActionError } from "@/lib/errors/handler";
@@ -76,7 +76,7 @@ export async function createFestivalDiscussionOnStart(
       }
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(thread.id, clubId);
     return { success: true, threadId: thread.id };
   } catch (error) {
     return handleActionError(error, "createFestivalDiscussionOnStart");
@@ -145,7 +145,7 @@ export async function updateFestivalThreadWithMovieLinks(
       return handleActionError(error, "updateFestivalThreadWithMovieLinks");
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(festivalThread.id, clubId);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "updateFestivalThreadWithMovieLinks");
@@ -184,9 +184,7 @@ export async function autoCreateMovieThread(
     }
 
     // Create the thread
-    const title = movieYear
-      ? `${movieTitle} (${movieYear})`
-      : movieTitle;
+    const title = movieYear ? `${movieTitle} (${movieYear})` : movieTitle;
     const content = `Nominated by ${nominatorName}.`;
 
     // Generate slug matching movie page URL format
@@ -238,7 +236,7 @@ export async function autoCreateMovieThread(
       await ensureMovieThreadTags(supabase, thread.id, tmdbId, festivalId);
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(thread.id, clubId);
     return { success: true, threadId: thread.id, threadSlug: thread.slug };
   } catch (error) {
     return handleActionError(error, "autoCreateMovieThread");
@@ -282,9 +280,7 @@ export async function createPlayingMovieThread(params: {
     const baseSlug = generateMovieSlug(params.movieTitle, movieYear);
     const slug = await ensureUniqueSlug(supabase, params.clubId, baseSlug);
 
-    const title = movieYear
-      ? `${params.movieTitle} (${movieYear})`
-      : params.movieTitle;
+    const title = movieYear ? `${params.movieTitle} (${movieYear})` : params.movieTitle;
 
     const { data: thread, error } = await supabase
       .from("discussion_threads")
@@ -317,7 +313,7 @@ export async function createPlayingMovieThread(params: {
       await ensureMovieThreadTags(supabase, thread.id, params.tmdbId, params.festivalId || null);
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(thread.id, params.clubId);
     return { threadId: thread.id };
   } catch (error) {
     return handleActionError(error, "createPlayingMovieThread");

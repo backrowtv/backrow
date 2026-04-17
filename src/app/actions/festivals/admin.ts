@@ -8,7 +8,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 
 /**
@@ -115,17 +115,7 @@ export async function uploadFestivalPoster(
       return handleActionError(updateError, "uploadFestivalPoster");
     }
 
-    // Get club slug for revalidation
-    const { data: club } = await supabase
-      .from("clubs")
-      .select("slug")
-      .eq("id", festival.club_id)
-      .single();
-
-    const clubSlug = club?.slug || festival.club_id;
-    const festivalSlug = festival.slug || festivalId;
-
-    revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+    await invalidateFestival(festivalId, { clubId: festival.club_id });
 
     return { success: true, posterUrl };
   } catch (err) {
@@ -195,17 +185,7 @@ export async function removeFestivalPoster(
     return handleActionError(updateError, "removeFestivalPoster");
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -294,17 +274,7 @@ export async function removeMemberFromFestival(
     handleActionError(resultsError, { action: "removeMemberFromFestival", silent: true });
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -390,17 +360,7 @@ export async function removeMovieFromFestival(
     return handleActionError(deleteNomError, "removeMovieFromFestival");
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -483,17 +443,7 @@ export async function adminOverrideRating(
     }
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -574,17 +524,7 @@ export async function adminOverrideGuess(
     }
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -707,17 +647,7 @@ export async function recalculateFestivalResults(
     }
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }

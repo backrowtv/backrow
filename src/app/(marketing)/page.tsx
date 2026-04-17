@@ -4,35 +4,26 @@ import { Container } from "@/components/ui/section";
 import { LandingFAQ } from "@/components/marketing/LandingFAQ";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { LandingHero } from "@/components/marketing/LandingHero";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "BackRow - Movie Clubs",
   description:
     "Where movie lovers come together. Create clubs, run festivals, and compete with friends.",
+  alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     title: "BackRow - Movie Clubs",
     description:
       "Where movie lovers come together. Create clubs, run festivals, and compete with friends.",
     type: "website",
-    url: "https://backrow.dev",
-    images: [
-      {
-        url: "https://backrow.dev/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "BackRow - Movie Clubs",
-      },
-    ],
+    url: absoluteUrl("/"),
+    siteName: "BackRow",
   },
   twitter: {
     card: "summary_large_image",
     title: "BackRow - Movie Clubs",
     description:
       "Where movie lovers come together. Create clubs, run festivals, and compete with friends.",
-    images: ["https://backrow.dev/og-image.jpg"],
-  },
-  alternates: {
-    canonical: "https://backrow.dev",
   },
 };
 
@@ -48,8 +39,23 @@ export default async function LandingPage({ searchParams }: LandingPageProps) {
     redirect("/sign-in");
   }
 
+  const showDeletedBanner = params["deleted"] === "1";
+
   return (
     <div className="flex flex-col" style={{ backgroundColor: "var(--background)" }}>
+      {showDeletedBanner ? (
+        <div
+          role="status"
+          className="border-b border-border bg-warning/10 px-4 py-3 text-center text-sm text-warning-foreground"
+        >
+          Your account is pending deletion. It will be permanently removed in 30 days. Contact{" "}
+          <a href="mailto:support@backrow.tv" className="underline">
+            support@backrow.tv
+          </a>{" "}
+          to restore it before then.
+        </div>
+      ) : null}
+
       {/* Hero with nav + sign-up modal */}
       <LandingHero />
 

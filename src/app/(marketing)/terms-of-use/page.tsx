@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "Terms of Use - BackRow",
   description:
     "Read BackRow's terms of use to understand the rules and guidelines for using our movie social platform.",
+  alternates: { canonical: absoluteUrl("/terms-of-use") },
   openGraph: {
     title: "Terms of Use - BackRow",
     description:
       "Read BackRow's terms of use to understand the rules and guidelines for using our movie social platform.",
     type: "website",
+    url: absoluteUrl("/terms-of-use"),
+    siteName: "BackRow",
   },
 };
 

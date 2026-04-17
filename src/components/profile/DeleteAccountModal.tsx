@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { deleteAccount } from "@/app/actions/auth";
 import toast from "react-hot-toast";
 
 interface DeleteAccountModalProps {
@@ -20,6 +20,7 @@ export function DeleteAccountModal({
 }: DeleteAccountModalProps) {
   const [confirmationText, setConfirmationText] = useState("");
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const requiredText = "DELETE";
   const isConfirmed = confirmationText === requiredText;
@@ -31,13 +32,20 @@ export function DeleteAccountModal({
     }
 
     startTransition(async () => {
-      const result = await deleteAccount();
-
-      if (result && "error" in result && result.error) {
-        toast.error(result.error);
-      } else {
-        // Account deletion will redirect, so we don't need to handle success here
-        toast.success("Account deleted successfully");
+      try {
+        const response = await fetch("/api/account/delete", { method: "POST" });
+        const payload = (await response.json().catch(() => ({}))) as {
+          success?: boolean;
+          error?: string;
+        };
+        if (!response.ok || !payload.success) {
+          toast.error(payload.error ?? "Could not delete your account. Please try again.");
+          return;
+        }
+        router.push("/?deleted=1");
+        router.refresh();
+      } catch {
+        toast.error("Could not delete your account. Please try again.");
       }
     });
   };

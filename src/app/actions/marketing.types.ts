@@ -19,7 +19,7 @@ export interface FilmNewsData {
   sources?: string[];
 }
 
-export interface MatineeMovie {
+export interface CuratedPick {
   id: string;
   tmdb_id: number;
   curator_note: string | null;

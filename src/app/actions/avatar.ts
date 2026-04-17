@@ -5,12 +5,41 @@
  *
  * Dedicated server actions for saving avatar changes immediately
  * from the AvatarEditor component, without needing the parent form.
+ *
+ * Image resize is offloaded to the `image-processing` queue worker so the
+ * HTTP response returns as soon as the raw upload lands. HEIC format
+ * conversion stays inline (browsers can't render HEIC, so the uploaded
+ * bytes must already be a browser-renderable format before the URL ships
+ * to the row). The worker then overwrites the same storage path with a
+ * 1024×1024 mozjpeg; hard refresh surfaces the optimized copy.
  */
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
+import { enqueueImageProcessing } from "@/lib/jobs/producers";
+
+const MAX_AVATAR_BYTES = 15 * 1024 * 1024;
+const ALLOWED_AVATAR_MIMES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
+const ALLOWED_AVATAR_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif"];
+
+function isHeif(file: File): boolean {
+  const ext = file.name?.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "heic" || ext === "heif") return true;
+  const type = file.type?.toLowerCase() ?? "";
+  return type === "image/heic" || type === "image/heif";
+}
 
 /**
  * Update user avatar settings (icon, color, border, or photo upload)
@@ -18,6 +47,9 @@ import { handleActionError } from "@/lib/errors/handler";
 export async function updateUserAvatar(
   formData: FormData
 ): Promise<{ success: boolean; error?: string; avatarUrl?: string }> {
+  const rateCheck = await actionRateLimit("updateUserAvatar", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -26,6 +58,9 @@ export async function updateUserAvatar(
   if (!user) {
     return { success: false, error: "You must be signed in" };
   }
+
+  const emailGate = requireVerifiedEmail(user);
+  if (!emailGate.ok) return { success: false, error: emailGate.error };
 
   const avatarIcon = formData.get("avatar_icon") as string | null;
   const avatarColorIndexStr = formData.get("avatar_color_index") as string | null;
@@ -39,18 +74,15 @@ export async function updateUserAvatar(
     avatar_url?: string | null;
   } = {};
 
-  // Avatar icon
   if (avatarIcon !== null) {
     updateData.avatar_icon = avatarIcon || null;
   }
 
-  // Avatar color index
   if (avatarColorIndexStr !== null && avatarColorIndexStr !== "") {
     const idx = parseInt(avatarColorIndexStr, 10);
     if (!isNaN(idx)) updateData.avatar_color_index = idx;
   }
 
-  // Avatar border color index
   if (avatarBorderColorIndexStr !== null) {
     if (avatarBorderColorIndexStr === "") {
       updateData.avatar_border_color_index = null;
@@ -60,29 +92,19 @@ export async function updateUserAvatar(
     }
   }
 
-  // Handle file upload
   let avatarUrl: string | undefined;
+  let uploadedPath: string | undefined;
   if (avatarFile && avatarFile.size > 0) {
-    const maxSize = 15 * 1024 * 1024;
-    if (avatarFile.size > maxSize) {
+    if (avatarFile.size > MAX_AVATAR_BYTES) {
       return { success: false, error: "Avatar file size must be less than 15MB" };
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-      "image/heic",
-      "image/heif",
-    ];
-    const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".heif"];
     const fileExtension = avatarFile.name
       ? "." + avatarFile.name.split(".").pop()?.toLowerCase()
       : "";
-    const hasValidType = avatarFile.type && allowedTypes.includes(avatarFile.type.toLowerCase());
-    const hasValidExtension = allowedExtensions.includes(fileExtension);
+    const hasValidType =
+      avatarFile.type && ALLOWED_AVATAR_MIMES.includes(avatarFile.type.toLowerCase());
+    const hasValidExtension = ALLOWED_AVATAR_EXTENSIONS.includes(fileExtension);
 
     if (!hasValidType && !hasValidExtension) {
       return {
@@ -92,14 +114,12 @@ export async function updateUserAvatar(
     }
 
     try {
-      // Get current avatar to clean up old file
       const { data: currentProfile } = await supabase
         .from("users")
         .select("avatar_url")
         .eq("id", user.id)
         .maybeSingle();
 
-      // Delete old avatar if it exists
       if (currentProfile?.avatar_url) {
         const urlParts = currentProfile.avatar_url.split("/");
         const filenameIndex = urlParts.findIndex((part: string) => part === "avatars");
@@ -113,17 +133,17 @@ export async function updateUserAvatar(
         }
       }
 
-      // Decode any format (HEIC/JPEG/PNG/WebP/GIF), honor EXIF orientation,
-      // cap at 1024×1024 (avatars render ≤ 112px), strip metadata (privacy),
-      // re-encode as mozjpeg q85 for a small, fast-loading avatar.
+      // HEIC must be converted inline — browsers can't render it. Everything
+      // else ships to storage as-is; the image-processing worker handles the
+      // heavy resize/re-encode pass.
       const arrayBuffer = await avatarFile.arrayBuffer();
-      const uploadBuffer = await sharp(Buffer.from(arrayBuffer))
-        .rotate()
-        .resize(1024, 1024, { fit: "cover", position: "centre" })
-        .jpeg({ quality: 85, mozjpeg: true })
-        .toBuffer();
-      const finalExt = "jpg";
-      const contentType = "image/jpeg";
+      const rawBuffer = Buffer.from(arrayBuffer);
+      const heif = isHeif(avatarFile);
+      const uploadBuffer = heif
+        ? await sharp(rawBuffer).rotate().jpeg({ quality: 90 }).toBuffer()
+        : rawBuffer;
+      const finalExt = heif ? "jpg" : fileExtension.replace(".", "") || "jpg";
+      const contentType = heif ? "image/jpeg" : avatarFile.type || "application/octet-stream";
 
       const fileName = `${user.id}-${Date.now()}.${finalExt}`;
 
@@ -148,6 +168,7 @@ export async function updateUserAvatar(
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (urlData?.publicUrl) {
         avatarUrl = urlData.publicUrl;
+        uploadedPath = fileName;
         updateData.avatar_url = avatarUrl;
         updateData.avatar_icon = "photo";
       }
@@ -158,7 +179,6 @@ export async function updateUserAvatar(
       };
     }
   } else if (avatarIcon && avatarIcon !== "photo") {
-    // Selecting a non-photo icon clears the uploaded avatar URL
     updateData.avatar_url = null;
   }
 
@@ -166,6 +186,15 @@ export async function updateUserAvatar(
 
   if (updateError) {
     return { success: false, error: updateError.message };
+  }
+
+  if (uploadedPath) {
+    await enqueueImageProcessing({
+      variant: "user-avatar",
+      bucket: "avatars",
+      rawPath: uploadedPath,
+      ownerId: user.id,
+    });
   }
 
   revalidatePath("/profile");
@@ -181,6 +210,9 @@ export async function updateUserAvatar(
 export async function updateClubAvatar(
   formData: FormData
 ): Promise<{ success: boolean; error?: string; pictureUrl?: string }> {
+  const rateCheck = await actionRateLimit("updateClubAvatar", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -190,12 +222,14 @@ export async function updateClubAvatar(
     return { success: false, error: "You must be signed in" };
   }
 
+  const emailGate = requireVerifiedEmail(user);
+  if (!emailGate.ok) return { success: false, error: emailGate.error };
+
   const clubId = formData.get("clubId") as string;
   if (!clubId) {
     return { success: false, error: "Club ID is required" };
   }
 
-  // Check membership (producer or director)
   const { data: membership } = await supabase
     .from("club_members")
     .select("role")
@@ -222,18 +256,15 @@ export async function updateClubAvatar(
     updated_at: new Date().toISOString(),
   };
 
-  // Avatar icon
   if (avatarIcon !== null) {
     updateData.avatar_icon = avatarIcon || null;
   }
 
-  // Avatar color index
   if (avatarColorIndexStr !== null && avatarColorIndexStr !== "") {
     const idx = parseInt(avatarColorIndexStr, 10);
     if (!isNaN(idx)) updateData.avatar_color_index = idx;
   }
 
-  // Avatar border color index
   if (avatarBorderColorIndexStr !== null) {
     if (avatarBorderColorIndexStr === "") {
       updateData.avatar_border_color_index = null;
@@ -243,15 +274,14 @@ export async function updateClubAvatar(
     }
   }
 
-  // Handle file upload
   let pictureUrl: string | undefined;
+  let uploadedPath: string | undefined;
   if (pictureFile && pictureFile.size > 0) {
     if (membership.role !== "producer") {
       return { success: false, error: "Only the club producer can upload a club picture" };
     }
 
-    const maxSize = 15 * 1024 * 1024;
-    if (pictureFile.size > maxSize) {
+    if (pictureFile.size > MAX_AVATAR_BYTES) {
       return { success: false, error: "Picture file size must be less than 15MB" };
     }
 
@@ -261,7 +291,6 @@ export async function updateClubAvatar(
     }
 
     try {
-      // Get current club to clean up old picture
       const { data: currentClub } = await supabase
         .from("clubs")
         .select("picture_url")
@@ -281,22 +310,18 @@ export async function updateClubAvatar(
         }
       }
 
-      // Cap at 512×512 (clubs render ≤ 96px), strip metadata, re-encode mozjpeg q85.
+      // Upload the raw bytes; the image-processing worker handles resize.
       const arrayBuffer = await pictureFile.arrayBuffer();
-      const uploadBuffer = await sharp(Buffer.from(arrayBuffer))
-        .rotate()
-        .resize(512, 512, { fit: "cover", position: "centre" })
-        .jpeg({ quality: 85, mozjpeg: true })
-        .toBuffer();
-
-      const fileName = `${clubId}-${Date.now()}.jpg`;
+      const uploadBuffer = Buffer.from(arrayBuffer);
+      const ext = pictureFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileName = `${clubId}-${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("club-pictures")
         .upload(fileName, uploadBuffer, {
           cacheControl: "3600",
           upsert: false,
-          contentType: "image/jpeg",
+          contentType: pictureFile.type,
         });
 
       if (uploadError) {
@@ -312,6 +337,7 @@ export async function updateClubAvatar(
       const { data: urlData } = supabase.storage.from("club-pictures").getPublicUrl(fileName);
       if (urlData?.publicUrl) {
         pictureUrl = urlData.publicUrl;
+        uploadedPath = fileName;
         updateData.picture_url = pictureUrl;
         updateData.avatar_icon = "photo";
       }
@@ -322,17 +348,24 @@ export async function updateClubAvatar(
       };
     }
   } else if (avatarIcon && avatarIcon !== "photo") {
-    // Selecting a non-photo icon clears the uploaded picture URL
     updateData.picture_url = null;
   }
 
-  // Get club slug for revalidation
   const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).single();
 
   const { error: updateError } = await supabase.from("clubs").update(updateData).eq("id", clubId);
 
   if (updateError) {
     return { success: false, error: updateError.message };
+  }
+
+  if (uploadedPath) {
+    await enqueueImageProcessing({
+      variant: "club-picture",
+      bucket: "club-pictures",
+      rawPath: uploadedPath,
+      ownerId: clubId,
+    });
   }
 
   if (club?.slug) {

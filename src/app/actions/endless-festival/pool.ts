@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { cacheMovie } from "../movies";
 import { createNotificationsForUsers } from "../notifications";
@@ -116,7 +116,7 @@ export async function addMovieToPool(
           });
         }
 
-        revalidatePath(`/club/[slug]`);
+        invalidateClub(clubId);
         return { success: true, poolItemId: existingPool.id };
       }
 
@@ -205,7 +205,7 @@ export async function addMovieToPool(
       });
     }
 
-    revalidatePath(`/club/[slug]`);
+    invalidateClub(clubId);
     return { success: true, poolItemId: poolItem.id };
   } catch (error) {
     return handleActionError(error, "addMovieToPool");
@@ -288,7 +288,7 @@ export async function removeFromPool(
     );
   }
 
-  revalidatePath(`/club/[slug]`);
+  invalidateClub(poolItem.club_id);
   return { success: true };
 }
 
@@ -380,8 +380,7 @@ export async function deleteFromEndlessFestival(
     });
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(festival.club_id);
 
   return { success: true };
 }

@@ -330,6 +330,8 @@ export function RubricLibrary({
 
           {showSortMenu && (
             <>
+              {/* dismiss-menu backdrop — keyboard dismiss handled by menu Esc */}
+              {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
               <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
               <div
                 className="absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-lg border shadow-lg py-1"
@@ -577,7 +579,15 @@ function RubricCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       className={cn(
         "group p-3 rounded-lg border transition-all cursor-pointer",
         "hover:border-[var(--primary)]/50",
@@ -651,6 +661,8 @@ function RubricCard({
 
         {/* Three-dot menu */}
         {!selectionMode && (
+          /* event-blocker wrapper — keyboard handled by nested DropdownMenuTrigger */
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
           <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

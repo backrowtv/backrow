@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import type {
   EndlessStatus,
@@ -332,7 +332,7 @@ export async function updateEndlessFestivalName(
     return handleActionError(error, "updateEndlessFestivalName");
   }
 
-  revalidatePath("/club/[slug]");
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true };
 }
 

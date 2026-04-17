@@ -100,6 +100,8 @@ export function SettingsClient({ settings }: { settings: Setting[] }) {
               value={newKey}
               onChange={(e) => setNewKey(e.target.value)}
               className="h-7 text-xs font-mono"
+              /* focus-on-open dialog — expected UX */
+              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
             <Input

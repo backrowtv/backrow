@@ -1,10 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { createNotificationsForUsers } from "../notifications";
 import { logClubActivity } from "@/lib/activity/logger";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Toggle vote for a movie in the pool (upvote/remove)
@@ -14,6 +16,9 @@ import { logClubActivity } from "@/lib/activity/logger";
 export async function togglePoolMovieVote(
   poolItemId: string
 ): Promise<{ success: boolean; voted: boolean; autoPromoted?: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("togglePoolMovieVote", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -22,6 +27,9 @@ export async function togglePoolMovieVote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get the pool item from club_movie_pool
   const { data: poolItem } = await supabase
@@ -95,7 +103,7 @@ export async function togglePoolMovieVote(
       return { error: "Failed to remove vote" };
     }
 
-    revalidatePath(`/club/[slug]`);
+    invalidateClub(poolItem.club_id);
     return { success: true, voted: false };
   }
 
@@ -154,7 +162,7 @@ export async function togglePoolMovieVote(
     }
   }
 
-  revalidatePath(`/club/[slug]`);
+  invalidateClub(poolItem.club_id);
   return { success: true, voted: true, autoPromoted };
 }
 
@@ -325,8 +333,7 @@ export async function pickRandomFromPool(
     });
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(clubId);
 
   return { success: true, poolItemId: selectedMovie.id, movieTitle: movie.title };
 }

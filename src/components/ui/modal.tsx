@@ -95,6 +95,8 @@ export function Modal({
       />
 
       {/* Centering container - NOT fixed, flows within scrollable area */}
+      {/* click-outside-to-close backdrop — keyboard dismiss via Esc on dialog */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
         className="min-h-full flex items-center justify-center p-4 sm:p-6"
         onClick={(e) => {
@@ -104,6 +106,8 @@ export function Modal({
         }}
       >
         {/* Modal */}
+        {/* dialog stopPropagation — keyboard dismiss via Esc handler on dialog */}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
         <div
           ref={modalRef}
           className={cn(

@@ -7,9 +7,9 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
-import { getClubSlug, checkMemberPermission } from "./helpers";
+import { checkMemberPermission } from "./helpers";
 import type { RSVPStatus } from "./types";
 
 export async function rsvpToEvent(eventId: string, status: RSVPStatus) {
@@ -87,8 +87,7 @@ export async function rsvpToEvent(eventId: string, status: RSVPStatus) {
     return handleActionError(error, "rsvpToEvent");
   }
 
-  const clubSlug = await getClubSlug(event.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(event.club_id);
 
   return { success: true };
 }
@@ -121,8 +120,7 @@ export async function removeRsvp(eventId: string) {
   }
 
   if (event) {
-    const clubSlug = await getClubSlug(event.club_id);
-    revalidatePath(`/club/${clubSlug}`);
+    invalidateClub(event.club_id);
   }
 
   return { success: true };

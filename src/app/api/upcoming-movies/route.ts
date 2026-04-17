@@ -3,7 +3,7 @@ import { getUpcomingMovies } from "@/lib/tmdb/upcoming";
 import { rateLimit, getRateLimitResponse } from "@/lib/security/rate-limit";
 
 export async function GET(request: NextRequest) {
-  const rateLimitResult = rateLimit(request);
+  const rateLimitResult = await rateLimit(request);
   if (!rateLimitResult.success) {
     return getRateLimitResponse(rateLimitResult.reset);
   }

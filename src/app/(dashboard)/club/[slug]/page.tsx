@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getClubForSeo } from "@/lib/seo/fetchers";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { ClubJsonLd } from "@/components/seo/JsonLd";
+import { PublicClubLanding } from "@/components/clubs/PublicClubLanding";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BrandText } from "@/components/ui/brand-text";
@@ -47,6 +53,31 @@ interface ClubPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: ClubPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const club = await getClubForSeo(slug);
+  if (!club) {
+    return { title: "Club not found · BackRow", robots: { index: false, follow: false } };
+  }
+  const url = absoluteUrl(`/club/${club.slug ?? slug}`);
+  const description = club.description?.slice(0, 160) || `${club.name} — a BackRow movie club.`;
+  const isPublic = club.privacy !== "private";
+  return {
+    title: `${club.name} · BackRow`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: club.name,
+      description,
+      url,
+      type: "website",
+      siteName: "BackRow",
+    },
+    twitter: { card: "summary_large_image", title: club.name, description },
+    robots: isPublic ? { index: true, follow: true } : { index: false, follow: false },
+  };
+}
+
 export default async function ClubPage({ params }: ClubPageProps) {
   const identifier = (await params).slug;
   const supabase = await createClient();
@@ -54,7 +85,94 @@ export default async function ClubPage({ params }: ClubPageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/sign-in");
+
+  // Anonymous visitor (crawler, shared link, first-time landing):
+  // render a public landing for PUBLIC clubs so the OG/JSON-LD unfurl; redirect
+  // to sign-in for PRIVATE clubs so we never leak their existence.
+  if (!user) {
+    const { data: publicClub } = await supabase
+      .from("clubs")
+      .select("id, name, slug, description, theme_color, picture_url, privacy, archived")
+      .or(`slug.eq.${identifier},id.eq.${identifier}`)
+      .maybeSingle();
+
+    if (!publicClub || publicClub.archived) notFound();
+    if (publicClub.privacy === "private") {
+      redirect(`/sign-in?redirectTo=${encodeURIComponent(`/club/${identifier}`)}`);
+    }
+
+    // Parallel fetch of the teaser data RLS permits for public clubs.
+    const [{ count: memberCount }, { data: activeFestivalRow }, { data: recentNoms }] =
+      await Promise.all([
+        supabase
+          .from("club_members")
+          .select("id", { count: "exact", head: true })
+          .eq("club_id", publicClub.id),
+        supabase
+          .from("festivals")
+          .select("theme, slug, status, phase, poster_url, picture_url")
+          .eq("club_id", publicClub.id)
+          .is("deleted_at", null)
+          .not("status", "in", "(completed,cancelled)")
+          .order("start_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("nominations")
+          .select("tmdb_id, festivals!inner(club_id)")
+          .eq("festivals.club_id", publicClub.id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(24),
+      ]);
+
+    const recentTmdbIds = Array.from(
+      new Set((recentNoms ?? []).map((n) => n.tmdb_id).filter((id): id is number => !!id))
+    ).slice(0, 8);
+    const posterStrip: string[] = [];
+    if (recentTmdbIds.length > 0) {
+      const { data: movies } = await supabase
+        .from("movies")
+        .select("tmdb_id, poster_url")
+        .in("tmdb_id", recentTmdbIds)
+        .not("poster_url", "is", null);
+      const byId = new Map<number, string>();
+      for (const m of movies ?? []) {
+        if (m.poster_url) byId.set(m.tmdb_id, m.poster_url);
+      }
+      for (const id of recentTmdbIds) {
+        const url = byId.get(id);
+        if (url) posterStrip.push(url);
+      }
+    }
+
+    return (
+      <PublicClubLanding
+        club={{
+          id: publicClub.id,
+          name: publicClub.name,
+          slug: publicClub.slug,
+          description: publicClub.description,
+          theme_color: publicClub.theme_color,
+          picture_url: publicClub.picture_url,
+        }}
+        clubUrlSlug={publicClub.slug ?? identifier}
+        memberCount={memberCount ?? 0}
+        activeFestival={
+          activeFestivalRow
+            ? {
+                theme: activeFestivalRow.theme,
+                slug: activeFestivalRow.slug,
+                status: activeFestivalRow.status,
+                phase: activeFestivalRow.phase,
+                posterUrl: activeFestivalRow.poster_url ?? activeFestivalRow.picture_url,
+              }
+            : null
+        }
+        posterStrip={posterStrip.slice(0, 6)}
+      />
+    );
+  }
 
   // Resolve club by slug or ID
   const clubResolution = await resolveClub(supabase, identifier);
@@ -385,6 +503,15 @@ export default async function ClubPage({ params }: ClubPageProps) {
 
   return (
     <>
+      <ClubJsonLd
+        club={{
+          name: club.name,
+          slug: club.slug ?? clubSlug,
+          description: club.description,
+          picture_url: club.picture_url,
+        }}
+        festivals={completedFestivals ?? undefined}
+      />
       <ClubNavigation
         clubSlug={clubSlug}
         clubName={club.name}

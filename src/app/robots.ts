@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,26 +8,22 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         disallow: [
-          "/club/",
-          "/clubs",
-          "/profile",
-          "/admin",
-          "/activity",
-          "/calendar",
-          "/discover",
-          "/search",
           "/api/",
+          "/admin",
           "/sign-in",
           "/sign-up",
           "/forgot-password",
           "/reset-password",
           "/join/",
+          "/activity",
+          "/calendar",
           "/timeline",
-          "/movies/",
-          "/person/",
+          "/search",
+          // Profiles are admin-only today; opt them out of indexing entirely.
+          "/profile",
         ],
       },
     ],
-    sitemap: "https://backrow.tv/sitemap.xml",
+    sitemap: absoluteUrl("/sitemap.xml"),
   };
 }

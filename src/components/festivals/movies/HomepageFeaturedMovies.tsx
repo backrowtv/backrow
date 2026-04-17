@@ -443,10 +443,14 @@ export function HomepageFeaturedMovies({
 
           {/* Pitch textarea */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-[var(--text-primary)]">
+            <label
+              htmlFor="homepage-featured-pitch"
+              className="text-sm font-medium text-[var(--text-primary)]"
+            >
               Why this movie?
             </label>
             <Textarea
+              id="homepage-featured-pitch"
               placeholder="Share why you picked this movie... (optional)"
               value={editPitch}
               onChange={(e) => setEditPitch(e.target.value)}

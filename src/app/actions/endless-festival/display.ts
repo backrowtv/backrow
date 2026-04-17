@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import type { EndlessStatus, DisplaySlot, EndlessMovie } from "./types";
 
 /**
@@ -71,8 +71,7 @@ export async function updateNominationPitch(
     return { error: "Failed to update pitch" };
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(festival.club_id);
 
   return { success: true };
 }
@@ -159,8 +158,7 @@ export async function setDisplaySlot(
     return { error: "Failed to set display slot" };
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(festival.club_id);
 
   return { success: true };
 }

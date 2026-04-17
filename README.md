@@ -1,10 +1,26 @@
 # BackRow
 
+![CI](https://github.com/backrowtv/backrow/actions/workflows/ci.yml/badge.svg)
+
 BackRow is a movie social platform built for groups of any size. Small friend groups can run **Standard festivals** — themed, phased competitions where members nominate movies, watch them on their own time, rate them, and compete for the best picks across a season. Large communities — movie content creators, local theaters, and open interest-based communities — can run **Endless** clubs with shared movie pools, ratings, and discussions at any scale. Both modes are first-class.
+
+## Quick start
+
+```bash
+git clone git@github.com:backrowtv/backrow.git
+cd backrow
+cp .env.example .env.local   # fill in Supabase + TMDB + Resend keys
+bun install
+bun run dev                  # http://localhost:3000
+```
+
+For testing, CI pipeline, Supabase branching, and the env-var schema, see [`docs/development.md`](docs/development.md).
 
 ## Documentation
 
 Start with [`CLAUDE.md`](CLAUDE.md) for project rules and conventions, then [`ARCHITECTURE.md`](ARCHITECTURE.md) for schema, routes, state machines, and key flows.
+
+Feature docs: [`docs/security.md`](docs/security.md) (write-path gates), [`docs/architecture.md`](docs/architecture.md) (background jobs), [`docs/privacy-and-data-lifecycle.md`](docs/privacy-and-data-lifecycle.md) (GDPR / cascades), [`docs/seo.md`](docs/seo.md) (metadata, OG images, sitemap, JSON-LD).
 
 ## Tech Stack
 
@@ -20,69 +36,20 @@ Start with [`CLAUDE.md`](CLAUDE.md) for project rules and conventions, then [`AR
 | Movie Data | TMDB API                             |
 | Deployment | Vercel                               |
 
-## Getting Started
+## Getting started
 
-### First Steps
+See [`docs/development.md`](docs/development.md) for prerequisites, full setup, testing, and CI details. Then read [`CLAUDE.md`](CLAUDE.md) for project rules and [`ARCHITECTURE.md`](ARCHITECTURE.md) for schema and flows.
 
-1. Read [`CLAUDE.md`](CLAUDE.md) — project rules, critical conventions, and auth/DB patterns.
-2. Read [`ARCHITECTURE.md`](ARCHITECTURE.md) — database schema, route map, festival state machine, RLS policies, and key flows.
-3. Read [`docs/CLAUDE_PROJECT_CONTEXT.md`](docs/CLAUDE_PROJECT_CONTEXT.md) — product context and vision.
+## Scripts
 
-### Prerequisites
-
-- **Node.js 24.11.0+** (see `.nvmrc`)
-- **Bun 1.3.5+** — primary package manager and runtime
-- **Supabase account** (shared project ID: `nxpeptgrhbveqphwwowj`, us-east-2; preview branches per PR via the Supabase GitHub integration)
-- **TMDB API key** — get one at [themoviedb.org](https://www.themoviedb.org/settings/api)
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/backrowtv/backrow.git
-cd backrow
-```
-
-2. Install dependencies:
-
-```bash
-bun install
-```
-
-3. Set up environment variables:
-
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` and add:
-
-- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon/public key
-- `SUPABASE_SERVICE_ROLE_KEY` — Supabase service role key (for scripts)
-- `TMDB_API_KEY` — TMDB API key
-
-4. Run the development server:
-
-```bash
-bun run dev
-```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Development
-
-### Available Scripts
-
-- `bun run dev` — Start development server
-- `bun run build` — Build for production
-- `bun run start` — Start production server
-- `bun run lint` — Run ESLint
-- `bun run type-check` — Run TypeScript compiler check
-- `bun run format` — Run Prettier
-- `bun run create-test-user` — Create a test user for development
-- `bun run generate-types` — Regenerate TypeScript types from Supabase schema
+- `bun run dev` — development server
+- `bun run build` / `bun run start` — production build / server
+- `bun run typecheck` — TypeScript check (alias: `type-check`)
+- `bun run lint` — ESLint
+- `bun run test` — Vitest unit (cache/, no DB)
+- `bun run test:integration` — Vitest integration (actions/, needs seeded DB)
+- `bun run test:e2e` — Playwright (E2E)
+- `bun run format` — Prettier
 
 ### Database Migrations
 
@@ -136,18 +103,7 @@ backrow/
 
 ## Deployment
 
-Deployment is handled automatically via Vercel when code is pushed to the `main` branch.
-
-**Never deploy directly from your local machine.** Always push to GitHub and let Vercel handle deployment.
-
-### Environment Variables
-
-Set these in the Vercel dashboard:
-
-- `NEXT_PUBLIC_SUPABASE_URL` — Production Supabase URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Production Supabase anon key
-- `SUPABASE_SERVICE_ROLE_KEY` — Production Supabase service role key
-- `TMDB_API_KEY` — TMDB API key
+Deployed to Vercel on push to `main`. Preview deployments run per-PR and are gated by [CI + Lighthouse](docs/development.md#ci-pipeline-overview). Environment variables are managed in the Vercel dashboard — schema lives in `src/lib/config/env.ts`.
 
 ## License
 

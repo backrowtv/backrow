@@ -31,8 +31,7 @@ export {
   updatePassword,
   // Account management
   changeEmail,
-  deleteAccount,
   // Profile management
   updateProfile,
   getUserProfile,
-} from './auth/index'
+} from "./auth/index";

@@ -134,6 +134,8 @@ export function AdminsList({ admins }: { admins: AdminRecord[] }) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 h-8 text-xs"
+              /* focus-on-open dialog — expected UX */
+              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
           </div>

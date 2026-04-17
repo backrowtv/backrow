@@ -5,7 +5,7 @@ import { rateLimit, getRateLimitResponse, addRateLimitHeaders } from "@/lib/secu
 
 export async function GET(request: NextRequest) {
   // Rate limiting: 60 requests per minute per IP
-  const rateLimitResult = rateLimit(request);
+  const rateLimitResult = await rateLimit(request);
   if (!rateLimitResult.success) {
     return getRateLimitResponse(rateLimitResult.reset);
   }

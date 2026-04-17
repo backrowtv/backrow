@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { cacheMovie } from "../movies";
 import { createNotificationsForUsers } from "../notifications";
@@ -155,8 +155,7 @@ export async function addMovieToPlaying(
       });
     }
 
-    revalidatePath(`/club/[slug]`);
-    revalidatePath("/");
+    invalidateClub(clubId);
 
     return { success: true, nominationId, threadId };
   } catch (error) {
@@ -341,8 +340,7 @@ export async function moveToPlaying(
     });
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(poolItem.club_id);
 
   return { success: true, nominationId, threadId };
 }
@@ -444,8 +442,7 @@ export async function moveToCompleted(
     });
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(festival.club_id);
 
   return { success: true };
 }
@@ -518,6 +515,6 @@ export async function hideFromRecentlyWatched(
     return { error: "Failed to hide movie" };
   }
 
-  revalidatePath(`/club/[slug]`);
+  invalidateClub(festival.club_id);
   return { success: true };
 }

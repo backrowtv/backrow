@@ -12,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { resolveRedirect, setRedirectCookie } from "@/lib/auth/redirect";
+import { env } from "@/lib/config/env";
 
 export async function signIn(prevState: unknown, formData: FormData) {
   const rateCheck = await actionRateLimit("signIn", { limit: 5, windowMs: 60_000 });
@@ -125,7 +126,7 @@ export async function signInWithMagicLink(prevState: unknown, formData: FormData
     return { error: "Please enter a valid email address" };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const redirectTo = `${siteUrl}/auth/callback`;
 
   // Store redirect destination in cookie for when user returns via magic link

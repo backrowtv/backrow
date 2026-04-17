@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateMember } from "@/lib/cache/invalidate";
 import type { UpdateClubRubricPreferenceResult } from "./club-rubrics.types";
 
 /**
@@ -54,12 +54,7 @@ export async function updateClubRubricPreference(
     return { error: updateError.message || "Failed to update rubric preference" };
   }
 
-  // Revalidate relevant paths
-  const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).maybeSingle();
-
-  const clubSlug = club?.slug || clubId;
-  revalidatePath(`/club/${clubSlug}/settings`);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateMember(clubId, user.id);
 
   return { success: true };
 }

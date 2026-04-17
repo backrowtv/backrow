@@ -231,8 +231,13 @@ export function FestivalEditModal({
                     </h3>
                   </div>
 
-                  <label className="flex items-center gap-3 cursor-pointer">
+                  <label
+                    htmlFor="festival-edit-auto-advance"
+                    aria-label="Auto-advance phases"
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
                     <input
+                      id="festival-edit-auto-advance"
                       type="checkbox"
                       checked={autoAdvance}
                       onChange={(e) => setAutoAdvance(e.target.checked)}

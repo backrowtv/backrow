@@ -8,10 +8,12 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub, invalidateMember } from "@/lib/cache/invalidate";
 import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { checkAndAwardClubBadges } from "../club-badges";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 export interface JoinRequest {
   id: string;
@@ -40,6 +42,9 @@ export async function createJoinRequest(
   clubId: string,
   message?: string
 ): Promise<{ success?: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("createJoinRequest", { limit: 5, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -48,6 +53,9 @@ export async function createJoinRequest(
   if (!user) {
     return { error: "You must be signed in to request to join a club" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Ensure user exists in public.users table
   try {
@@ -150,8 +158,7 @@ export async function createJoinRequest(
     await supabase.from("notifications").insert(notifications);
   }
 
-  revalidatePath(`/club/${club.slug || club.id}`);
-  revalidatePath(`/club/${club.slug || club.id}/members`);
+  invalidateClub(clubId);
 
   return { success: true };
 }
@@ -171,13 +178,16 @@ export async function approveJoinRequest(
     return { error: "Not authenticated" };
   }
 
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
+
   // Get request with club info
   const { data: request, error: requestError } = await supabase
     .from("club_join_requests")
     .select(
       `
       *,
-      clubs!inner (id, name, slug)
+      clubs!inner (id, name, slug, max_members)
     `
     )
     .eq("id", requestId)
@@ -202,6 +212,22 @@ export async function approveJoinRequest(
 
   if (!membership || !["producer", "director"].includes(membership.role)) {
     return { error: "Only producers and directors can approve requests" };
+  }
+
+  // Enforce member ceiling at the action layer (RLS is defense-in-depth).
+  const clubRow = request.clubs as {
+    id: string;
+    name: string;
+    slug: string | null;
+    max_members: number;
+  };
+  const { count: memberCount } = await supabase
+    .from("club_members")
+    .select("user_id", { count: "exact", head: true })
+    .eq("club_id", request.club_id);
+
+  if (typeof memberCount === "number" && memberCount >= clubRow.max_members) {
+    return { error: "This club has reached its member limit." };
   }
 
   // Add user as member
@@ -240,7 +266,7 @@ export async function approveJoinRequest(
     .eq("id", requestId);
 
   // Log activity
-  const clubData = request.clubs as { id: string; name: string; slug: string | null };
+  const clubData = clubRow;
   await logDualActivity(request.club_id, request.user_id, "member_joined", "user_joined_club", {
     club_name: clubData.name,
     club_slug: clubData.slug || request.club_id,
@@ -266,9 +292,7 @@ export async function approveJoinRequest(
     console.error("Failed to check club badges:", error);
   }
 
-  const clubSlug = clubData.slug || request.club_id;
-  revalidatePath(`/club/${clubSlug}/members`);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateMember(request.club_id, request.user_id);
 
   return { success: true };
 }
@@ -346,9 +370,7 @@ export async function denyJoinRequest(
     });
   }
 
-  const clubData = request.clubs as { id: string; name: string; slug: string | null };
-  const clubSlug = clubData.slug || request.club_id;
-  revalidatePath(`/club/${clubSlug}/members`);
+  invalidateClub(request.club_id);
 
   return { success: true };
 }

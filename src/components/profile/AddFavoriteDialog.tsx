@@ -183,6 +183,8 @@ export function AddFavoriteDialog({
                 }
               }}
               className="pl-10 search-input-debossed"
+              /* focus-on-open dialog — expected UX */
+              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
           </div>

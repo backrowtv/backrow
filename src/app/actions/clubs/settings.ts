@@ -7,13 +7,8 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import {
-  getClubSlug,
-  checkAdminPermission,
-  validateImageUpload,
-  extractStorageFilename,
-} from "./_helpers";
+import { invalidateClub, invalidateMember } from "@/lib/cache/invalidate";
+import { checkAdminPermission, validateImageUpload, extractStorageFilename } from "./_helpers";
 import { handleActionError } from "@/lib/errors/handler";
 import { validateSettingsUpdate } from "@/lib/validation/club-settings";
 import { completeEndlessFestival } from "@/app/actions/endless-festival/helpers";
@@ -279,9 +274,7 @@ export async function updateClubSettings(
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/settings`);
+  invalidateClub(clubId);
   return { success: true };
 }
 
@@ -403,7 +396,6 @@ export async function updateClubMemberPersonalization(
     return { error: error.message || "Failed to update personalization settings" };
   }
 
-  revalidatePath(`/club/[slug]/settings/personalization`);
-  revalidatePath(`/club/[slug]`);
+  invalidateMember(clubId, user.id);
   return { success: true };
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import type {
   ClubResource,
@@ -105,16 +105,7 @@ export async function createClubResource(
     return { success: false, ...handleActionError(error, "createClubResource") };
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", input.clubId)
-    .single();
-
-  if (club?.slug) {
-    revalidatePath(`/club/${club.slug}`);
-  }
+  invalidateClub(input.clubId);
 
   return { success: true, resource: data };
 }
@@ -184,16 +175,7 @@ export async function updateClubResource(
     return { success: false, ...handleActionError(error, "updateClubResource") };
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", resource.club_id)
-    .single();
-
-  if (club?.slug) {
-    revalidatePath(`/club/${club.slug}`);
-  }
+  invalidateClub(resource.club_id);
 
   return { success: true };
 }
@@ -242,16 +224,7 @@ export async function deleteClubResource(
     return { success: false, ...handleActionError(error, "deleteClubResource") };
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", resource.club_id)
-    .single();
-
-  if (club?.slug) {
-    revalidatePath(`/club/${club.slug}`);
-  }
+  invalidateClub(resource.club_id);
 
   return { success: true };
 }
@@ -297,12 +270,7 @@ export async function reorderClubResources(
     }
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).single();
-
-  if (club?.slug) {
-    revalidatePath(`/club/${club.slug}`);
-  }
+  invalidateClub(clubId);
 
   return { success: true };
 }

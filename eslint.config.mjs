@@ -4,15 +4,6 @@ import nextTs from "eslint-config-next/typescript";
 import unusedImports from "eslint-plugin-unused-imports";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 
-// Extract rules from jsx-a11y recommended, downgraded to "warn" so they surface
-// in the editor but don't block the build while existing violations are fixed
-const a11yRules = Object.fromEntries(
-  Object.entries(jsxA11y.flatConfigs.recommended.rules).map(([key, value]) => [
-    key,
-    Array.isArray(value) ? ["warn", ...value.slice(1)] : value === "error" ? "warn" : value,
-  ])
-);
-
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -35,8 +26,8 @@ const eslintConfig = defineConfig([
     },
     // Project-specific rule overrides
     rules: {
-      // Accessibility rules from jsx-a11y recommended
-      ...a11yRules,
+      // Accessibility rules from jsx-a11y recommended (error level)
+      ...jsxA11y.flatConfigs.recommended.rules,
       // Allow setState in effects for hydration patterns
       "react-hooks/set-state-in-effect": "off",
       // Allow accessing variables before declaration (hoisting)

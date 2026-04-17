@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival } from "@/lib/cache/invalidate";
 import { createNotificationsForUsers } from "../notifications";
 import { handleActionError } from "@/lib/errors/handler";
 import { logClubActivity } from "@/lib/activity/logger";
@@ -48,7 +48,6 @@ export async function updateFestivalTheme(
 
   // Generate new slug from the updated theme
   const newSlug = await generateUniqueSlug(supabase, theme.trim(), festival.club_id, festivalId);
-  const oldSlug = festival.slug;
 
   // Update the festival theme and slug
   const { error: updateError } = await supabase
@@ -64,21 +63,7 @@ export async function updateFestivalTheme(
     return { error: updateError.message };
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  if (club?.slug) {
-    revalidatePath(`/club/${club.slug}`);
-    revalidatePath(`/club/${club.slug}/director/festival`);
-    if (oldSlug) {
-      revalidatePath(`/club/${club.slug}/festival/${oldSlug}`);
-    }
-    revalidatePath(`/club/${club.slug}/festival/${newSlug}`);
-  }
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true, newSlug };
 }
@@ -160,19 +145,7 @@ export async function cancelFestival(festivalId: string) {
     festival_theme: festival.theme || "Festival",
   });
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
-  revalidatePath(`/club/${clubSlug}/manage/festival`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -471,19 +444,7 @@ export async function updateFestivalAppearance(prevState: unknown, formData: For
     return { error: updateError.message };
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  if (club?.slug) {
-    const festivalSlug = festival.slug || festivalId;
-    revalidatePath(`/club/${club.slug}`);
-    revalidatePath(`/club/${club.slug}/festival/${festivalSlug}`);
-    revalidatePath(`/club/${club.slug}/director/festival`);
-  }
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true };
 }
@@ -593,17 +554,7 @@ export async function updateFestivalDeadlines(
     });
   }
 
-  // Get club slug for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festival.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true, changedDeadlines };
 }

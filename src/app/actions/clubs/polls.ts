@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidatePoll } from "@/lib/cache/invalidate";
 import { getClubSlug, checkAdminPermission, checkMembership } from "./_helpers";
 import { handleActionError } from "@/lib/errors/handler";
 import { createNotificationsForUsers } from "../notifications";
@@ -105,8 +105,7 @@ export async function createPoll(prevState: unknown, formData: FormData) {
     });
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidatePoll(data.id, clubId);
   return { success: true, data };
 }
 
@@ -251,8 +250,7 @@ export async function closePoll(pollId: string) {
     poll_question: poll.question,
   });
 
-  const clubSlug = await getClubSlug(supabase, poll.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidatePoll(pollId, poll.club_id);
   return { success: true };
 }
 
@@ -332,8 +330,7 @@ export async function updatePoll(pollId: string, data: UpdatePollData) {
     poll_id: pollId,
   });
 
-  const clubSlug = await getClubSlug(supabase, poll.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidatePoll(pollId, poll.club_id);
   return { success: true };
 }
 
@@ -375,8 +372,7 @@ export async function deletePoll(pollId: string) {
     poll_question: poll.question,
   });
 
-  const clubSlug = await getClubSlug(supabase, poll.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidatePoll(pollId, poll.club_id);
   return { success: true };
 }
 

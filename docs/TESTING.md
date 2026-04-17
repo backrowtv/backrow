@@ -70,7 +70,7 @@ them against the shared `backrow` project if you're iterating in main.
 
 - **Claude in Chrome** — Browser state, console logs, network logs, page interaction
 - **Supabase Plugin** — Database queries, schema inspection, migrations
-- **Playwright** — E2E test automation (`bun run test`)
+- **Playwright** — E2E test automation (`bun run test:e2e`)
 
 ---
 
@@ -104,6 +104,74 @@ them against the shared `backrow` project if you're iterating in main.
 - [ ] Announcements — New announcements appear for members without refresh
 - [ ] Theme voting end-to-end — Full voting flow with multiple users
 
+### GDPR Data Lifecycle (W3)
+
+Covers `POST /api/account/export`, `POST /api/account/delete`, the
+`account-hard-delete` queue worker, the orphan-sweep cron, and the cookie
+consent banner.
+
+**Bootstrap a test user with real content:**
+
+```bash
+bun tsx scripts/test-factory --users=1 --prefix=gdpr-test
+```
+
+Then as that user: join 2 clubs, post a discussion thread + 2 replies, add
+≥10 ratings, nominate in an active themed festival.
+
+**Export flow:**
+
+- [ ] Profile → Data → **Email me my data** — toast "check your email" appears, button enters 60s cooldown.
+- [ ] Resend inbox / test mailbox receives the email with a signed URL.
+- [ ] Signed URL downloads a ZIP; `README.md` at root lists contents.
+- [ ] `profile.json` contains the user; `ratings.json`, `nominations.json`, `discussion_threads.json`, `notifications.json` all present.
+- [ ] `discussion_comments.json` contains only rows where `author_id = <testUser>`; no other user's body / author_id leaks.
+- [ ] Signed URL expires after 7 days (`Expires` query param ~7d out).
+
+**Soft-delete flow:**
+
+- [ ] Profile → **Delete Account** → type `DELETE` → confirm. Redirects to `/?deleted=1` with banner.
+- [ ] Re-attempt sign-in with same creds: middleware blocks, banner shown again.
+- [ ] SQL check `SELECT id, email, username, display_name, deleted_at FROM users WHERE id = '<testUser>'` — `deleted_at` set; email `deleted+<uuid>@backrow.tv`; display*name `Deleted User`; username `deleted*<hex>`.
+- [ ] User's ratings, nominations, discussion posts still present (hard-delete hasn't fired).
+
+**Hard-delete (bypass the 30d wait with inline runner):**
+
+```ts
+// In a throwaway dev script or REPL, NODE_ENV=development:
+import { runInline } from "@/lib/jobs/inline-runner";
+import { JOB_TOPICS } from "@/lib/jobs/types";
+await runInline(JOB_TOPICS.accountHardDelete, {
+  dedupId: "manual-" + crypto.randomUUID(),
+  userId: "<testUser>",
+});
+```
+
+- [ ] SQL `SELECT * FROM users WHERE id = '<testUser>'` — 0 rows.
+- [ ] SQL `SELECT * FROM auth.users WHERE id = '<testUser>'` — 0 rows.
+- [ ] SQL `SELECT count FROM ratings WHERE user_id = '<testUser>'` — 0 (SET NULL).
+- [ ] SQL `SELECT count FROM discussion_threads WHERE author_id = '<testUser>'` — 0. The thread row persists, just with `author_id = NULL`.
+- [ ] Storage: `account-exports/<testUser>/` is empty.
+
+**Sole-producer block:**
+
+- [ ] Create a second test user, make them sole producer of a club.
+- [ ] `POST /api/account/delete` — returns 400 with "transfer ownership or archive" error.
+- [ ] `deleted_at` is NOT set on the users row.
+- [ ] Transfer producer_id to another member (or archive the club), retry — succeeds.
+
+**Orphan-sweep cron:**
+
+- [ ] Backdate an export object: `UPDATE storage.objects SET created_at = now() - interval '10 days' WHERE bucket_id = 'account-exports' LIMIT 1;`
+- [ ] `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/orphan-sweep` — JSON includes `removedExports >= 1`.
+- [ ] Re-run: `removedExports` now 0.
+
+**Cookie consent banner:**
+
+- [ ] Incognito Chrome → load `/` → banner appears immediately after the skip-to-main link.
+- [ ] Accept → `localStorage.getItem('backrow-cookie-consent')` contains `{ essential: true, analytics: true, timestamp: ... }`.
+- [ ] Reload → banner does not reappear.
+
 ---
 
 ## E2E Tests (Playwright)
@@ -120,10 +188,22 @@ Located in `e2e/`:
 ### Running E2E Tests
 
 ```bash
-bun run test           # Run all E2E tests
-bun run test:ui        # Run with Playwright UI
-bun run test:headed    # Run with visible browser
+bun run test:e2e         # Run all E2E tests (Playwright)
+bun run test:e2e:ui      # Run with Playwright UI
+bun run test:e2e:headed  # Run with visible browser
 ```
+
+Note: `bun run test` runs Vitest unit tests (`src/__tests__/cache/**`), not Playwright. See `docs/development.md#testing` for the three-tier breakdown.
+
+### BotID in tests
+
+Vercel BotID (`botid` package, `checkBotId()`) **auto-bypasses** when `NODE_ENV !== "production"`. Playwright, `bun run dev`, and any local test harness see `{ isBot: false }` without configuration. No env vars, headers, or bypass secrets are needed.
+
+Deep Analysis enforcement only kicks in on production deployments (preview + production). If you specifically need to test the bot-rejection branch, pass `developmentOptions.bypass: "BAD-BOT"` into the `checkBotId()` call directly in the test-specific action path.
+
+### Rate limits in tests
+
+Rate limits apply per `(actionName, IP)`. All Playwright tests run from the same origin, so firing 6 rapid sign-ups in a single test run _will_ hit the 5/min cap. Either space actions across tests, use distinct users/flows, or drop the cap in a test-only env override. When `UPSTASH_REDIS_REST_URL` is unset locally, the limiter falls back to an in-memory Map — safe for tests, but the state persists across the dev-server process lifetime.
 
 ---
 
@@ -137,5 +217,5 @@ bun run dev
 # Add NEXT_PUBLIC_ENABLE_TEST_AUTH=true to .env.local
 
 # 3. Run E2E tests
-bun run test
+bun run test:e2e
 ```

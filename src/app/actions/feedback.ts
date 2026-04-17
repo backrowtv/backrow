@@ -6,6 +6,9 @@ import { handleActionError } from "@/lib/errors/handler";
 import { createNotificationsForUsers } from "./notifications";
 import { parseAddFeedbackItemFormData, UUIDSchema } from "@/lib/validation/server-actions";
 import type { FeedbackType, FeedbackStatus, FeedbackItemWithUser } from "./feedback.types";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireHuman } from "@/lib/security/botid";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Get all feedback items of a given type with user info and vote counts
@@ -129,6 +132,12 @@ export async function addFeedbackItem(
   prevState: unknown,
   formData: FormData
 ): Promise<{ success?: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("addFeedbackItem", { limit: 5, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
+  const human = await requireHuman();
+  if (!human.ok) return { error: human.error };
+
   const supabase = await createClient();
 
   const {
@@ -137,6 +146,9 @@ export async function addFeedbackItem(
   if (!user) {
     return { error: "You must be signed in to submit feedback" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate input with Zod
   const parseResult = parseAddFeedbackItemFormData(formData);
@@ -192,6 +204,9 @@ export async function voteOnFeedback(feedbackId: string): Promise<{
   action?: "added" | "removed";
   error?: string;
 }> {
+  const rateCheck = await actionRateLimit("voteOnFeedback", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -200,6 +215,9 @@ export async function voteOnFeedback(feedbackId: string): Promise<{
   if (!user) {
     return { error: "You must be signed in to vote" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate input with Zod
   const parseResult = UUIDSchema.safeParse(feedbackId);
@@ -255,6 +273,9 @@ export async function deleteFeedbackItem(feedbackId: string): Promise<{
   success?: boolean;
   error?: string;
 }> {
+  const rateCheck = await actionRateLimit("deleteFeedbackItem", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -263,6 +284,9 @@ export async function deleteFeedbackItem(feedbackId: string): Promise<{
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check ownership
   const { data: item, error: checkError } = await supabase

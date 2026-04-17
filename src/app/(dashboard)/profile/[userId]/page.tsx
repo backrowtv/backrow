@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getProfileForSeo } from "@/lib/seo/fetchers";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { PersonJsonLd } from "@/components/seo/JsonLd";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { EntityAvatar } from "@/components/ui/entity-avatar";
@@ -14,6 +18,28 @@ const ADMIN_EMAIL = "stephen@backrow.tv";
 
 interface ProfilePageProps {
   params: Promise<{ userId: string }>;
+}
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const { userId } = await params;
+  const profile = await getProfileForSeo(userId);
+  const displayName = profile?.display_name ?? profile?.username ?? "Member";
+  const url = absoluteUrl(`/profile/${userId}`);
+  const description = profile?.bio?.slice(0, 160) ?? `${displayName} on BackRow.`;
+  return {
+    title: `${displayName} · BackRow`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: displayName,
+      description,
+      url,
+      type: "profile",
+      siteName: "BackRow",
+    },
+    twitter: { card: "summary", title: displayName, description },
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function UserProfilePage({ params }: ProfilePageProps) {
@@ -95,6 +121,7 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
 
   return (
     <Section>
+      <PersonJsonLd user={targetUser} />
       <Container>
         <div className="space-y-6">
           {/* Admin Notice */}

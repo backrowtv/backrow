@@ -7,10 +7,10 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { logMemberActivity } from "@/lib/activity/logger";
-import { MAX_THEME_LENGTH, getClubSlug } from "./helpers";
+import { MAX_THEME_LENGTH } from "./helpers";
 
 export async function addTheme(prevState: unknown, formData: FormData) {
   const supabase = await createClient();
@@ -120,9 +120,7 @@ export async function addTheme(prevState: unknown, formData: FormData) {
     clubId
   );
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
+  invalidateClub(clubId);
   return { success: true };
 }
 
@@ -200,9 +198,7 @@ export async function removeTheme(themeId: string, clubId: string) {
     clubId
   );
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
+  invalidateClub(clubId);
   return { success: true };
 }
 
@@ -299,8 +295,6 @@ export async function updateTheme(themeId: string, newName: string, clubId: stri
     clubId
   );
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
+  invalidateClub(clubId);
   return { success: true };
 }

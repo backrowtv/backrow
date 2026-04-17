@@ -1,142 +1,116 @@
-import { ImageResponse } from "next/og";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
+import {
+  BrandLockup,
+  BrandWordmark,
+  BRAND_MUTED,
+  BRAND_PRIMARY,
+  OgShell,
+  OG_CONTENT_TYPE,
+  OG_SIZE,
+  renderOg,
+} from "@/lib/seo/og-template";
 
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const size = OG_SIZE;
+export const contentType = OG_CONTENT_TYPE;
 export const alt = "BackRow Club";
 
-export default async function ClubOGImage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ClubOpenGraphImage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
-  // Fetch club data
   const { data: club } = await supabase
     .from("clubs")
-    .select("name, description, theme_color")
+    .select("id, name, description, theme_color")
     .eq("slug", slug)
     .eq("archived", false)
     .maybeSingle();
 
-  // Fetch member count
-  const { count: memberCount } = await supabase
-    .from("club_members")
-    .select("id", { count: "exact", head: true })
-    .eq(
-      "club_id",
-      (await supabase.from("clubs").select("id").eq("slug", slug).maybeSingle()).data?.id || ""
-    );
-
-  const clubName = club?.name || "Movie Club";
-  const description = club?.description || "A BackRow movie club";
-  const themeColor = club?.theme_color || "#6B9B6B";
-  const members = memberCount || 0;
-
-  // Load Righteous font
-  let righteousFont: ArrayBuffer | null = null;
-  try {
-    const response = await fetch(
-      "https://fonts.gstatic.com/s/righteous/v17/1cXxaUPXBpj2rGoU7C9mj3uEicG01A.woff2"
-    );
-    if (response.ok) righteousFont = await response.arrayBuffer();
-  } catch {
-    // Font fetch failed, will use fallback
+  let memberCount = 0;
+  if (club) {
+    const { count } = await supabase
+      .from("club_members")
+      .select("id", { count: "exact", head: true })
+      .eq("club_id", club.id);
+    memberCount = count ?? 0;
   }
 
-  return new ImageResponse(
-    <div
-      style={{
-        fontSize: 40,
-        background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 24,
-        padding: 60,
-      }}
-    >
-      {/* Club color accent bar */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 6,
-          background: themeColor,
-        }}
-      />
+  const clubName = club?.name ?? "Movie Club";
+  const description = club?.description ?? "A BackRow movie club";
+  const accent = club?.theme_color ?? BRAND_PRIMARY;
 
-      {/* Club name */}
-      <div
-        style={{
-          display: "flex",
-          color: "#ffffff",
-          fontSize: 56,
-          fontWeight: 700,
-          textAlign: "center",
-          maxWidth: "80%",
-          lineClamp: 2,
-        }}
-      >
-        {clubName}
+  return renderOg(
+    <OgShell accentColor={accent}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <BrandLockup size="sm" />
+        <div
+          style={{
+            display: "flex",
+            color: BRAND_MUTED,
+            fontSize: 22,
+            fontFamily: "Righteous",
+            letterSpacing: "0.08em",
+          }}
+        >
+          MOVIE CLUB
+        </div>
       </div>
 
-      {/* Description */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 24,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            color: "#ffffff",
+            fontSize: 76,
+            fontFamily: "Righteous",
+            letterSpacing: "-0.01em",
+            lineHeight: 1.05,
+            textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+          }}
+        >
+          {clubName}
+        </div>
+        {description && (
+          <div
+            style={{
+              display: "flex",
+              color: BRAND_MUTED,
+              fontSize: 28,
+              lineHeight: 1.3,
+              maxWidth: 900,
+            }}
+          >
+            {description.length > 140 ? `${description.slice(0, 140)}…` : description}
+          </div>
+        )}
+      </div>
+
       <div
         style={{
           display: "flex",
-          color: "#9ca3af",
+          alignItems: "center",
+          justifyContent: "space-between",
+          color: accent,
           fontSize: 24,
-          textAlign: "center",
-          maxWidth: "70%",
-          lineClamp: 2,
-        }}
-      >
-        {description.length > 100 ? description.slice(0, 100) + "..." : description}
-      </div>
-
-      {/* Member count */}
-      <div
-        style={{
-          display: "flex",
-          color: themeColor,
-          fontSize: 20,
-          marginTop: 8,
-        }}
-      >
-        {members} {members === 1 ? "member" : "members"}
-      </div>
-
-      {/* BackRow branding */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 30,
-          display: "flex",
-          color: "#6B9B6B",
-          fontSize: 28,
           fontFamily: "Righteous",
-          opacity: 0.7,
         }}
       >
-        BackRow
+        <div style={{ display: "flex" }}>
+          {memberCount} {memberCount === 1 ? "member" : "members"}
+        </div>
+        <BrandWordmark size="sm" />
       </div>
-    </div>,
-    {
-      ...size,
-      ...(righteousFont && {
-        fonts: [
-          {
-            name: "Righteous",
-            data: righteousFont,
-            style: "normal" as const,
-            weight: 400 as const,
-          },
-        ],
-      }),
-    }
+    </OgShell>
   );
 }

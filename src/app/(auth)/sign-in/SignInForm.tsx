@@ -200,11 +200,15 @@ export function SignInForm({
 
         <div className="space-y-2">
           <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
+            <label
+              htmlFor="sign-in-password"
+              className="block text-sm font-medium text-[var(--text-primary)] mb-1.5"
+            >
               Password<span className="text-[var(--error)] ml-0.5">*</span>
             </label>
             <div className="relative">
               <Input
+                id="sign-in-password"
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Enter your password"

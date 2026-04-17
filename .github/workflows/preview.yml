@@ -1,0 +1,87 @@
+name: Preview · Lighthouse
+
+on:
+  pull_request:
+
+concurrency:
+  group: preview-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: read
+  statuses: read
+  pull-requests: read
+
+jobs:
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Vercel preview deployment
+        id: preview
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          REPO: ${{ github.repository }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          set -e
+          DEPLOY_URL=""
+          for i in $(seq 1 36); do
+            if DEPS=$(gh api "repos/$REPO/commits/$SHA/deployments" 2>/dev/null); then
+              IDS=$(echo "$DEPS" | jq -r '.[] | select(.environment=="Preview") | .id')
+              for ID in $IDS; do
+                if STATS=$(gh api "repos/$REPO/deployments/$ID/statuses" 2>/dev/null); then
+                  URL=$(echo "$STATS" | jq -r '[.[] | select(.state=="success") | .environment_url] | first // empty')
+                  if [ -n "$URL" ] && [ "$URL" != "null" ]; then
+                    DEPLOY_URL="$URL"
+                    break 2
+                  fi
+                fi
+              done
+            fi
+            echo "($i/36) Waiting for per-SHA Vercel success event..."
+            sleep 10
+          done
+          if [ -z "$DEPLOY_URL" ]; then
+            SLUG=$(echo "$HEAD_REF" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+            DEPLOY_URL="https://backrow-git-${SLUG}-backrow.vercel.app"
+            echo "No per-SHA success; falling back to branch alias: $DEPLOY_URL"
+          fi
+          echo "Preview URL: $DEPLOY_URL"
+          for i in $(seq 1 60); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "x-vercel-protection-bypass: $BYPASS" "$DEPLOY_URL/")
+            if [ "$CODE" = "200" ]; then
+              echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+              echo "Preview reachable."
+              exit 0
+            fi
+            echo "Got $CODE, retrying..."
+            sleep 5
+          done
+          echo "::error::Preview not reachable (last code $CODE)"
+          exit 1
+
+      - name: Inject bypass header into Lighthouse config
+        env:
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          jq --arg h "$BYPASS" \
+            '.ci.collect.settings.extraHeaders = {"x-vercel-protection-bypass": $h}' \
+            .github/lighthouse/lighthouserc.json > /tmp/lhci.json
+          mv /tmp/lhci.json .github/lighthouse/lighthouserc.json
+
+      - name: Run Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            ${{ steps.preview.outputs.url }}/
+            ${{ steps.preview.outputs.url }}/discover
+          configPath: .github/lighthouse/lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true

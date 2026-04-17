@@ -1,10 +1,20 @@
 import { Metadata } from "next";
 import { ClubCreationWizard } from "@/components/clubs/ClubCreationWizard";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "Create a Club - BackRow",
   description:
     "Start your movie club journey. Create a club, invite friends, and run film festivals together.",
+  alternates: { canonical: absoluteUrl("/create-club") },
+  openGraph: {
+    title: "Create a Club - BackRow",
+    description:
+      "Start your movie club journey. Create a club, invite friends, and run film festivals together.",
+    type: "website",
+    url: absoluteUrl("/create-club"),
+    siteName: "BackRow",
+  },
 };
 
 export default function CreateClubPage() {

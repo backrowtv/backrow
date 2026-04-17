@@ -104,7 +104,11 @@ export function KeywordsInput({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+        <label
+          htmlFor="keywords-tags-input"
+          className="block text-sm font-medium"
+          style={{ color: "var(--text-primary)" }}
+        >
           Keywords / Tags
         </label>
         <span className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -115,6 +119,7 @@ export function KeywordsInput({
       {/* Input field */}
       <div className="space-y-1">
         <Input
+          id="keywords-tags-input"
           type="text"
           value={inputValue}
           onChange={handleInputChange}
