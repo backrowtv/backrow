@@ -4,16 +4,20 @@ import { Heading, Text } from "@/components/ui/typography";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { Notebook } from "@phosphor-icons/react/dist/ssr";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "Blog - BackRow",
   description:
     "Read the latest news, updates, and insights from BackRow about movie clubs, film festivals, and cinema culture.",
+  alternates: { canonical: absoluteUrl("/blog") },
   openGraph: {
     title: "Blog - BackRow",
     description:
       "Read the latest news, updates, and insights from BackRow about movie clubs, film festivals, and cinema culture.",
     type: "website",
+    url: absoluteUrl("/blog"),
+    siteName: "BackRow",
   },
 };
 

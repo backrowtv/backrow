@@ -2,14 +2,18 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/components/marketing/ContactForm";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "Contact Us - BackRow",
   description: "Get in touch with the BackRow team. We'd love to hear from you!",
+  alternates: { canonical: absoluteUrl("/contact") },
   openGraph: {
     title: "Contact Us - BackRow",
     description: "Get in touch with the BackRow team. We'd love to hear from you!",
     type: "website",
+    url: absoluteUrl("/contact"),
+    siteName: "BackRow",
   },
 };
 

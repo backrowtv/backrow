@@ -4,35 +4,26 @@ import { Container } from "@/components/ui/section";
 import { LandingFAQ } from "@/components/marketing/LandingFAQ";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { LandingHero } from "@/components/marketing/LandingHero";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "BackRow - Movie Clubs",
   description:
     "Where movie lovers come together. Create clubs, run festivals, and compete with friends.",
+  alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     title: "BackRow - Movie Clubs",
     description:
       "Where movie lovers come together. Create clubs, run festivals, and compete with friends.",
     type: "website",
-    url: "https://backrow.dev",
-    images: [
-      {
-        url: "https://backrow.dev/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "BackRow - Movie Clubs",
-      },
-    ],
+    url: absoluteUrl("/"),
+    siteName: "BackRow",
   },
   twitter: {
     card: "summary_large_image",
     title: "BackRow - Movie Clubs",
     description:
       "Where movie lovers come together. Create clubs, run festivals, and compete with friends.",
-    images: ["https://backrow.dev/og-image.jpg"],
-  },
-  alternates: {
-    canonical: "https://backrow.dev",
   },
 };
 

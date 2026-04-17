@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "User Agreement - BackRow",
   description:
     "Read BackRow's user agreement to understand your rights and responsibilities when using our movie social platform.",
+  alternates: { canonical: absoluteUrl("/user-agreement") },
   openGraph: {
     title: "User Agreement - BackRow",
     description:
       "Read BackRow's user agreement to understand your rights and responsibilities when using our movie social platform.",
     type: "website",
+    url: absoluteUrl("/user-agreement"),
+    siteName: "BackRow",
   },
 };
 

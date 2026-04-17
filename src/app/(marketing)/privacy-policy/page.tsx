@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - BackRow",
   description:
     "Learn how BackRow collects, uses, and protects your personal information on our movie social platform.",
+  alternates: { canonical: absoluteUrl("/privacy-policy") },
   openGraph: {
     title: "Privacy Policy - BackRow",
     description:
       "Learn how BackRow collects, uses, and protects your personal information on our movie social platform.",
     type: "website",
+    url: absoluteUrl("/privacy-policy"),
+    siteName: "BackRow",
   },
 };
 

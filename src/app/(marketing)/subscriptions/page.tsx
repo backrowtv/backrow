@@ -2,16 +2,18 @@ import type { Metadata } from "next";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Star } from "@phosphor-icons/react/dist/ssr";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
   title: "Subscriptions - BackRow",
-  description:
-    "Explore BackRow subscription plans and premium features for enhanced movie club experiences.",
+  description: "BackRow account plans and billing information.",
+  alternates: { canonical: absoluteUrl("/subscriptions") },
   openGraph: {
     title: "Subscriptions - BackRow",
-    description:
-      "Explore BackRow subscription plans and premium features for enhanced movie club experiences.",
+    description: "BackRow account plans and billing information.",
     type: "website",
+    url: absoluteUrl("/subscriptions"),
+    siteName: "BackRow",
   },
 };
 
