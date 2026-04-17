@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival } from "@/lib/cache/invalidate";
 import { cacheMovie } from "./movies";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
@@ -207,7 +207,7 @@ export async function createNominationDirect(params: CreateNominationParams) {
     festival.club_id
   );
 
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true, clubSlug, festivalSlug };
 }

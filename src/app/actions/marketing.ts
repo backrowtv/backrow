@@ -279,7 +279,7 @@ export async function getFilmNewsData(): Promise<FilmNewsData> {
 export async function getCurrentMatinee(): Promise<MatineeMovie | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag(CacheTags.currentMatinee());
+  cacheTag("matinee:current");
 
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();

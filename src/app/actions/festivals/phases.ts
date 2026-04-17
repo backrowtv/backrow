@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival, invalidateClubStats } from "@/lib/cache/invalidate";
 import { logClubActivity } from "@/lib/activity/logger";
 import { createNotificationsForUsers } from "../notifications";
 import { checkAndAutoStartNextFestival } from "./auto";
@@ -327,28 +327,11 @@ export async function advanceFestivalPhase(festivalId: string, force?: boolean) 
     }
   }
 
-  // Get slugs for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const { data: festivalSlugData } = await supabase
-    .from("festivals")
-    .select("slug")
-    .eq("id", festivalId)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festivalSlugData?.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   // Check if festival just completed and auto-start is enabled
   if (nextStatus === "completed") {
-    // Invalidate stats cache when festival completes
-    revalidatePath(`/club/${clubSlug}/stats`);
+    invalidateClubStats(festival.club_id);
 
     // Check badges for all members who participated
     const { checkRelevantBadges } = await import("../badges");
@@ -507,23 +490,7 @@ export async function revertFestivalPhase(
     action: "reverted",
   });
 
-  // Get slugs for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const { data: festivalSlugData } = await supabase
-    .from("festivals")
-    .select("slug")
-    .eq("id", festivalId)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festivalSlugData?.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true, previousPhase };
 }
 
@@ -620,23 +587,7 @@ export async function forceAdvanceFestivalPhase(
     action: "force_advanced",
   });
 
-  // Get slugs for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", festival.club_id)
-    .single();
-
-  const { data: festivalSlugData } = await supabase
-    .from("festivals")
-    .select("slug")
-    .eq("id", festivalId)
-    .single();
-
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festivalSlugData?.slug || festivalId;
-
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
 
   return { success: true, nextPhase };
 }

@@ -61,7 +61,6 @@ export const CacheTags = {
   upcomingMovies: () => "movies:upcoming" as const,
   popularMovies: () => "movies:popular" as const,
   filmNews: () => "news:film" as const,
-  currentMatinee: () => "matinee:current" as const,
 
   // Per-club stats (one tag per stats type, plus the club tag for cascade)
   clubStats: (clubId: string, kind: StatsKind) => `stats:${kind}:${clubId}` as const,
@@ -191,7 +190,7 @@ export function invalidateDiscover(): void {
  * Invalidate a global marketing slot.
  */
 export function invalidateMarketing(
-  slot: "featured-club" | "upcoming-movies" | "popular-movies" | "film-news" | "matinee"
+  slot: "featured-club" | "upcoming-movies" | "popular-movies" | "film-news"
 ): void {
   switch (slot) {
     case "featured-club":
@@ -206,9 +205,6 @@ export function invalidateMarketing(
       break;
     case "film-news":
       bust(CacheTags.filmNews());
-      break;
-    case "matinee":
-      bust(CacheTags.currentMatinee());
       break;
   }
 }

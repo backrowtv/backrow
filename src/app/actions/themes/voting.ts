@@ -7,8 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { getClubSlug, getFestivalSlug } from "./helpers";
+import { invalidateFestival, invalidateClub } from "@/lib/cache/invalidate";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
@@ -99,9 +98,7 @@ export async function voteForTheme(festivalId: string, themeId: string) {
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, festival.club_id);
-  const festivalSlug = await getFestivalSlug(supabase, festivalId);
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true };
 }
 
@@ -277,8 +274,7 @@ export async function voteOnThemePool(themeId: string) {
       return { error: deleteError.message };
     }
 
-    const clubSlug = await getClubSlug(supabase, theme.club_id);
-    revalidatePath(`/club/${clubSlug}`);
+    invalidateClub(theme.club_id);
     return { success: true, voted: false };
   }
 
@@ -293,8 +289,7 @@ export async function voteOnThemePool(themeId: string) {
     return { error: insertError.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, theme.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(theme.club_id);
   return { success: true, voted: true };
 }
 

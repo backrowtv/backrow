@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { createNotificationsForUsers } from "../notifications";
 import { logClubActivity } from "@/lib/activity/logger";
@@ -103,7 +103,7 @@ export async function togglePoolMovieVote(
       return { error: "Failed to remove vote" };
     }
 
-    revalidatePath(`/club/[slug]`);
+    invalidateClub(poolItem.club_id);
     return { success: true, voted: false };
   }
 
@@ -162,7 +162,7 @@ export async function togglePoolMovieVote(
     }
   }
 
-  revalidatePath(`/club/[slug]`);
+  invalidateClub(poolItem.club_id);
   return { success: true, voted: true, autoPromoted };
 }
 
@@ -333,8 +333,7 @@ export async function pickRandomFromPool(
     });
   }
 
-  revalidatePath(`/club/[slug]`);
-  revalidatePath("/");
+  invalidateClub(clubId);
 
   return { success: true, poolItemId: selectedMovie.id, movieTitle: movie.title };
 }

@@ -8,7 +8,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival } from "@/lib/cache/invalidate";
 import type { FestivalResults } from "@/types/festival-results";
 import { handleActionError } from "@/lib/errors/handler";
 import { checkRelevantBadges, checkFestivalAchievements } from "../badges";
@@ -475,14 +475,7 @@ export async function calculateResults(festivalId: string) {
     handleActionError(error, { action: "checkClubBadgesAfterResults" });
   }
 
-  // Get club and festival slugs
-  const [{ data: clubData }, { data: festivalData }] = await Promise.all([
-    supabase.from("clubs").select("slug").eq("id", festival.club_id).maybeSingle(),
-    supabase.from("festivals").select("slug").eq("id", festivalId).maybeSingle(),
-  ]);
-  const clubSlug = clubData?.slug || festival.club_id;
-  const festivalSlug = festivalData?.slug || festivalId;
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true, results };
 }
 

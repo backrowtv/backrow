@@ -8,9 +8,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival, invalidateClub } from "@/lib/cache/invalidate";
 import { logClubActivity } from "@/lib/activity/logger";
-import { getClubSlug, getFestivalSlug, generateUniqueSlug } from "./helpers";
+import { generateUniqueSlug } from "./helpers";
 
 /**
  * Update the festival_started activity record with the theme and slug
@@ -167,9 +167,7 @@ export async function selectFestivalTheme(festivalId: string, themeId: string) {
     console.error("Error creating festival discussion thread:", err);
   }
 
-  const clubSlug = await getClubSlug(supabase, festival.club_id);
-  const festivalSlug = await getFestivalSlug(supabase, festivalId);
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true, theme: theme.theme_name };
 }
 
@@ -271,8 +269,7 @@ export async function selectCustomTheme(festivalId: string, themeName: string) {
     console.error("Error creating festival discussion thread:", err);
   }
 
-  const clubSlug = await getClubSlug(supabase, festival.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(festival.club_id);
   return { success: true, theme: themeName.trim() };
 }
 
@@ -404,8 +401,7 @@ export async function selectRandomTheme(festivalId: string) {
     console.error("Error creating festival discussion thread:", err);
   }
 
-  const clubSlug = await getClubSlug(supabase, festival.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(festival.club_id);
   return { success: true, theme: selectedTheme.theme_name };
 }
 

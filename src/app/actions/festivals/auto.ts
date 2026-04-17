@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival, invalidateClubStats } from "@/lib/cache/invalidate";
 import { logClubActivity } from "@/lib/activity/logger";
 import { handleActionError } from "@/lib/errors/handler";
 
@@ -307,29 +307,12 @@ export async function checkAndAdvanceFestivalPhases() {
           });
         }
 
-        // Get slugs for revalidation
-        const { data: club } = await supabase
-          .from("clubs")
-          .select("slug")
-          .eq("id", festival.club_id)
-          .single();
-
-        const { data: festivalSlugData } = await supabase
-          .from("festivals")
-          .select("slug")
-          .eq("id", festival.id)
-          .single();
-
-        const clubSlug = club?.slug || festival.club_id;
-        const festivalSlug = festivalSlugData?.slug || festival.id;
-
-        revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+        await invalidateFestival(festival.id, { clubId: festival.club_id });
         advancedCount++;
 
         // Check if festival just completed and auto-start is enabled
         if (nextStatus === "completed") {
-          // Invalidate stats cache when festival completes
-          revalidatePath(`/club/${clubSlug}/stats`);
+          invalidateClubStats(festival.club_id);
 
           // Check badges for all members who participated
           const { checkRelevantBadges } = await import("../badges");

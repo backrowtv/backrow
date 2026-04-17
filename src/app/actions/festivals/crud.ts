@@ -2,8 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { revalidatePath, cacheLife, cacheTag } from "next/cache";
-import { CacheTags } from "@/lib/cache/invalidate";
+import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags, invalidateFestival } from "@/lib/cache/invalidate";
 import sharp from "sharp";
 import { logClubActivity } from "@/lib/activity/logger";
 import { validateKeywords } from "@/types/club-creation";
@@ -522,17 +522,13 @@ export async function createFestival(prevState: unknown, formData: FormData) {
     handleActionError(slugError, { action: "createFestival", silent: true });
   }
 
+  await invalidateFestival(festival.id, { clubId, seasonId });
+
   // Get club slug for redirect
   const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).single();
-
   const clubSlug = club?.slug || clubId;
 
-  // Use generated slug
-  const redirectSlug = finalSlug;
-
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
-  redirect(`/club/${clubSlug}/festival/${redirectSlug}`);
+  redirect(`/club/${clubSlug}/festival/${finalSlug}`);
 }
 
 // ============================================
