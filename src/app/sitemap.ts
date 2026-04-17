@@ -2,11 +2,8 @@ import type { MetadataRoute } from "next";
 import { createPublicClient } from "@/lib/supabase/server";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 
-// Future-proof: if total URLs exceed 10k we split into multiple sitemaps.
-// Launch: single sitemap with id=0.
-export async function generateSitemaps() {
-  return [{ id: 0 }];
-}
+// Single sitemap at /sitemap.xml. When total URLs approach ~5k, swap to
+// `generateSitemaps` + `/sitemap/[id].xml` with a sitemap index. Not needed at launch.
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
