@@ -2,6 +2,18 @@
 
 Local setup, testing, and CI/CD for BackRow. For project conventions (rating rules, auth rules, caching, etc.) read `.claude/CLAUDE.md` first.
 
+## Connected accounts
+
+All three platforms live on the `stephen@backrow.tv` account and are branded as **BackRow**:
+
+| Platform | Entity                                                  | Notes                                                      |
+| -------- | ------------------------------------------------------- | ---------------------------------------------------------- |
+| GitHub   | `backrowtv/backrow`                                     | Source of truth for code + CI                              |
+| Vercel   | team `BackRow` (slug `backrow`), project `backrow`, Pro | Hosts `backrow.tv`; previews per PR; prod on merge to main |
+| Supabase | org `BackRow`, project `backrow` (us-east-2)            | Postgres + Auth + RLS + PR-scoped branches                 |
+
+The repo's `.vercel/project.json` is checked in — do not rename it. Vercel auto-connects pushes on `backrowtv/backrow` to the right project via the GitHub integration.
+
 ## Local setup
 
 Requirements: Node ≥ 24.11, Bun 1.3.12 (pinned), a working Supabase project (shared `backrow` dev project or a personal branch).

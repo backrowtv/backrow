@@ -173,6 +173,28 @@ Backed by Upstash Redis, provisioned via Vercel Marketplace (`KV_REST_API_URL` /
 
 ---
 
+## Connected Accounts
+
+All three services are owned by **stephen@backrow.tv** and branded as **BackRow**.
+
+| Service      | Org / Team                      | Identifier                                                                              | What it hosts                                              |
+| ------------ | ------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **GitHub**   | `backrowtv` org                 | https://github.com/backrowtv/backrow                                                    | Source repo, CI workflows, PR reviews                      |
+| **Vercel**   | `BackRow` team (slug `backrow`) | `team_nQnLf0QGTSFSt8Pw1z1U8Edz` · project `prj_NnI6MbbzqKPzBrR4PITHmef7d4lw` (Pro plan) | Hosting, preview deploys, primary domain `backrow.tv`      |
+| **Supabase** | `BackRow` org                   | `zcutrgyqzsxhbgfrjcka` · project `nxpeptgrhbveqphwwowj` (us-east-2)                     | Postgres, Auth, Storage, Realtime, RLS, PR-scoped branches |
+
+**Primary domain:** `backrow.tv` (registered through Vercel, expires 2026-11-07).
+
+**Integrations wired:**
+
+- GitHub ↔ Vercel: auto-deploy every push to `backrowtv/backrow`. Preview per PR; production on merge to `main`.
+- GitHub ↔ Supabase: auto-spawn DB branch per PR. Branch creds expose to CI via `PREVIEW_SUPABASE_*` secrets.
+- Vercel ↔ Upstash (Marketplace): provisions `KV_REST_API_URL` / `KV_REST_API_TOKEN` / `REDIS_URL` automatically across all environments.
+
+**Env vars managed in Vercel project settings** (Preview + Production + Development scopes): Supabase, TMDB, Resend, VAPID, Sentry, CRON. Canonical schema in `src/lib/config/env.ts`; local template in `.env.example`.
+
+---
+
 ## Environment
 
 - **Development:** Shared `backrow` Supabase project + per-PR Supabase branches
