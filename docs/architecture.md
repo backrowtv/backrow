@@ -1,7 +1,9 @@
 # BackRow Architecture Notes
 
-Living reference for the non-obvious parts of the stack. See `docs/security.md`
-for the write-path posture and `docs/database-baseline.md` for schema history.
+Living reference for the non-obvious parts of the stack. See
+`docs/security.md` for the write-path posture, `docs/caching.md` for the
+tag-based invalidation strategy, and `docs/database-baseline.md` for schema
+history.
 
 ## Background jobs (Vercel Queues)
 

@@ -128,6 +128,19 @@ If it's not working: run `claude plugin install supabase@claude-plugins-official
 
 ---
 
+## Caching
+
+- **Invalidate by tag, not path.** Scoped writes (club, festival, discussion, poll, member, season, movie) call helpers from `src/lib/cache/invalidate.ts` — `invalidateClub`, `invalidateFestival`, `invalidateDiscussion`, `invalidatePoll`, `invalidateMember`, `invalidateSeason`, `invalidateMovie`, `invalidateClubStats`, `invalidateMarketing`. These cascade parents automatically.
+- `revalidatePath` is reserved for genuinely broad writes (home, `/admin`, `/profile`, `/discover`, auth flows). Do not use it for anything scoped to a specific club/festival/discussion.
+- **Every `"use cache"` function declares BOTH `cacheLife(...)` AND `cacheTag(...)`.** A cached function without a tag is a leak — it can never be invalidated. Use tag helpers from `CacheTags.*`; never hand-write tag strings.
+- **Tags contain IDs only.** Never put email, display name, or any RLS-protected string into a tag — they appear in logs/observability. The invalidation test asserts this.
+- **`"use cache"` can't read `cookies()`, `headers()`, or `searchParams`.** Split auth-gated queries into `authCheck() → cachedPublicRead()`. Pass primitives as args.
+- **Realtime subscriptions must filter.** Every Supabase `.on('postgres_changes', ...)` on a user-owned table requires a server-side filter (e.g. `filter: 'user_id=eq.${userId}'`). Unfiltered subscriptions fan every row change to every client — a privacy violation. NotificationBell regression test guards this.
+- `src/lib/cache/invalidate.ts` is plain TS (no `'use server'`) so constants + types import into RSC/client/actions freely. Don't add a `'use server'` directive.
+- Do NOT touch `src/lib/seo/fetchers.ts` — that's `React.cache` (per-request), a different layer from `"use cache"` (cross-request). Full details in `docs/caching.md`.
+
+---
+
 ## Security
 
 - Sanitize user HTML: `import { sanitizeHtml, sanitizeForStorage } from '@/lib/security/sanitize'`
