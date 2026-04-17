@@ -8,7 +8,7 @@ import { rateLimit, getRateLimitResponse } from "@/lib/security/rate-limit";
  * Returns top 5 headlines from ComingSoon.net and SlashFilm combined
  */
 export async function GET(request: NextRequest) {
-  const rateLimitResult = rateLimit(request);
+  const rateLimitResult = await rateLimit(request);
   if (!rateLimitResult.success) {
     return getRateLimitResponse(rateLimitResult.reset);
   }

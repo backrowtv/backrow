@@ -4,7 +4,7 @@ import { rateLimit, getRateLimitResponse } from "@/lib/security/rate-limit";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 export async function GET(request: NextRequest) {
-  const rateLimitResult = rateLimit(request);
+  const rateLimitResult = await rateLimit(request);
   if (!rateLimitResult.success) {
     return getRateLimitResponse(rateLimitResult.reset);
   }

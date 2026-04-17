@@ -8,7 +8,7 @@ import { rateLimit, getRateLimitResponse } from "@/lib/security/rate-limit";
  * Returns all items sorted by date (newest first)
  */
 export async function GET(request: NextRequest) {
-  const rateLimitResult = rateLimit(request);
+  const rateLimitResult = await rateLimit(request);
   if (!rateLimitResult.success) {
     return getRateLimitResponse(rateLimitResult.reset);
   }
