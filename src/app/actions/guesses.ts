@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival } from "@/lib/cache/invalidate";
 
 export async function saveGuesses(festivalId: string, guesses: Record<string, string>) {
   const supabase = await createClient();
@@ -114,13 +114,6 @@ export async function saveGuesses(festivalId: string, guesses: Record<string, st
     }
   }
 
-  // Get club and festival slugs
-  const [{ data: club }, { data: festivalData }] = await Promise.all([
-    supabase.from("clubs").select("slug").eq("id", festival.club_id).maybeSingle(),
-    supabase.from("festivals").select("slug").eq("id", festivalId).maybeSingle(),
-  ]);
-  const clubSlug = club?.slug || festival.club_id;
-  const festivalSlug = festivalData?.slug || festivalId;
-  revalidatePath(`/club/${clubSlug}/festival/${festivalSlug}`);
+  await invalidateFestival(festivalId, { clubId: festival.club_id });
   return { success: true };
 }

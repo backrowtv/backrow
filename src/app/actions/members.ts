@@ -1,15 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { invalidateMember } from "@/lib/cache/invalidate";
 import { logDualActivity } from "@/lib/activity/logger";
-
-// Helper function to get club slug from club ID
-async function getClubSlug(supabase: SupabaseClient, clubId: string): Promise<string> {
-  const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).maybeSingle();
-  return club?.slug || clubId;
-}
 
 export async function updateMemberRole(
   clubId: string,
@@ -103,9 +96,7 @@ export async function updateMemberRole(
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}/members`);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateMember(clubId, userId);
   return { success: true };
 }
 
@@ -241,9 +232,7 @@ export async function removeMember(clubId: string, userId: string) {
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}/members`);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateMember(clubId, userId);
   return { success: true };
 }
 
@@ -281,8 +270,6 @@ export async function updateDisplayName(clubId: string, displayName: string) {
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}/members`);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateMember(clubId, user.id);
   return { success: true };
 }

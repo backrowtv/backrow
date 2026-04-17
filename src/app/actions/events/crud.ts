@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { logClubActivity } from "@/lib/activity/logger";
 import { createNotificationsForUsers } from "../notifications";
@@ -104,10 +104,7 @@ export async function createEvent(
     });
   }
 
-  const clubSlug = await getClubSlug(clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/director/events`);
-  revalidatePath(`/club/${clubSlug}/producer/events`);
+  invalidateClub(clubId);
 
   return { success: true, data: event };
 }
@@ -235,10 +232,7 @@ export async function updateEvent(
     event_id: eventId,
   });
 
-  const clubSlug = await getClubSlug(existingEvent.club_id);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/director/events`);
-  revalidatePath(`/club/${clubSlug}/producer/events`);
+  invalidateClub(existingEvent.club_id);
 
   return { success: true, data: event };
 }
@@ -282,10 +276,7 @@ export async function deleteEvent(eventId: string) {
     event_title: existingEvent.title,
   });
 
-  const clubSlug = await getClubSlug(existingEvent.club_id);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/director/events`);
-  revalidatePath(`/club/${clubSlug}/producer/events`);
+  invalidateClub(existingEvent.club_id);
 
   return { success: true };
 }
@@ -358,8 +349,7 @@ export async function createEventFromPoll(
     poll_id: pollId,
   });
 
-  const clubSlug = await getClubSlug(poll.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(poll.club_id);
 
   return { success: true, data: event };
 }

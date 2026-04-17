@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateSeason } from "@/lib/cache/invalidate";
 import { logClubActivity } from "@/lib/activity/logger";
 import { createNotificationsForUsers } from "../notifications";
 import { getClubSlug } from "../clubs/_helpers";
@@ -108,14 +108,10 @@ export async function createSeason(prevState: unknown, formData: FormData) {
     });
   }
 
-  // Get club slug for revalidation
+  invalidateSeason(season.id, clubId);
+
   const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).single();
-
   const clubSlug = club?.slug || clubId;
-
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/manage/season`);
-  revalidatePath(`/club/${clubSlug}/history`);
 
   return { success: true, seasonId: season.id, clubSlug };
 }
@@ -249,25 +245,7 @@ export async function updateSeason(prevState: unknown, formData: FormData) {
     }
   }
 
-  // Get slugs for revalidation
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("slug")
-    .eq("id", season.club_id)
-    .single();
-
-  const { data: seasonData } = await supabase
-    .from("seasons")
-    .select("slug")
-    .eq("id", seasonId)
-    .single();
-
-  const clubSlug = club?.slug || season.club_id;
-  const seasonSlug = seasonData?.slug || seasonId;
-
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
-  revalidatePath(`/club/${clubSlug}/season/${seasonSlug}`);
+  invalidateSeason(seasonId, season.club_id);
   return { success: true };
 }
 
@@ -327,8 +305,6 @@ export async function deleteSeason(seasonId: string) {
     action: "deleted",
   });
 
-  const clubSlug = await getClubSlug(supabase, season.club_id);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
+  invalidateSeason(seasonId, season.club_id);
   return { success: true };
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import {
   type ClubBadgeCategory,
@@ -337,9 +337,7 @@ export async function updateClubFeaturedBadges(
       return handleActionError(updateError, "updateClubFeaturedBadges");
     }
 
-    // Revalidate paths
-    revalidatePath(`/club/[slug]`, "page");
-    revalidatePath(`/club/[slug]/display-case`, "page");
+    invalidateClub(clubId);
 
     return { success: true };
   } catch (error) {

@@ -9,7 +9,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { logClubActivity } from "@/lib/activity/logger";
 import { createNotificationsForUsers } from "../notifications";
 import { getClubSlug } from "../clubs/_helpers";
@@ -301,10 +301,7 @@ export async function concludeSeason(clubId: string): Promise<{
     });
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/history`);
-  revalidatePath(`/club/${clubSlug}/settings`);
+  invalidateClub(clubId);
 
   return { newSeasonName };
 }

@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
+import { invalidateMarketing } from "@/lib/cache/invalidate";
 
 // Helper to check if user is a site admin
 // Uses the site_admins table for role-based access control
@@ -348,9 +349,7 @@ export async function setFeaturedClub(clubId: string) {
     return { error: updateError.message };
   }
 
-  // Invalidate all relevant caches
-  revalidateTag("clubs", "default");
-  revalidateTag("featured-club", "default");
+  invalidateMarketing("featured-club");
   revalidatePath("/admin");
   revalidatePath("/");
   return { success: true };
