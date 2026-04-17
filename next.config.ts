@@ -121,7 +121,7 @@ const nextConfig: NextConfig = {
       // Supabase Storage (production - BackRow project)
       {
         protocol: "https",
-        hostname: "ifurgbocssewpoontnml.supabase.co",
+        hostname: "nxpeptgrhbveqphwwowj.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
       // Festival poster domains

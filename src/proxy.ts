@@ -111,7 +111,7 @@ function buildCSP(isDev: boolean): string {
       "https://trakt.tv",
 
       "https://images.unsplash.com",
-      "https://ifurgbocssewpoontnml.supabase.co",
+      "https://nxpeptgrhbveqphwwowj.supabase.co",
       "https://festival.sundance.org",
       "https://www.sxsw.com",
       "https://www.festival-cannes.com",

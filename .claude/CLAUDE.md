@@ -85,7 +85,7 @@
 
 ## Supabase Plugin (CRITICAL)
 
-Use the official Supabase **PLUGIN** (NOT MCP) for all database operations. Project ID: `ifurgbocssewpoontnml`
+Use the official Supabase **PLUGIN** (NOT MCP) for all database operations. Project ID: `nxpeptgrhbveqphwwowj`
 
 If it's not working: run `claude plugin install supabase@claude-plugins-official` in terminal and restart Claude Code.
 
@@ -134,9 +134,10 @@ If it's not working: run `claude plugin install supabase@claude-plugins-official
 
 ## Environment
 
-- **Development:** Local Supabase (ports 54321-54328)
-- **Project ID:** ifurgbocssewpoontnml (BackRow-Dev)
-- **NEVER** connect to production during development
+- **Development:** Shared `backrow` Supabase project + per-PR Supabase branches
+- **Project ID:** `nxpeptgrhbveqphwwowj` (us-east-2, BackRow org, stephen@backrow.tv)
+- **Schema baseline:** `supabase/migrations/0001_initial_schema.sql` (reset 2026-04-17 from 118 historical migrations — see `docs/database-baseline.md`). All future schema changes are additive migrations on top.
+- **Branching:** Supabase branches auto-spawn on PRs to `backrowtv/backrow` via the GitHub integration.
 - **Test Account:** stephen@backrow.tv
 
 ---
