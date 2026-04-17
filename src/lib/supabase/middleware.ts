@@ -1,17 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Routes that require authentication - redirect to sign-in if not authenticated
+// Routes that require authentication - redirect to sign-in if not authenticated.
+// NOTE: /club, /movies, /discover, /person intentionally omitted so crawlers and
+// anonymous visitors can see metadata + OG + JSON-LD. Each of those pages handles
+// the anon case itself (public → view-only landing, private → redirect).
 const PROTECTED_ROUTES = [
-  "/club",
   "/clubs",
   "/profile",
   "/activity",
   "/calendar",
-  "/discover",
   "/search",
-  "/movies",
-  "/person",
   "/admin",
   "/timeline",
 ];

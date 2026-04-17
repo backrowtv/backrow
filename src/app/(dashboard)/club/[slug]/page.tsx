@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getClubForSeo } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 import { ClubJsonLd } from "@/components/seo/JsonLd";
+import { PublicClubLanding } from "@/components/clubs/PublicClubLanding";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BrandText } from "@/components/ui/brand-text";
@@ -83,7 +85,35 @@ export default async function ClubPage({ params }: ClubPageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/sign-in");
+
+  // Anonymous visitor (crawler, shared link, first-time landing):
+  // render a public landing for PUBLIC clubs so the OG/JSON-LD unfurl; redirect
+  // to sign-in for PRIVATE clubs so we never leak their existence.
+  if (!user) {
+    const { data: publicClub } = await supabase
+      .from("clubs")
+      .select("id, name, slug, description, theme_color, picture_url, privacy, archived")
+      .or(`slug.eq.${identifier},id.eq.${identifier}`)
+      .maybeSingle();
+
+    if (!publicClub || publicClub.archived) notFound();
+    if (publicClub.privacy === "private") {
+      redirect(`/sign-in?redirectTo=${encodeURIComponent(`/club/${identifier}`)}`);
+    }
+    return (
+      <PublicClubLanding
+        club={{
+          id: publicClub.id,
+          name: publicClub.name,
+          slug: publicClub.slug,
+          description: publicClub.description,
+          theme_color: publicClub.theme_color,
+          picture_url: publicClub.picture_url,
+        }}
+        clubUrlSlug={publicClub.slug ?? identifier}
+      />
+    );
+  }
 
   // Resolve club by slug or ID
   const clubResolution = await resolveClub(supabase, identifier);
