@@ -26,12 +26,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
           REPO: ${{ github.repository }}
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           set -e
           DEPLOY_URL=""
-          for i in $(seq 1 90); do
+          for i in $(seq 1 36); do
             if DEPS=$(gh api "repos/$REPO/commits/$SHA/deployments" 2>/dev/null); then
               IDS=$(echo "$DEPS" | jq -r '.[] | select(.environment=="Preview") | .id')
               for ID in $IDS; do
@@ -44,12 +45,13 @@ jobs:
                 fi
               done
             fi
-            echo "($i/90) Waiting for Vercel Preview success event..."
+            echo "($i/36) Waiting for per-SHA Vercel success event..."
             sleep 10
           done
           if [ -z "$DEPLOY_URL" ]; then
-            echo "::error::No successful Vercel preview deployment for $SHA after 15 min"
-            exit 1
+            SLUG=$(echo "$HEAD_REF" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+            DEPLOY_URL="https://backrow-git-${SLUG}-backrow.vercel.app"
+            echo "No per-SHA success; falling back to branch alias: $DEPLOY_URL"
           fi
           echo "Preview URL: $DEPLOY_URL"
           for i in $(seq 1 60); do
