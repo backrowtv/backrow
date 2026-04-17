@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getClubForSeo } from "@/lib/seo/fetchers";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BrandText } from "@/components/ui/brand-text";
@@ -45,6 +48,31 @@ import type { ClubEvent, RSVPStatus } from "@/app/actions/events";
 
 interface ClubPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: ClubPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const club = await getClubForSeo(slug);
+  if (!club) {
+    return { title: "Club not found · BackRow", robots: { index: false, follow: false } };
+  }
+  const url = absoluteUrl(`/club/${club.slug ?? slug}`);
+  const description = club.description?.slice(0, 160) || `${club.name} — a BackRow movie club.`;
+  const isPublic = club.privacy !== "private";
+  return {
+    title: `${club.name} · BackRow`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: club.name,
+      description,
+      url,
+      type: "website",
+      siteName: "BackRow",
+    },
+    twitter: { card: "summary_large_image", title: club.name, description },
+    robots: isPublic ? { index: true, follow: true } : { index: false, follow: false },
+  };
 }
 
 export default async function ClubPage({ params }: ClubPageProps) {

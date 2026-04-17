@@ -1,5 +1,26 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
+
+export const metadata: Metadata = {
+  title: "Discover Clubs · BackRow",
+  description: "Browse public movie clubs and active film festivals on BackRow.",
+  alternates: { canonical: absoluteUrl("/discover") },
+  openGraph: {
+    title: "Discover Movie Clubs",
+    description: "Browse public movie clubs and active film festivals on BackRow.",
+    url: absoluteUrl("/discover"),
+    type: "website",
+    siteName: "BackRow",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Discover Movie Clubs",
+    description: "Browse public movie clubs and active film festivals on BackRow.",
+  },
+  robots: { index: true, follow: true },
+};
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getFestivalForSeo } from "@/lib/seo/fetchers";
+import { absoluteUrl } from "@/lib/seo/absolute-url";
 import Link from "next/link";
 import { resolveClub, resolveFestival } from "@/lib/clubs/resolveClub";
 import { ClubNavigation } from "@/components/clubs/ClubNavigation";
@@ -19,6 +22,39 @@ import { FestivalPageClient } from "./festival-page-client";
 
 interface FestivalPageProps {
   params: Promise<{ slug: string; "festival-slug": string }>;
+}
+
+export async function generateMetadata({ params }: FestivalPageProps): Promise<Metadata> {
+  const { slug, "festival-slug": festivalSlug } = await params;
+  const data = await getFestivalForSeo(slug, festivalSlug);
+  if (!data) {
+    return { title: "Festival not found · BackRow", robots: { index: false, follow: false } };
+  }
+  const { club, festival } = data;
+  const url = absoluteUrl(`/club/${club.slug ?? slug}/festival/${festival.slug ?? festivalSlug}`);
+  const title = `${festival.theme ?? "Festival"} · ${club.name} · BackRow`;
+  const description = festival.theme
+    ? `${festival.theme} — a themed film festival hosted by ${club.name} on BackRow.`
+    : `A film festival hosted by ${club.name} on BackRow.`;
+  const isPublic = club.privacy !== "private";
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${festival.theme ?? "Festival"} · ${club.name}`,
+      description,
+      url,
+      type: "website",
+      siteName: "BackRow",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${festival.theme ?? "Festival"} · ${club.name}`,
+      description,
+    },
+    robots: isPublic ? { index: true, follow: true } : { index: false, follow: false },
+  };
 }
 
 // Public privacy types that allow view-only access
