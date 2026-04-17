@@ -117,6 +117,17 @@ If it's not working: run `claude plugin install supabase@claude-plugins-official
 
 ---
 
+## SEO
+
+- Every new dynamic page exports `generateMetadata` + sets `alternates.canonical` + ships an `opengraph-image.tsx` + emits JSON-LD when a schema.org type applies.
+- Metadata fetchers use `createPublicClient` (anon, cookie-less) wrapped with `React.cache()` in `src/lib/seo/fetchers.ts` — never double-fetch from the page body.
+- OG images use the shared helper in `src/lib/seo/og-template.tsx`. Never inline the font loader or wordmark markup.
+- Movie poster thumbnails in OG stay `aspect-[2/3]`. BackRow wordmark uses Righteous + primary color.
+- Canonical URLs: build with `absoluteUrl()` from `src/lib/seo/absolute-url.ts`. No trailing slash.
+- Private content is never sitemap'd. See `docs/seo.md` for full inclusion rules.
+
+---
+
 ## Security
 
 - Sanitize user HTML: `import { sanitizeHtml, sanitizeForStorage } from '@/lib/security/sanitize'`

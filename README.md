@@ -6,6 +6,8 @@ BackRow is a movie social platform built for groups of any size. Small friend gr
 
 Start with [`CLAUDE.md`](CLAUDE.md) for project rules and conventions, then [`ARCHITECTURE.md`](ARCHITECTURE.md) for schema, routes, state machines, and key flows.
 
+Feature docs: [`docs/security.md`](docs/security.md) (write-path gates), [`docs/architecture.md`](docs/architecture.md) (background jobs), [`docs/privacy-and-data-lifecycle.md`](docs/privacy-and-data-lifecycle.md) (GDPR / cascades), [`docs/seo.md`](docs/seo.md) (metadata, OG images, sitemap, JSON-LD).
+
 ## Tech Stack
 
 | Layer      | Technology                           |
