@@ -1,19 +1,34 @@
-import { ImageResponse } from "next/og";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
+import {
+  BrandLockup,
+  BrandWordmark,
+  BRAND_MUTED,
+  BRAND_PRIMARY,
+  OgShell,
+  OG_CONTENT_TYPE,
+  OG_SIZE,
+  renderOg,
+} from "@/lib/seo/og-template";
 
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const size = OG_SIZE;
+export const contentType = OG_CONTENT_TYPE;
 export const alt = "BackRow Festival";
 
-export default async function FestivalOGImage({
+function formatDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+export default async function FestivalOpenGraphImage({
   params,
 }: {
   params: Promise<{ slug: string; "festival-slug": string }>;
 }) {
   const { slug, "festival-slug": festivalSlug } = await params;
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
-  // Resolve club
   const { data: club } = await supabase
     .from("clubs")
     .select("id, name, theme_color")
@@ -21,146 +36,106 @@ export default async function FestivalOGImage({
     .eq("archived", false)
     .maybeSingle();
 
-  if (!club) {
-    return new ImageResponse(
-      <div
-        style={{
-          display: "flex",
-          background: "#0a0a0a",
-          width: "100%",
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontSize: 40,
-        }}
-      >
-        BackRow
-      </div>,
-      size
-    );
+  let festival: {
+    theme: string | null;
+    start_date: string | null;
+    results_date: string | null;
+    status: string | null;
+  } | null = null;
+
+  if (club) {
+    const { data } = await supabase
+      .from("festivals")
+      .select("theme, start_date, results_date, status")
+      .eq("club_id", club.id)
+      .eq("slug", festivalSlug)
+      .is("deleted_at", null)
+      .maybeSingle();
+    festival = data;
   }
 
-  // Fetch festival data
-  const { data: festival } = await supabase
-    .from("festivals")
-    .select("name, theme_name")
-    .eq("slug", festivalSlug)
-    .eq("club_id", club.id)
-    .maybeSingle();
+  const clubName = club?.name ?? "Movie Club";
+  const accent = club?.theme_color ?? BRAND_PRIMARY;
+  const theme = festival?.theme ?? "Festival";
+  const dateLine =
+    formatDate(festival?.start_date) && formatDate(festival?.results_date)
+      ? `${formatDate(festival?.start_date)} → ${formatDate(festival?.results_date)}`
+      : formatDate(festival?.start_date);
 
-  const festivalName = festival?.name || "Festival";
-  const themeName = festival?.theme_name || null;
-  const clubName = club.name || "Movie Club";
-  const themeColor = club.theme_color || "#6B9B6B";
-
-  // Load Righteous font
-  let righteousFont: ArrayBuffer | null = null;
-  try {
-    const response = await fetch(
-      "https://fonts.gstatic.com/s/righteous/v17/1cXxaUPXBpj2rGoU7C9mj3uEicG01A.woff2"
-    );
-    if (response.ok) righteousFont = await response.arrayBuffer();
-  } catch {
-    // Font fetch failed
-  }
-
-  return new ImageResponse(
-    <div
-      style={{
-        fontSize: 40,
-        background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 20,
-        padding: 60,
-      }}
-    >
-      {/* Club color accent bar */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 6,
-          background: themeColor,
-        }}
-      />
-
-      {/* Club name (smaller, above festival) */}
-      <div
-        style={{
-          display: "flex",
-          color: themeColor,
-          fontSize: 22,
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-        }}
-      >
-        {clubName}
-      </div>
-
-      {/* Festival name */}
-      <div
-        style={{
-          display: "flex",
-          color: "#ffffff",
-          fontSize: 52,
-          fontWeight: 700,
-          textAlign: "center",
-          maxWidth: "80%",
-          lineClamp: 2,
-        }}
-      >
-        {festivalName}
-      </div>
-
-      {/* Theme */}
-      {themeName && (
+  return renderOg(
+    <OgShell accentColor={accent}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <BrandLockup size="sm" />
         <div
           style={{
             display: "flex",
-            color: "#9ca3af",
-            fontSize: 26,
-            textAlign: "center",
+            color: accent,
+            fontSize: 22,
+            fontFamily: "Righteous",
+            letterSpacing: "0.08em",
           }}
         >
-          Theme: {themeName}
+          FESTIVAL
         </div>
-      )}
+      </div>
 
-      {/* BackRow branding */}
       <div
         style={{
-          position: "absolute",
-          bottom: 30,
+          flex: 1,
           display: "flex",
-          color: "#6B9B6B",
-          fontSize: 28,
-          fontFamily: "Righteous",
-          opacity: 0.7,
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 20,
         }}
       >
-        BackRow
+        <div
+          style={{
+            display: "flex",
+            color: BRAND_MUTED,
+            fontSize: 28,
+            fontFamily: "Righteous",
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+          }}
+        >
+          {clubName}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            color: "#ffffff",
+            fontSize: 72,
+            fontFamily: "Righteous",
+            letterSpacing: "-0.01em",
+            lineHeight: 1.05,
+            textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+            maxWidth: 1000,
+          }}
+        >
+          {theme}
+        </div>
+        {dateLine && (
+          <div
+            style={{
+              display: "flex",
+              color: BRAND_MUTED,
+              fontSize: 26,
+            }}
+          >
+            {dateLine}
+          </div>
+        )}
       </div>
-    </div>,
-    {
-      ...size,
-      ...(righteousFont && {
-        fonts: [
-          {
-            name: "Righteous",
-            data: righteousFont,
-            style: "normal" as const,
-            weight: 400 as const,
-          },
-        ],
-      }),
-    }
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+        }}
+      >
+        <BrandWordmark size="sm" />
+      </div>
+    </OgShell>
   );
 }
