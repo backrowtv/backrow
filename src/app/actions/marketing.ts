@@ -1,6 +1,7 @@
 "use server";
 
 import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags } from "@/lib/cache/invalidate";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getUpcomingMovies } from "@/lib/tmdb/upcoming";
 import { parseRSSFeed } from "@/lib/rss/parser";
@@ -21,7 +22,7 @@ import type {
 export async function getUpcomingMoviesData(): Promise<UpcomingMovie[]> {
   "use cache";
   cacheLife("days");
-  cacheTag("movies", "upcoming-movies");
+  cacheTag(CacheTags.upcomingMovies());
 
   try {
     return await getUpcomingMovies(20);
@@ -38,7 +39,7 @@ export async function getUpcomingMoviesData(): Promise<UpcomingMovie[]> {
 export async function getFilmNewsData(): Promise<FilmNewsData> {
   "use cache";
   cacheLife("hours");
-  cacheTag("news", "film-news");
+  cacheTag(CacheTags.filmNews());
 
   try {
     // Fetch all feeds in parallel
@@ -278,7 +279,7 @@ export async function getFilmNewsData(): Promise<FilmNewsData> {
 export async function getCurrentMatinee(): Promise<MatineeMovie | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag("matinee", "current-matinee");
+  cacheTag(CacheTags.currentMatinee());
 
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
@@ -378,7 +379,8 @@ export async function getCurrentMatinee(): Promise<MatineeMovie | null> {
 export async function getFeaturedClub(): Promise<FeaturedClub | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag("clubs", "featured-club");
+  cacheTag(CacheTags.featuredClub());
+  cacheTag(CacheTags.clubsIndex());
 
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
@@ -541,7 +543,7 @@ export async function getFeaturedClub(): Promise<FeaturedClub | null> {
 export async function getPopularMovies(limit: number = 12): Promise<PopularMovie[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag("movies", "popular-movies");
+  cacheTag(CacheTags.popularMovies());
 
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();

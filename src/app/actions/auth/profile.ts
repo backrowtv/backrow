@@ -9,6 +9,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags } from "@/lib/cache/invalidate";
 import sharp from "sharp";
 import { handleActionError } from "@/lib/errors/handler";
 import { enqueueImageProcessing } from "@/lib/jobs/producers";
@@ -474,7 +475,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 export async function getUserProfile(userId: string) {
   "use cache";
   cacheLife("minutes");
-  cacheTag("user", `user-${userId}`, "profile");
+  cacheTag(CacheTags.user(userId));
 
   const supabase = await createClient();
 
