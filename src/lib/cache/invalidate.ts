@@ -1,262 +1,244 @@
 /**
- * Centralized Cache Invalidation Strategy
+ * Centralized Cache Invalidation (tag-based)
  *
- * Provides standardized cache invalidation utilities to replace 312+ scattered
- * revalidatePath calls with consistent, maintainable cache management.
+ * Next 16 Cache Components (`cacheComponents: true`) render each cached
+ * component independently. A coarse `revalidatePath('/club/...')` blasts the
+ * whole subtree, defeating that. Tag-based invalidation matches the scope
+ * of each "use cache" function.
  *
- * @example
- * // Before (inconsistent, scattered):
- * revalidatePath(`/club/${slug}`)
- * revalidatePath('/clubs')
- * revalidatePath('/')
- * revalidatePath('/discover')
+ * Call these helpers from server actions and worker route handlers after
+ * writes. Every "use cache" reader MUST tag itself using `CacheTags.*` so
+ * these helpers can reach it.
  *
- * // After (centralized):
- * invalidateClub(slug)
+ * Tag safety: tag strings appear in logs/observability. Put IDs only —
+ * never email, display name, or any RLS-protected string.
  */
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from "next/cache";
+import { createServiceClient } from "@/lib/supabase/server";
 
 /**
- * All application paths as a central reference.
- * Use these instead of hardcoding paths throughout the codebase.
+ * Paths used by LEGITIMATE_BROAD invalidations (home, /admin, /search).
+ * Scoped writes (club, festival, discussion, poll) should NOT use paths —
+ * they should call `invalidateClub` / `invalidateFestival` / etc.
  */
 export const CachePaths = {
-  // Root paths
-  home: '/',
-  clubs: '/clubs',
-  discover: '/discover',
-  activity: '/activity',
-  profile: '/profile',
-  search: '/search',
-  calendar: '/calendar',
-
-  // Dynamic paths
-  club: (slug: string) => `/club/${slug}`,
-  clubSettings: (slug: string) => `/club/${slug}/settings`,
-  clubMembers: (slug: string) => `/club/${slug}/members`,
-  clubHistory: (slug: string) => `/club/${slug}/history`,
-  clubStats: (slug: string) => `/club/${slug}/stats`,
-  clubDiscuss: (slug: string) => `/club/${slug}/discuss`,
-  clubDisplayCase: (slug: string) => `/club/${slug}/display-case`,
-
-  festival: (clubSlug: string, festivalSlug: string) =>
-    `/club/${clubSlug}/festival/${festivalSlug}`,
-
-  season: (clubSlug: string, seasonSlug: string) =>
-    `/club/${clubSlug}/season/${seasonSlug}`,
-
-  movie: (id: string | number) => `/movies/${id}`,
-  person: (id: string | number) => `/person/${id}`,
-
-  // Profile sub-paths
-  profileSettings: '/profile/settings',
-  profileDisplayCase: '/profile/display-case',
-  profileFutureNominations: '/profile/future-nominations',
-} as const
+  home: "/",
+  clubs: "/clubs",
+  discover: "/discover",
+  admin: "/admin",
+  search: "/search",
+  activity: "/activity",
+  calendar: "/calendar",
+  profile: "/profile",
+  profileSettings: "/profile/settings",
+  profileDisplayCase: "/profile/display-case",
+  profileFutureNominations: "/profile/future-nominations",
+} as const;
 
 /**
- * Cache tags for fine-grained invalidation.
- * Use with revalidateTag for more precise cache control.
+ * Colon-scheme cache tags. Every `"use cache"` function declares a
+ * matching `cacheTag(...)` so writes can target it precisely.
+ *
+ * Convention: `<entity>:<id>` for per-entity data, `<entity>:index` for
+ * global lists.
  */
 export const CacheTags = {
-  // Global
-  clubs: 'clubs',
-  festivals: 'festivals',
-  users: 'users',
+  // Per-entity (IDs only)
+  club: (id: string) => `club:${id}` as const,
+  festival: (id: string) => `festival:${id}` as const,
+  season: (id: string) => `season:${id}` as const,
+  discussion: (id: string) => `discussion:${id}` as const,
+  poll: (id: string) => `poll:${id}` as const,
+  member: (userId: string) => `member:${userId}` as const,
+  user: (id: string) => `user:${id}` as const,
+  movie: (tmdbId: string | number) => `movie:${tmdbId}` as const,
 
-  // Per-entity
-  club: (id: string) => `club-${id}`,
-  festival: (id: string) => `festival-${id}`,
-  user: (id: string) => `user-${id}`,
-  season: (id: string) => `season-${id}`,
+  // Global collections
+  clubsIndex: () => "clubs:index" as const,
+  discoverIndex: () => "discover:index" as const,
+  featuredClub: () => "featured:club" as const,
+  upcomingMovies: () => "movies:upcoming" as const,
+  popularMovies: () => "movies:popular" as const,
+  filmNews: () => "news:film" as const,
+  currentMatinee: () => "matinee:current" as const,
 
-  // Collections
-  clubMembers: (clubId: string) => `club-members-${clubId}`,
-  clubFestivals: (clubId: string) => `club-festivals-${clubId}`,
-  clubSeasons: (clubId: string) => `club-seasons-${clubId}`,
-} as const
+  // Per-club stats (one tag per stats type, plus the club tag for cascade)
+  clubStats: (clubId: string, kind: StatsKind) => `stats:${kind}:${clubId}` as const,
+} as const;
+
+export type StatsKind =
+  | "participation"
+  | "distribution"
+  | "top-movies"
+  | "activity"
+  | "completion"
+  | "trends";
+
+type InvalidateProfile = "max" | "default" | "minutes" | "hours" | "days" | "weeks" | "seconds";
+const DEFAULT_PROFILE: InvalidateProfile = "max";
+
+function bust(tag: string, profile: InvalidateProfile = DEFAULT_PROFILE): void {
+  revalidateTag(tag, profile);
+}
 
 /**
- * Invalidates all cache related to a club.
- * Call after club creation, update, or deletion.
+ * Invalidate a single club and the global club indexes that list it.
  *
- * @param slug - The club's URL slug
- * @param options - Additional invalidation options
+ * Call after any club metadata, settings, moderation, announcement,
+ * membership, or resource change.
  */
-export function invalidateClub(
-  slug: string,
-  options?: { includeGlobal?: boolean }
-): void {
-  const { includeGlobal = true } = options ?? {}
+export function invalidateClub(clubId: string): void {
+  bust(CacheTags.club(clubId));
+  bust(CacheTags.clubsIndex());
+  bust(CacheTags.discoverIndex());
+}
 
-  // Club-specific paths
-  revalidatePath(CachePaths.club(slug))
-  revalidatePath(CachePaths.clubSettings(slug))
-  revalidatePath(CachePaths.clubMembers(slug))
-  revalidatePath(CachePaths.clubHistory(slug))
-  revalidatePath(CachePaths.clubStats(slug))
-  revalidatePath(CachePaths.clubDiscuss(slug))
+/**
+ * Invalidate a festival plus its parent club and season.
+ *
+ * Pass `opts` when the caller already knows the parents (the common case in
+ * `src/app/actions/festivals/**` — avoids a DB roundtrip). Otherwise the
+ * helper looks them up.
+ */
+export async function invalidateFestival(
+  festivalId: string,
+  opts?: { clubId?: string; seasonId?: string | null }
+): Promise<void> {
+  bust(CacheTags.festival(festivalId));
 
-  // Global paths that list clubs
-  if (includeGlobal) {
-    revalidatePath(CachePaths.clubs)
-    revalidatePath(CachePaths.discover)
-    revalidatePath(CachePaths.home)
+  let clubId = opts?.clubId;
+  let seasonId = opts?.seasonId;
+
+  if (clubId === undefined || seasonId === undefined) {
+    const parents = await lookupFestivalParents(festivalId);
+    clubId = clubId ?? parents?.clubId;
+    seasonId = seasonId ?? parents?.seasonId;
   }
+
+  if (clubId) invalidateClub(clubId);
+  if (seasonId) bust(CacheTags.season(seasonId));
+}
+
+/** Invalidate a discussion thread and its parent club. */
+export function invalidateDiscussion(threadId: string, clubId: string): void {
+  bust(CacheTags.discussion(threadId));
+  invalidateClub(clubId);
+}
+
+/** Invalidate a poll and its parent club. */
+export function invalidatePoll(pollId: string, clubId: string): void {
+  bust(CacheTags.poll(pollId));
+  invalidateClub(clubId);
 }
 
 /**
- * Invalidates all cache related to a festival.
- * Call after festival creation, update, phase change, or deletion.
- *
- * @param clubSlug - The club's URL slug
- * @param festivalSlug - The festival's URL slug
+ * Invalidate data scoped to a (club, user) pair — membership changes,
+ * role updates, join/leave, rubric-for-user-in-club changes.
  */
-export function invalidateFestival(clubSlug: string, festivalSlug: string): void {
-  // Festival-specific path
-  revalidatePath(CachePaths.festival(clubSlug, festivalSlug))
-
-  // Club page (shows current festival)
-  revalidatePath(CachePaths.club(clubSlug))
-
-  // Home (may show festival activity)
-  revalidatePath(CachePaths.home)
-
-  // Calendar (shows festival deadlines)
-  revalidatePath(CachePaths.calendar)
+export function invalidateMember(clubId: string, userId: string): void {
+  bust(CacheTags.member(userId));
+  bust(CacheTags.user(userId));
+  invalidateClub(clubId);
 }
 
-/**
- * Invalidates all cache related to a season.
- * Call after season creation, update, or conclusion.
- *
- * @param clubSlug - The club's URL slug
- * @param seasonSlug - The season's URL slug
- */
-export function invalidateSeason(clubSlug: string, seasonSlug: string): void {
-  revalidatePath(CachePaths.season(clubSlug, seasonSlug))
-  revalidatePath(CachePaths.club(clubSlug))
-  revalidatePath(CachePaths.clubHistory(clubSlug))
-  revalidatePath(CachePaths.clubStats(clubSlug))
+/** Invalidate a season and its parent club. */
+export function invalidateSeason(seasonId: string, clubId: string): void {
+  bust(CacheTags.season(seasonId));
+  invalidateClub(clubId);
 }
 
-/**
- * Invalidates all cache related to club membership changes.
- * Call after join, leave, role change, or member removal.
- *
- * @param clubSlug - The club's URL slug
- */
-export function invalidateClubMembership(clubSlug: string): void {
-  revalidatePath(CachePaths.club(clubSlug))
-  revalidatePath(CachePaths.clubMembers(clubSlug))
-  revalidatePath(CachePaths.clubs) // User's club list
-  revalidatePath(CachePaths.home)
+/** Invalidate profile-level data for a single user. */
+export function invalidateUser(userId: string): void {
+  bust(CacheTags.user(userId));
+  bust(CacheTags.member(userId));
 }
 
-/**
- * Invalidates all cache related to nominations.
- * Call after nomination create, update, or delete.
- *
- * @param clubSlug - The club's URL slug
- * @param festivalSlug - The festival's URL slug
- */
-export function invalidateNominations(clubSlug: string, festivalSlug: string): void {
-  revalidatePath(CachePaths.festival(clubSlug, festivalSlug))
-  revalidatePath(CachePaths.club(clubSlug))
+/** Invalidate a movie by TMDB id. */
+export function invalidateMovie(tmdbId: string | number): void {
+  bust(CacheTags.movie(tmdbId));
 }
 
-/**
- * Invalidates all cache related to ratings.
- * Call after rating create, update, or delete.
- *
- * @param clubSlug - The club's URL slug
- * @param festivalSlug - The festival's URL slug
- */
-export function invalidateRatings(clubSlug: string, festivalSlug: string): void {
-  revalidatePath(CachePaths.festival(clubSlug, festivalSlug))
-  revalidatePath(CachePaths.club(clubSlug))
-  revalidatePath(CachePaths.clubStats(clubSlug))
-}
-
-/**
- * Invalidates all cache related to discussions.
- * Call after thread or comment create, update, or delete.
- *
- * @param clubSlug - The club's URL slug
- */
-export function invalidateDiscussions(clubSlug: string): void {
-  revalidatePath(CachePaths.clubDiscuss(clubSlug))
-  revalidatePath(CachePaths.club(clubSlug))
-  revalidatePath(CachePaths.activity)
-}
-
-/**
- * Invalidates all cache related to user profile.
- * Call after profile update, settings change, or stats update.
- *
- * @param options - Specific profile sections to invalidate
- */
-export function invalidateProfile(
-  options?: { settings?: boolean; displayCase?: boolean; futureNominations?: boolean }
-): void {
-  revalidatePath(CachePaths.profile)
-
-  if (options?.settings) {
-    revalidatePath(CachePaths.profileSettings)
+/** Invalidate a specific stats slice for a club. */
+export function invalidateClubStats(clubId: string, kind?: StatsKind): void {
+  if (kind) {
+    bust(CacheTags.clubStats(clubId, kind));
+  } else {
+    const kinds: StatsKind[] = [
+      "participation",
+      "distribution",
+      "top-movies",
+      "activity",
+      "completion",
+      "trends",
+    ];
+    for (const k of kinds) bust(CacheTags.clubStats(clubId, k));
   }
-  if (options?.displayCase) {
-    revalidatePath(CachePaths.profileDisplayCase)
-  }
-  if (options?.futureNominations) {
-    revalidatePath(CachePaths.profileFutureNominations)
-  }
+  invalidateClub(clubId);
 }
 
 /**
- * Invalidates movie-related cache.
- * Call after movie data update or new ratings.
- *
- * @param movieId - The movie's TMDB ID
- */
-export function invalidateMovie(movieId: string | number): void {
-  revalidatePath(CachePaths.movie(movieId))
-  revalidatePath(CachePaths.search)
-}
-
-/**
- * Invalidates global activity feed cache.
- * Call after any action that should appear in activity feeds.
- */
-export function invalidateActivity(): void {
-  revalidatePath(CachePaths.activity)
-  revalidatePath(CachePaths.home)
-}
-
-/**
- * Invalidates all discoverable content.
- * Call after visibility changes or new public content.
+ * Admin-only: invalidate the Discover index and featured-club slot.
+ * Use when curated or featured content changes.
  */
 export function invalidateDiscover(): void {
-  revalidatePath(CachePaths.discover)
-  revalidatePath(CachePaths.home)
+  bust(CacheTags.discoverIndex());
+  bust(CacheTags.clubsIndex());
+  bust(CacheTags.featuredClub());
 }
 
 /**
- * Full cache invalidation for the entire app.
- * Use sparingly - only for admin operations or major data changes.
+ * Invalidate a global marketing slot.
  */
-export function invalidateAll(): void {
-  revalidatePath('/', 'layout')
+export function invalidateMarketing(
+  slot: "featured-club" | "upcoming-movies" | "popular-movies" | "film-news" | "matinee"
+): void {
+  switch (slot) {
+    case "featured-club":
+      bust(CacheTags.featuredClub());
+      bust(CacheTags.clubsIndex());
+      break;
+    case "upcoming-movies":
+      bust(CacheTags.upcomingMovies());
+      break;
+    case "popular-movies":
+      bust(CacheTags.popularMovies());
+      break;
+    case "film-news":
+      bust(CacheTags.filmNews());
+      break;
+    case "matinee":
+      bust(CacheTags.currentMatinee());
+      break;
+  }
 }
 
 /**
- * Invalidates using a cache tag.
- * More efficient than path-based invalidation for specific data.
+ * Legitimate-broad path-based invalidation.
+ * Reserved for home/marketing/admin writes that genuinely cover the full
+ * page shell. Prefer `invalidate*` helpers above for anything scoped.
+ */
+export function invalidatePath(path: string): void {
+  revalidatePath(path);
+}
+
+/**
+ * Look up a festival's `club_id` and `season_id`. Used as a fallback by
+ * `invalidateFestival` when the caller doesn't already have them.
  *
- * @param tag - The cache tag to invalidate
- * @param cacheKind - The kind of cache ('default' for server cache)
+ * Uses the service-role client so invalidation works even for users who
+ * couldn't read the festival row themselves (workers, admin paths).
  */
-export function invalidateByTag(tag: string, cacheKind: 'default' | 'client' = 'default'): void {
-  revalidateTag(tag, cacheKind)
+async function lookupFestivalParents(
+  festivalId: string
+): Promise<{ clubId: string; seasonId: string | null } | null> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("festivals")
+    .select("club_id, season_id")
+    .eq("id", festivalId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return { clubId: data.club_id as string, seasonId: (data.season_id as string | null) ?? null };
 }
