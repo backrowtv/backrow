@@ -1,16 +1,7 @@
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/server";
 
-// Temporary dev instrumentation: verifies React.cache per-request dedup.
-// Removed in Task 12. Expect ONE log line per fetcher per page request.
-function debugFetch(name: string, key: string) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[seo-fetch] ${name}(${key})`);
-  }
-}
-
 export const getClubForSeo = cache(async (slug: string) => {
-  debugFetch("getClubForSeo", slug);
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("clubs")
@@ -24,7 +15,6 @@ export const getClubForSeo = cache(async (slug: string) => {
 });
 
 export const getFestivalForSeo = cache(async (clubSlug: string, festivalSlug: string) => {
-  debugFetch("getFestivalForSeo", `${clubSlug}/${festivalSlug}`);
   const supabase = createPublicClient();
   const { data: club } = await supabase
     .from("clubs")
@@ -49,7 +39,6 @@ export const getFestivalForSeo = cache(async (clubSlug: string, festivalSlug: st
 });
 
 export const getMovieForSeo = cache(async (idOrSlug: string) => {
-  debugFetch("getMovieForSeo", idOrSlug);
   const supabase = createPublicClient();
   const asNum = Number(idOrSlug);
   const isNumeric = Number.isFinite(asNum) && asNum > 0;
@@ -65,7 +54,6 @@ export const getMovieForSeo = cache(async (idOrSlug: string) => {
 });
 
 export const getProfileForSeo = cache(async (userId: string) => {
-  debugFetch("getProfileForSeo", userId);
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("users")
