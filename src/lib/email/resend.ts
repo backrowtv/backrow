@@ -1,20 +1,20 @@
 import { Resend } from "resend";
+import { env } from "@/lib/config/env";
 
 // Lazy singleton — only created when first used
 let resendClient: Resend | null = null;
 
 function getResend(): Resend {
   if (!resendClient) {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
+    if (!env.RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY environment variable is not set");
     }
-    resendClient = new Resend(apiKey);
+    resendClient = new Resend(env.RESEND_API_KEY);
   }
   return resendClient;
 }
 
-const DEFAULT_FROM = process.env.RESEND_FROM_EMAIL || "BackRow <noreply@backrow.tv>";
+const DEFAULT_FROM = env.RESEND_FROM_EMAIL || "BackRow <noreply@backrow.tv>";
 
 interface SendEmailOptions {
   to: string | string[];

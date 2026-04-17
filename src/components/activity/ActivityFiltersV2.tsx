@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useCallback, forwardRef } from "react";
-import { X, CaretDown, Check } from "@phosphor-icons/react";
+import { X, CaretDown } from "@phosphor-icons/react";
 import { ActivityTabs } from "./ActivityTabs";
 import { MemberFilterCombobox, type MemberOption } from "./MemberFilterCombobox";
 import { cn } from "@/lib/utils";
@@ -234,9 +234,7 @@ export function ActivityFiltersV2({
   const memberFilterActive = !!selectedUser;
 
   // Get display label for time filter
-  const timeLabel = timeFilterActive
-    ? DATE_RANGE_PRESETS[selectedDateRange].label
-    : "Time";
+  const timeLabel = timeFilterActive ? DATE_RANGE_PRESETS[selectedDateRange].label : "Time";
 
   // Get club name for single selection display
   const clubLabel =
@@ -274,9 +272,7 @@ export function ActivityFiltersV2({
         {clubs.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <FilterTrigger isActive={clubFilterCount > 0}>
-                {clubLabel}
-              </FilterTrigger>
+              <FilterTrigger isActive={clubFilterCount > 0}>{clubLabel}</FilterTrigger>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {clubs.map((club) => (
@@ -307,15 +303,10 @@ export function ActivityFiltersV2({
         {/* Time Period Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <FilterTrigger isActive={timeFilterActive}>
-              {timeLabel}
-            </FilterTrigger>
+            <FilterTrigger isActive={timeFilterActive}>{timeLabel}</FilterTrigger>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuRadioGroup
-              value={selectedDateRange}
-              onValueChange={handleDateRangeChange}
-            >
+            <DropdownMenuRadioGroup value={selectedDateRange} onValueChange={handleDateRangeChange}>
               {Object.entries(DATE_RANGE_PRESETS).map(([key, config]) => (
                 <DropdownMenuRadioItem key={key} value={key}>
                   {config.label}
@@ -329,9 +320,7 @@ export function ActivityFiltersV2({
         {selectedCategory && currentSubFilters.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <FilterTrigger isActive={typesFilterCount > 0}>
-                {typeLabel}
-              </FilterTrigger>
+              <FilterTrigger isActive={typesFilterCount > 0}>{typeLabel}</FilterTrigger>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               {currentSubFilters.map((filter) => {
@@ -372,9 +361,7 @@ export function ActivityFiltersV2({
         {shouldShowMemberFilter && (
           <DropdownMenu open={memberOpen} onOpenChange={setMemberOpen}>
             <DropdownMenuTrigger asChild>
-              <FilterTrigger isActive={memberFilterActive}>
-                {memberLabel}
-              </FilterTrigger>
+              <FilterTrigger isActive={memberFilterActive}>{memberLabel}</FilterTrigger>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="p-2 min-w-[220px]">
               <MemberFilterCombobox

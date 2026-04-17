@@ -77,9 +77,9 @@ export function FestivalAppearanceSettings({
 
           {/* Festival Picture */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-[var(--text-primary)]">
+            <span className="block text-sm font-medium text-[var(--text-primary)]">
               Festival Picture
-            </label>
+            </span>
             <p className="text-xs text-[var(--text-muted)]">
               A circular image that represents this festival
             </p>

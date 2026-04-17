@@ -197,9 +197,10 @@ const FocusCarousel = memo(function FocusCarousel({
           {items.map((item, index) => {
             const isSelected = index === currentIndex;
             return (
-              <div
+              <button
+                type="button"
                 key={item.id}
-                className="flex-[0_0_auto] min-w-0 px-1.5 cursor-pointer"
+                className="flex-[0_0_auto] min-w-0 px-1.5 cursor-pointer bg-transparent border-0 p-0"
                 style={{ width: isMobile ? "140px" : "160px" }}
                 onClick={() => {
                   if (!isSelected) {
@@ -216,7 +217,7 @@ const FocusCarousel = memo(function FocusCarousel({
                 >
                   <MovieCard item={item} isSelected={isSelected} isMobile={isMobile} />
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

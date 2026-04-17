@@ -183,6 +183,8 @@ export function ThemesSection({
                 }
                 className="space-y-3"
               >
+                {/* extended-click area — keyboard handled by nested RadioGroupItem + Label */}
+                {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
                 <div
                   className="flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors"
                   style={{
@@ -208,6 +210,8 @@ export function ThemesSection({
                   </div>
                 </div>
 
+                {/* extended-click area — keyboard handled by nested RadioGroupItem + Label */}
+                {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
                 <div
                   className="flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors"
                   style={{
@@ -232,6 +236,8 @@ export function ThemesSection({
                   </div>
                 </div>
 
+                {/* extended-click area — keyboard handled by nested RadioGroupItem + Label */}
+                {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
                 <div
                   className="flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors"
                   style={{

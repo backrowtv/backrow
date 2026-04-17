@@ -109,8 +109,18 @@ function formatDateTimeForDisplay(dtString: string): string {
   const [year, month, day] = datePart.split("-").map(Number);
   const [hours, minutes] = timePart.split(":").map(Number);
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   const ampm = hours >= 12 ? "PM" : "AM";
   const displayHour = hours % 12 || 12;
@@ -257,7 +267,11 @@ export function FestivalWizard({
     }
     if (currentStep === 1) {
       // Rules step - require theme if autocracy
-      if (themeGovernance === "autocracy" && clubSettings?.themes_enabled !== false && !customTheme.trim()) {
+      if (
+        themeGovernance === "autocracy" &&
+        clubSettings?.themes_enabled !== false &&
+        !customTheme.trim()
+      ) {
         return false;
       }
     }
@@ -441,8 +455,18 @@ export function FestivalWizard({
                       const dateStr = dateString.split("T")[0];
                       const [_year, monthNum, day] = dateStr.split("-").map(Number);
                       const months = [
-                        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                        "Jan",
+                        "Feb",
+                        "Mar",
+                        "Apr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Aug",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dec",
                       ];
                       return `${months[monthNum - 1]} ${day}`;
                     };
@@ -617,6 +641,8 @@ export function FestivalWizard({
                       type="number"
                       min={1}
                       max={20}
+                      /* focus-on-open dialog — expected UX */
+                      // eslint-disable-next-line jsx-a11y/no-autofocus
                       autoFocus
                       defaultValue={maxNominationsPerUser}
                       onChange={(e) => {
@@ -829,16 +855,25 @@ export function FestivalWizard({
                 className="divide-y rounded-lg overflow-hidden"
                 style={{ borderColor: "var(--border)" }}
               >
-                {([
-                  ["Starts", startImmediately ? "Now" : formatDateTimeForDisplay(startDateTime)],
-                  ["Nominations close", formatDateTimeForDisplay(nominationDateTime)],
-                  ["Ratings close", formatDateTimeForDisplay(ratingDeadline)],
-                  ["Max nominations", `${maxNominationsPerUser} per member`],
-                  ["Theme", getThemeDisplayText()],
-                  ["Auto-advance", autoAdvance ? "On" : "Off"],
-                  ["Rubric", clubSettings?.rubric_enforcement === "required" ? "Required" : clubSettings?.rubric_enforcement === "suggested" ? "Suggested" : "Off"],
-                  ["Guessing", clubSettings?.nomination_guessing_enabled ? "On" : "Off"],
-                ] as const).map(([label, value], i, arr) => (
+                {(
+                  [
+                    ["Starts", startImmediately ? "Now" : formatDateTimeForDisplay(startDateTime)],
+                    ["Nominations close", formatDateTimeForDisplay(nominationDateTime)],
+                    ["Ratings close", formatDateTimeForDisplay(ratingDeadline)],
+                    ["Max nominations", `${maxNominationsPerUser} per member`],
+                    ["Theme", getThemeDisplayText()],
+                    ["Auto-advance", autoAdvance ? "On" : "Off"],
+                    [
+                      "Rubric",
+                      clubSettings?.rubric_enforcement === "required"
+                        ? "Required"
+                        : clubSettings?.rubric_enforcement === "suggested"
+                          ? "Suggested"
+                          : "Off",
+                    ],
+                    ["Guessing", clubSettings?.nomination_guessing_enabled ? "On" : "Off"],
+                  ] as const
+                ).map(([label, value], i, arr) => (
                   <tr
                     key={label}
                     style={{

@@ -114,7 +114,7 @@ export function ClubHistoryView({
   const activeIndex = useMemo(() => {
     const idx = historyTabItems.findIndex((item) => item.value === activeTab);
     return idx >= 0 ? idx : 0;
-  }, [activeTab]);
+  }, [activeTab, historyTabItems]);
 
   const measureTabs = useCallback(() => {
     const newMeasurements: TabMeasurement[] = tabRefs.current.map((tab) => {
@@ -160,7 +160,7 @@ export function ClubHistoryView({
       opacity: 1,
       transition: animationEnabled ? "left 200ms ease-out, width 200ms ease-out" : "none",
     };
-  }, [measurements, activeIndex, animationEnabled]);
+  }, [measurements, activeIndex, animationEnabled, historyTabItems.length]);
 
   // Check if there's any data at all
   const hasAnyData = seasons.length > 0 || festivals.length > 0 || nominations.length > 0;

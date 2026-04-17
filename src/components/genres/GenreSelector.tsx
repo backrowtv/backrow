@@ -25,7 +25,7 @@ export function GenreSelector({ value, onChange, disabled }: GenreSelectorProps)
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-[var(--text-primary)]">Genres</label>
+        <span className="text-sm font-medium text-[var(--text-primary)]">Genres</span>
         <span className="text-xs text-[var(--text-muted)]">
           {value.length}/{MAX_CLUB_GENRES} selected
         </span>

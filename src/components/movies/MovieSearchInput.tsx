@@ -29,6 +29,8 @@ export const MovieSearchInput = forwardRef<HTMLInputElement, MovieSearchInputPro
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="pl-10"
+          /* focus-on-open dialog — expected UX */
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={autoFocus}
         />
         {isSearching && (

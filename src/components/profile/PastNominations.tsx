@@ -175,11 +175,23 @@ function FocusCarousel({
                 key={item.id}
                 className="flex-[0_0_auto] min-w-0 px-3 cursor-pointer"
                 style={{ width: isMobile ? "155px" : "175px" }}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (isSelected && item.tmdb_id) {
                     onNavigateToMovie(item.tmdb_id);
                   } else if (!isSelected) {
                     emblaApi?.scrollTo(index);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (isSelected && item.tmdb_id) {
+                      onNavigateToMovie(item.tmdb_id);
+                    } else if (!isSelected) {
+                      emblaApi?.scrollTo(index);
+                    }
                   }
                 }}
               >

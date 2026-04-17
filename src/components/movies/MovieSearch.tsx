@@ -23,12 +23,14 @@ export function MovieSearch({ onSelect, selectedMovieId, disabled = false }: Mov
     <div className="space-y-4">
       <div>
         <label
+          htmlFor="movie-search-input"
           className="block text-sm font-medium mb-2"
           style={{ color: "var(--text-secondary)" }}
         >
           Search Movies
         </label>
         <input
+          id="movie-search-input"
           ref={inputRef}
           type="text"
           value={query}

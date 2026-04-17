@@ -70,7 +70,7 @@ them against the shared `backrow` project if you're iterating in main.
 
 - **Claude in Chrome** — Browser state, console logs, network logs, page interaction
 - **Supabase Plugin** — Database queries, schema inspection, migrations
-- **Playwright** — E2E test automation (`bun run test`)
+- **Playwright** — E2E test automation (`bun run test:e2e`)
 
 ---
 
@@ -188,10 +188,12 @@ Located in `e2e/`:
 ### Running E2E Tests
 
 ```bash
-bun run test           # Run all E2E tests
-bun run test:ui        # Run with Playwright UI
-bun run test:headed    # Run with visible browser
+bun run test:e2e         # Run all E2E tests (Playwright)
+bun run test:e2e:ui      # Run with Playwright UI
+bun run test:e2e:headed  # Run with visible browser
 ```
+
+Note: `bun run test` runs Vitest unit tests (`src/__tests__/cache/**`), not Playwright. See `docs/development.md#testing` for the three-tier breakdown.
 
 ### BotID in tests
 
@@ -215,5 +217,5 @@ bun run dev
 # Add NEXT_PUBLIC_ENABLE_TEST_AUTH=true to .env.local
 
 # 3. Run E2E tests
-bun run test
+bun run test:e2e
 ```

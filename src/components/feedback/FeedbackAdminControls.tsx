@@ -58,9 +58,9 @@ export function FeedbackAdminControls({
         <div className="mt-3 space-y-3">
           {/* Status dropdown */}
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] block mb-1.5">
+            <span className="text-xs font-medium text-[var(--text-secondary)] block mb-1.5">
               Status
-            </label>
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {STATUS_OPTIONS.map((option) => (
                 <button
@@ -81,10 +81,14 @@ export function FeedbackAdminControls({
 
           {/* Admin response textarea */}
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] block mb-1.5">
+            <label
+              htmlFor="feedback-admin-response"
+              className="text-xs font-medium text-[var(--text-secondary)] block mb-1.5"
+            >
               Admin Response (optional)
             </label>
             <textarea
+              id="feedback-admin-response"
               value={response}
               onChange={(e) => setResponse(e.target.value)}
               placeholder="Add a response to the user..."

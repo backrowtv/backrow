@@ -181,6 +181,22 @@ Backed by Upstash Redis, provisioned via Vercel Marketplace (`KV_REST_API_URL` /
 - **Branching:** Supabase branches auto-spawn on PRs to `backrowtv/backrow` via the GitHub integration.
 - **Test Account:** stephen@backrow.tv
 
+### Env var schema
+
+- Every env var MUST be declared in `src/lib/config/env.ts` (Zod) **AND** `.env.example` in the same PR that introduces it.
+- Consumers import the typed `env` object: `import { env } from '@/lib/config/env'`. Do NOT read `process.env.*` directly outside `src/lib/config/env.ts` and `scripts/test-factory/*` (which dotenv-load `.env.local` on their own).
+- Mark optional unless the app fails to boot without it — missing required vars throw at module load.
+- Full setup/CI/branching detail lives in `docs/development.md`.
+
+---
+
+## CI/CD
+
+- PRs run `.github/workflows/ci.yml` (typecheck → lint → Vitest unit; then after Vercel preview: seed factory → Vitest integration → Playwright) and `.github/workflows/preview.yml` (Lighthouse ≥ 0.85 perf, ≥ 0.9 a11y/best-practices/SEO).
+- Lint runs with `--max-warnings=0`; `jsx-a11y` at error level. New a11y violations fail the build — if a suppression is genuinely warranted (shadcn slot, legit modal autoFocus), use `// eslint-disable-next-line jsx-a11y/<rule>` with a one-line reason comment.
+- E2E targets the Vercel preview URL via `PLAYWRIGHT_BASE_URL`; locally it boots `bun run dev`.
+- Vercel Agent PR reviews are enabled in project settings — re-trigger with `@vercel` in a comment.
+
 ---
 
 ## Quick Commands
@@ -188,7 +204,11 @@ Backed by Upstash Redis, provisioned via Vercel Marketplace (`KV_REST_API_URL` /
 ```bash
 bun run dev              # Start dev server
 bun run build            # Production build
+bun run typecheck        # TypeScript check
 bun run lint             # Run ESLint
+bun run test             # Vitest unit (cache/ — no DB)
+bun run test:integration # Vitest integration (actions/ — needs seeded DB)
+bun run test:e2e         # Playwright (E2E against PLAYWRIGHT_BASE_URL or localhost)
 bun install              # Install dependencies
 lsof -ti:3000 | xargs kill -9  # Kill dev server
 ```

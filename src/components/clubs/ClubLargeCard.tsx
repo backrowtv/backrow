@@ -61,6 +61,8 @@ export function ClubLargeCard({
     <div className={cn("relative", className)}>
       {/* Favorite Button - Only for members, hidden when hideFavorite is true */}
       {!hideFavorite && showFavorite && club.user_role && (
+        /* event-blocker wrapper — keyboard handled by nested FavoriteButton */
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
         <div className="absolute top-3 right-3 z-10" onClick={(e) => e.preventDefault()}>
           <FavoriteButton clubId={club.id} isFavorite={club.is_favorite ?? false} size="sm" />
         </div>

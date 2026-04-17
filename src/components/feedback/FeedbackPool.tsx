@@ -289,10 +289,14 @@ export function FeedbackPool({
 
             {/* Title input */}
             <div>
-              <label className="text-xs font-medium text-[var(--text-secondary)] block mb-1">
+              <label
+                htmlFor={`feedback-${type}-title`}
+                className="text-xs font-medium text-[var(--text-secondary)] block mb-1"
+              >
                 Title <span className="text-[var(--error)]">*</span>
               </label>
               <input
+                id={`feedback-${type}-title`}
                 ref={titleInputRef}
                 name="title"
                 type="text"
@@ -314,10 +318,14 @@ export function FeedbackPool({
 
             {/* Description textarea */}
             <div>
-              <label className="text-xs font-medium text-[var(--text-secondary)] block mb-1">
+              <label
+                htmlFor={`feedback-${type}-description`}
+                className="text-xs font-medium text-[var(--text-secondary)] block mb-1"
+              >
                 Description (optional)
               </label>
               <textarea
+                id={`feedback-${type}-description`}
                 name="description"
                 disabled={isPending}
                 maxLength={1000}

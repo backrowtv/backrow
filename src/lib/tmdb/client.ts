@@ -1,11 +1,13 @@
 // TMDB API client
 // Note: User must provide TMDB_API_KEY in environment variables
 
+import { env } from "@/lib/config/env";
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
 function getTmdbApiKey(): string {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = env.TMDB_API_KEY;
   if (!apiKey) {
     throw new Error("TMDB_API_KEY is not configured");
   }

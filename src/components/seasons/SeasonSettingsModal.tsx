@@ -111,6 +111,7 @@ export function SeasonSettingsModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative">
             <label
+              htmlFor="season-settings-start-date"
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-primary)" }}
             >
@@ -132,6 +133,7 @@ export function SeasonSettingsModal({
                 />
               </svg>
               <Input
+                id="season-settings-start-date"
                 type="date"
                 required
                 value={formData.startDate}
@@ -144,6 +146,7 @@ export function SeasonSettingsModal({
 
           <div className="relative">
             <label
+              htmlFor="season-settings-end-date"
               className="block text-sm font-medium mb-2"
               style={{ color: "var(--text-primary)" }}
             >
@@ -165,6 +168,7 @@ export function SeasonSettingsModal({
                 />
               </svg>
               <Input
+                id="season-settings-end-date"
                 type="date"
                 required
                 value={formData.endDate}
