@@ -11,6 +11,7 @@ import { revalidatePath } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import sharp from "sharp";
 import { handleActionError } from "@/lib/errors/handler";
+import { enqueueImageProcessing } from "@/lib/jobs/producers";
 
 export async function updateProfile(prevState: unknown, formData: FormData) {
   const supabase = await createClient();
@@ -237,6 +238,16 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       if (urlData?.publicUrl) {
         avatarUrl = urlData.publicUrl;
       }
+
+      // Offload the 1024×1024 mozjpeg resize to the image-processing worker;
+      // the request returns as soon as the raw upload lands. The worker
+      // overwrites the same storage path, so the URL is stable.
+      await enqueueImageProcessing({
+        variant: "user-avatar",
+        bucket: "avatars",
+        rawPath: filePath,
+        ownerId: user.id,
+      });
     } catch (error) {
       return handleActionError(error, { action: "updateProfile" });
     }
