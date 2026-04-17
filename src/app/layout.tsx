@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DisplayPreferencesProvider } from "@/contexts/DisplayPreferencesContext";
 import { getDisplayPreferences, getThemePreferences } from "@/app/actions/display-preferences";
 import { ThemeSyncProvider } from "@/components/ThemeSyncProvider";
+import { CookieConsent } from "@/components/compliance/CookieConsent";
 
 // Simple loading skeleton for layout
 function LayoutSkeleton() {
@@ -185,7 +186,8 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        {/* 
+        <CookieConsent />
+        {/*
           AuthFetcher is wrapped in Suspense but with a fallback that renders the shell.
           This allows the UI to render immediately with null user, then hydrate with real user.
         */}

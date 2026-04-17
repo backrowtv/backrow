@@ -5,16 +5,16 @@
  */
 
 // Sign in/out functions
-export { signIn, signInTestUser, signInWithMagicLink, signOut, signOutTest } from './signin'
+export { signIn, signInTestUser, signInWithMagicLink, signOut, signOutTest } from "./signin";
 
 // Registration
-export { signUp } from './signup'
+export { signUp } from "./signup";
 
 // Password management
-export { changePassword, resetPassword, sendPasswordResetEmail, updatePassword } from './password'
+export { changePassword, resetPassword, sendPasswordResetEmail, updatePassword } from "./password";
 
 // Account management
-export { changeEmail, deleteAccount } from './account'
+export { changeEmail } from "./account";
 
 // Profile management
-export { updateProfile, getUserProfile } from './profile'
+export { updateProfile, getUserProfile } from "./profile";
