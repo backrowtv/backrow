@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateDiscussion } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { createNotification } from "../notifications";
 import { cacheMovie } from "../movies";
@@ -150,7 +150,8 @@ export async function getThreadsWithSpoilerStates(
     offset?: number;
   }
 ): Promise<
-  { data: DiscussionThread[]; spoilerStates: Record<string, SpoilerState>; total: number } | { error: string }
+  | { data: DiscussionThread[]; spoilerStates: Record<string, SpoilerState>; total: number }
+  | { error: string }
 > {
   try {
     const supabase = await createClient();
@@ -428,7 +429,7 @@ export async function createThread(
       }
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(thread.id, clubId);
     return { success: true, threadId: thread.id, threadSlug: thread.slug };
   } catch (error) {
     return handleActionError(error, "createThread");
@@ -516,7 +517,7 @@ export async function updateThread(
       return { error: error.message };
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(threadId, thread.club_id);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "updateThread");
@@ -578,7 +579,7 @@ export async function deleteThread(
       return { error: error.message };
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(threadId, thread.club_id);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "deleteThread");

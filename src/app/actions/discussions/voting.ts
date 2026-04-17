@@ -1,8 +1,36 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateDiscussion } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+async function resolveThreadClub(
+  supabase: SupabaseClient,
+  threadId: string | null,
+  commentId: string | null
+): Promise<{ threadId: string; clubId: string } | null> {
+  if (threadId) {
+    const { data } = await supabase
+      .from("discussion_threads")
+      .select("id, club_id")
+      .eq("id", threadId)
+      .maybeSingle();
+    return data ? { threadId: data.id as string, clubId: data.club_id as string } : null;
+  }
+  if (commentId) {
+    const { data } = await supabase
+      .from("discussion_comments")
+      .select("thread_id, thread:discussion_threads!inner(club_id)")
+      .eq("id", commentId)
+      .maybeSingle();
+    const threadRow = Array.isArray(data?.thread) ? data?.thread[0] : data?.thread;
+    if (data && threadRow) {
+      return { threadId: data.thread_id as string, clubId: threadRow.club_id as string };
+    }
+  }
+  return null;
+}
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
@@ -44,6 +72,8 @@ export async function toggleVote(
 
     const { data: existingVote } = await voteQuery.maybeSingle();
 
+    const scope = await resolveThreadClub(supabase, threadId, commentId);
+
     if (existingVote) {
       // Remove vote
       const { error } = await supabase.from("discussion_votes").delete().eq("id", existingVote.id);
@@ -52,7 +82,7 @@ export async function toggleVote(
         return { error: error.message };
       }
 
-      revalidatePath(`/club/[slug]/discuss`);
+      if (scope) invalidateDiscussion(scope.threadId, scope.clubId);
       return { success: true, voted: false };
     } else {
       // Add vote
@@ -66,7 +96,7 @@ export async function toggleVote(
         return { error: error.message };
       }
 
-      revalidatePath(`/club/[slug]/discuss`);
+      if (scope) invalidateDiscussion(scope.threadId, scope.clubId);
       return { success: true, voted: true };
     }
   } catch (error) {
@@ -160,7 +190,7 @@ export async function unlockThread(
       return { error: error.message };
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    invalidateDiscussion(threadId, thread.club_id);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "unlockThread");
@@ -238,7 +268,8 @@ export async function revealThreadSpoilers(
       return { error: error.message };
     }
 
-    revalidatePath(`/club/[slug]/discuss`);
+    const scope = await resolveThreadClub(supabase, threadId, null);
+    if (scope) invalidateDiscussion(scope.threadId, scope.clubId);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "revealThreadSpoilers");

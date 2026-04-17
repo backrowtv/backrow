@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateDiscussion } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { createNotification } from "../notifications";
 import type { DiscussionComment, CommentSubtreeResult } from "./types";
@@ -375,7 +375,7 @@ export async function createComment(
       }
     }
 
-    revalidatePath(`/club/[slug]/discuss/[thread-slug]`);
+    invalidateDiscussion(threadId, thread.club_id);
     return { success: true, commentId: comment.id, comment: comment as DiscussionComment };
   } catch (error) {
     return handleActionError(error, "createComment");
@@ -420,7 +420,7 @@ export async function updateComment(
     // Check if thread is locked - editing is not allowed on locked threads
     const { data: thread } = await supabase
       .from("discussion_threads")
-      .select("is_locked")
+      .select("is_locked, club_id")
       .eq("id", comment.thread_id)
       .single();
 
@@ -442,7 +442,7 @@ export async function updateComment(
       return { error: error.message };
     }
 
-    revalidatePath(`/club/[slug]/discuss/[thread-slug]`);
+    if (thread?.club_id) invalidateDiscussion(comment.thread_id, thread.club_id);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "updateComment");
@@ -518,7 +518,7 @@ export async function deleteComment(
       return { error: error.message };
     }
 
-    revalidatePath(`/club/[slug]/discuss/[thread-slug]`);
+    invalidateDiscussion(comment.thread_id, thread.club_id);
     return { success: true };
   } catch (error) {
     return handleActionError(error, "deleteComment");

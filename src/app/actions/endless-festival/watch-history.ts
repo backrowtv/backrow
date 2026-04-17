@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
 import { logMemberActivity } from "@/lib/activity/logger";
-import { revalidatePath } from "next/cache";
+import { invalidateMovie } from "@/lib/cache/invalidate";
 
 /**
  * Mark a movie as watched (adds to watch_history)
@@ -169,17 +169,7 @@ export async function markMovieWatched(
     console.error("Badge check failed:", e);
   }
 
-  // Revalidate movie page cache so the updated status shows on navigation
-  const { data: movieData } = await supabase
-    .from("movies")
-    .select("slug")
-    .eq("tmdb_id", tmdbId)
-    .maybeSingle();
-
-  if (movieData?.slug) {
-    revalidatePath(`/movies/${movieData.slug}`);
-  }
-  revalidatePath(`/movies/${tmdbId}`);
+  invalidateMovie(tmdbId);
 
   return { success: true };
 }
@@ -225,17 +215,7 @@ export async function unmarkMovieWatched(
     console.error("Error removing watch activity:", activityError);
   }
 
-  // Revalidate movie page cache so the updated status shows on navigation
-  const { data: movieData } = await supabase
-    .from("movies")
-    .select("slug")
-    .eq("tmdb_id", tmdbId)
-    .maybeSingle();
-
-  if (movieData?.slug) {
-    revalidatePath(`/movies/${movieData.slug}`);
-  }
-  revalidatePath(`/movies/${tmdbId}`);
+  invalidateMovie(tmdbId);
 
   return { success: true };
 }
@@ -274,19 +254,7 @@ export async function updateWatchCount(
     return handleActionError(error, "updateWatchCount");
   }
 
-  // Revalidate movie page cache so the updated count shows on navigation
-  // Get the movie slug for revalidation
-  const { data: movie } = await supabase
-    .from("movies")
-    .select("slug")
-    .eq("tmdb_id", tmdbId)
-    .maybeSingle();
-
-  if (movie?.slug) {
-    revalidatePath(`/movies/${movie.slug}`);
-  }
-  // Also revalidate by TMDB ID for backwards compatibility
-  revalidatePath(`/movies/${tmdbId}`);
+  invalidateMovie(tmdbId);
 
   return { success: true };
 }
