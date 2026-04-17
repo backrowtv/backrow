@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getFestivalForSeo } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { FestivalJsonLd } from "@/components/seo/JsonLd";
 import Link from "next/link";
 import { resolveClub, resolveFestival } from "@/lib/clubs/resolveClub";
 import { ClubNavigation } from "@/components/clubs/ClubNavigation";
@@ -713,6 +714,21 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
 
   return (
     <>
+      <FestivalJsonLd
+        club={{
+          name: clubData?.name ?? "Club",
+          slug: clubSlug,
+        }}
+        festival={{
+          theme: festival.theme,
+          slug: festival.slug,
+          start_date: festival.start_date,
+          results_date: festival.results_date,
+          watch_deadline: festival.watch_deadline,
+          picture_url: festival.picture_url,
+          poster_url: festival.poster_url,
+        }}
+      />
       <ClubNavigation
         clubSlug={clubSlug}
         clubName={clubData?.name || "Club"}

@@ -9,6 +9,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getMovieForSeo } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { MovieJsonLd } from "@/components/seo/JsonLd";
 import { getMovieBySlug, getMovie, cacheMovie } from "@/app/actions/movies";
 import { getMovieLinkPreferences } from "@/app/actions/navigation-preferences";
 import { Badge } from "@/components/ui/badge";
@@ -352,6 +353,19 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
   return (
     <div className="bg-[var(--background)]">
+      <MovieJsonLd
+        movie={{
+          tmdb_id: finalTmdbId,
+          slug: dbMovie?.slug ?? null,
+          title: movie.title,
+          year: movie.release_date ? Number(movie.release_date.slice(0, 4)) : null,
+          director: movie.credits?.crew?.find((c) => c.job === "Director")?.name ?? null,
+          poster_url: posterUrl,
+          overview: movie.overview ?? null,
+          cast: movie.credits?.cast?.slice(0, 10).map((c) => c.name) ?? null,
+          genres: movie.genres?.map((g) => g.name) ?? null,
+        }}
+      />
       {/* Hero Section - Compact */}
       <div className="relative w-full h-[250px] lg:h-[350px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/30 to-transparent z-10" />

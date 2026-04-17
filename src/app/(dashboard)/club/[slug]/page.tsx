@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getClubForSeo } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { ClubJsonLd } from "@/components/seo/JsonLd";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BrandText } from "@/components/ui/brand-text";
@@ -413,6 +414,15 @@ export default async function ClubPage({ params }: ClubPageProps) {
 
   return (
     <>
+      <ClubJsonLd
+        club={{
+          name: club.name,
+          slug: club.slug ?? clubSlug,
+          description: club.description,
+          picture_url: club.picture_url,
+        }}
+        festivals={completedFestivals ?? undefined}
+      />
       <ClubNavigation
         clubSlug={clubSlug}
         clubName={club.name}

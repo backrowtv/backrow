@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfileForSeo } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { PersonJsonLd } from "@/components/seo/JsonLd";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { EntityAvatar } from "@/components/ui/entity-avatar";
@@ -120,6 +121,7 @@ export default async function UserProfilePage({ params }: ProfilePageProps) {
 
   return (
     <Section>
+      <PersonJsonLd user={targetUser} />
       <Container>
         <div className="space-y-6">
           {/* Admin Notice */}
