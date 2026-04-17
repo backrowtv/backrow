@@ -154,7 +154,7 @@ Backed by Upstash Redis, provisioned via Vercel Marketplace (`KV_REST_API_URL` /
 ## Testing
 
 - **Test Auth Widget:** `NEXT_PUBLIC_ENABLE_TEST_AUTH=true` enables quick user switching
-- **Test Club:** `test-movie-club` (ID: `db59cb27-aa7f-4517-a8e9-b87bff9710ec`)
+- **Test Club:** `backrow-featured` (privacy `public_open`) — use for anon/crawler verification on the shared DB (reset 2026-04-17). Create additional private/test clubs locally via the Supabase plugin when multi-club scenarios are needed; never commit their IDs.
 - **Browser Verification:** Claude in Chrome — `read_console_messages` for errors, `read_page` for visual checks
 - Multi-user testing requires minimum 3 test users. See `docs/TESTING.md` for full checklists
 

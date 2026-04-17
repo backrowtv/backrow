@@ -100,6 +100,52 @@ export default async function ClubPage({ params }: ClubPageProps) {
     if (publicClub.privacy === "private") {
       redirect(`/sign-in?redirectTo=${encodeURIComponent(`/club/${identifier}`)}`);
     }
+
+    // Parallel fetch of the teaser data RLS permits for public clubs.
+    const [{ count: memberCount }, { data: activeFestivalRow }, { data: recentNoms }] =
+      await Promise.all([
+        supabase
+          .from("club_members")
+          .select("id", { count: "exact", head: true })
+          .eq("club_id", publicClub.id),
+        supabase
+          .from("festivals")
+          .select("theme, slug, status, phase, poster_url, picture_url")
+          .eq("club_id", publicClub.id)
+          .is("deleted_at", null)
+          .not("status", "in", "(completed,cancelled)")
+          .order("start_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("nominations")
+          .select("tmdb_id, festivals!inner(club_id)")
+          .eq("festivals.club_id", publicClub.id)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(24),
+      ]);
+
+    const recentTmdbIds = Array.from(
+      new Set((recentNoms ?? []).map((n) => n.tmdb_id).filter((id): id is number => !!id))
+    ).slice(0, 8);
+    const posterStrip: string[] = [];
+    if (recentTmdbIds.length > 0) {
+      const { data: movies } = await supabase
+        .from("movies")
+        .select("tmdb_id, poster_url")
+        .in("tmdb_id", recentTmdbIds)
+        .not("poster_url", "is", null);
+      const byId = new Map<number, string>();
+      for (const m of movies ?? []) {
+        if (m.poster_url) byId.set(m.tmdb_id, m.poster_url);
+      }
+      for (const id of recentTmdbIds) {
+        const url = byId.get(id);
+        if (url) posterStrip.push(url);
+      }
+    }
+
     return (
       <PublicClubLanding
         club={{
@@ -111,6 +157,19 @@ export default async function ClubPage({ params }: ClubPageProps) {
           picture_url: publicClub.picture_url,
         }}
         clubUrlSlug={publicClub.slug ?? identifier}
+        memberCount={memberCount ?? 0}
+        activeFestival={
+          activeFestivalRow
+            ? {
+                theme: activeFestivalRow.theme,
+                slug: activeFestivalRow.slug,
+                status: activeFestivalRow.status,
+                phase: activeFestivalRow.phase,
+                posterUrl: activeFestivalRow.poster_url ?? activeFestivalRow.picture_url,
+              }
+            : null
+        }
+        posterStrip={posterStrip.slice(0, 6)}
       />
     );
   }
