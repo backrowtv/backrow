@@ -63,6 +63,14 @@ if (!verified.ok) return { error: verified.error };
 | `togglePoolMovieVote` (endless) | 30/min          | —                 | —     | ✅                                 |
 | `createJoinRequest`             | 5/min           | —                 | —     | ✅                                 |
 | `approveJoinRequest`            | —               | —                 | —     | ✅ (+ member-cap check)            |
+| `createAnnouncement`            | 10/min          | —                 | —     | ✅                                 |
+| `createRichAnnouncement`        | 10/min          | —                 | —     | ✅                                 |
+| `createNomination`              | 10/min          | —                 | —     | ✅                                 |
+| `createNominationDirect`        | 10/min          | —                 | —     | ✅                                 |
+| `updateUserAvatar`              | 10/min          | —                 | —     | ✅                                 |
+| `updateClubAvatar`              | 10/min          | —                 | —     | ✅                                 |
+
+**Queue workers** (`src/app/api/jobs/*/route.ts`) run as system via Vercel Queues' `experimentalTriggers` and bypass the user-scoped gates above — the upstream producer action enforces them. Workers are not user-callable: they're bound to a topic in `vercel.json`, not exposed as a public HTTP endpoint.
 
 ## Member-count ceiling
 

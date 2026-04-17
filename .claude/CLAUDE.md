@@ -121,6 +121,10 @@ If it's not working: run `claude plugin install supabase@claude-plugins-official
 - Sanitize user HTML: `import { sanitizeHtml, sanitizeForStorage } from '@/lib/security/sanitize'`
 - Security headers (CSP, X-Frame-Options, HSTS, etc.) are applied via `proxy.ts`
 
+### Background Jobs
+
+Bulk fanouts (>10 recipients for emails/notifications, any image resize) MUST enqueue via `src/lib/jobs/producers.ts` — never run inline. The HTTP response returns as soon as the message is accepted; workers under `src/app/api/jobs/*/route.ts` do the work with at-least-once delivery + idempotency. See `docs/architecture.md#background-jobs`.
+
 ### Security Posture for write-path server actions
 
 Every new user-facing write action must declare its rate limit, BotID coverage, and email-verification gate. See `docs/security.md` for the authoritative call-sequence and coverage table.
