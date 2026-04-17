@@ -1,4 +1,5 @@
 import { updateSession } from "@/lib/supabase/middleware";
+import { env } from "@/lib/config/env";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
@@ -10,7 +11,7 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export async function proxy(request: NextRequest) {
   // Basic auth gate — remove SITE_PASSWORD env var to disable
-  const sitePassword = process.env.SITE_PASSWORD;
+  const sitePassword = env.SITE_PASSWORD;
   if (sitePassword) {
     const authHeader = request.headers.get("authorization");
     if (authHeader) {

@@ -1,17 +1,21 @@
-'use server'
+"use server";
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
+import { env } from "@/lib/config/env";
 
 /**
  * Apply notification archiving migration
  * Uses service role key to execute SQL directly
  */
-export async function applyNotificationArchivingMigration(): Promise<{ error?: string; success?: boolean }> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+export async function applyNotificationArchivingMigration(): Promise<{
+  error?: string;
+  success?: boolean;
+}> {
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    return { error: 'Missing Supabase environment variables' }
+  if (!serviceRoleKey) {
+    return { error: "Missing SUPABASE_SERVICE_ROLE_KEY" };
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -19,7 +23,7 @@ export async function applyNotificationArchivingMigration(): Promise<{ error?: s
       autoRefreshToken: false,
       persistSession: false,
     },
-  })
+  });
 
   const migrationSQL = `
 -- Add archived columns if they don't exist
@@ -70,27 +74,26 @@ BEGIN
   RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;
-`
+`;
 
   try {
     // Execute SQL using RPC if available, otherwise return instructions
-    const { error } = await supabase.rpc('exec_sql', {
+    const { error } = await supabase.rpc("exec_sql", {
       sql: migrationSQL,
-    })
+    });
 
     if (error) {
       // RPC might not be available - return instructions for manual application
       return {
-        error: 'RPC method not available. Please apply migration manually via Supabase Dashboard SQL Editor. See docs/project-planning/MIGRATION_APPLY_NOW.md',
-      }
+        error:
+          "RPC method not available. Please apply migration manually via Supabase Dashboard SQL Editor. See docs/project-planning/MIGRATION_APPLY_NOW.md",
+      };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : 'Failed to apply migration',
-    }
+      error: error instanceof Error ? error.message : "Failed to apply migration",
+    };
   }
 }
-
-

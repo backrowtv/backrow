@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { env } from "@/lib/config/env";
 import { verifyCronAuth } from "@/lib/api/cron-auth";
 import { logger } from "@/lib/logger";
 
@@ -13,10 +14,7 @@ export async function GET(request: Request) {
   logger.info("cron:start", { route: ROUTE });
 
   // Use service role client to bypass RLS
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY!);
 
   const now = new Date().toISOString();
 

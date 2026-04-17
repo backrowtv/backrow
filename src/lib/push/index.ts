@@ -1,9 +1,10 @@
 import webpush from "web-push";
 import { createServiceClient } from "@/lib/supabase/server";
+import { env } from "@/lib/config/env";
 
 const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT;
+const VAPID_PRIVATE = env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = env.VAPID_SUBJECT;
 
 let configured = false;
 function ensureConfigured() {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/config/env";
 import { rateLimit, getRateLimitResponse } from "@/lib/security/rate-limit";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Movie ID is required" }, { status: 400 });
   }
 
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = env.TMDB_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "TMDB API key not configured" }, { status: 500 });
   }

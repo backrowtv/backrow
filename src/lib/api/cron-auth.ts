@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { env } from "@/lib/config/env";
 
 /**
  * Verify cron job authorization
@@ -11,8 +12,8 @@ import { NextResponse } from "next/server";
  */
 export function verifyCronAuth(request: Request): NextResponse | null {
   const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  const isProduction = process.env.NODE_ENV === "production";
+  const cronSecret = env.CRON_SECRET;
+  const isProduction = env.NODE_ENV === "production";
 
   // In production, CRON_SECRET is required
   if (isProduction) {

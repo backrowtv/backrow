@@ -4,6 +4,8 @@
  * Fetch upcoming movie releases from TMDB
  */
 
+import { env } from "@/lib/config/env";
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
@@ -16,7 +18,7 @@ export interface UpcomingMovie {
 }
 
 export async function getUpcomingMovies(limit: number = 10): Promise<UpcomingMovie[]> {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = env.TMDB_API_KEY;
 
   if (!apiKey) {
     console.warn("TMDB_API_KEY is not configured");

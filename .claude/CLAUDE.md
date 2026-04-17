@@ -206,7 +206,7 @@ All three services are owned by **stephen@backrow.tv** and branded as **BackRow*
 ### Env var schema
 
 - Every env var MUST be declared in `src/lib/config/env.ts` (Zod) **AND** `.env.example` in the same PR that introduces it.
-- Consumers import the typed `env` object: `import { env } from '@/lib/config/env'`. Do NOT read `process.env.*` directly outside `src/lib/config/env.ts` and `scripts/test-factory/*` (which dotenv-load `.env.local` on their own).
+- **Server-only secrets** MUST read through `import { env } from '@/lib/config/env'` — never `process.env.SERVER_SECRET_NAME` directly. `NEXT_PUBLIC_*` MAY read `process.env.*` directly (they're safe at the edge/client). Exempt: `src/lib/config/env.ts` itself and `scripts/test-factory/*` (dotenv-loads `.env.local` on its own).
 - Mark optional unless the app fails to boot without it — missing required vars throw at module load.
 - Full setup/CI/branching detail lives in `docs/development.md`.
 

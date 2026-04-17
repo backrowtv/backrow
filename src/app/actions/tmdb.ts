@@ -1,5 +1,7 @@
 "use server";
 
+import { env } from "@/lib/config/env";
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 interface TMDBMovie {
@@ -20,7 +22,7 @@ interface TMDBResponse {
 }
 
 async function fetchTMDB<T>(endpoint: string): Promise<T | null> {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = env.TMDB_API_KEY;
   if (!apiKey) {
     // Silently return null if TMDB not configured - graceful degradation
     return null;

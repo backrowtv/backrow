@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/config/env";
 import { handleActionError } from "@/lib/errors/handler";
 import type { ContactFormResult } from "./contact.types";
 import { sendEmail } from "@/lib/email/resend";
@@ -61,7 +62,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
 
     // Send email notification (best-effort — don't fail the form submission)
     try {
-      const notifyEmail = process.env.CONTACT_NOTIFY_EMAIL || "support@backrow.dev";
+      const notifyEmail = env.CONTACT_NOTIFY_EMAIL || "support@backrow.dev";
       await sendEmail({
         to: notifyEmail,
         subject: `[BackRow Contact] ${subject}`,
