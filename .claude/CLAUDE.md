@@ -33,6 +33,7 @@
 - Enumerate **ALL** related tables in multi-table cleanup scripts and confirm with user before executing
 - Run a dry-run `SELECT` before `UPDATE`/`DELETE` operations
 - **ALWAYS** wrap `auth.uid()` in subselect for RLS performance: `USING (user_id = (SELECT auth.uid()))` — never bare `auth.uid()`
+- **User-owned tables:** any new FK that references `public.users(id)` or `auth.users(id)` MUST have a cascade decision (CASCADE / SET NULL / RESTRICT) documented in `docs/privacy-and-data-lifecycle.md` in the same PR that introduces the FK. Missing rows block merge.
 
 ### Server Actions
 

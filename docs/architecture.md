@@ -54,6 +54,8 @@ updateUserAvatar / updateClubAvatar / updateProfile
 | `notification-fanout` | `enqueueNotificationFanout` | `src/lib/jobs/handlers/notification-fanout.ts` | `src/app/api/jobs/notification-fanout/route.ts` |
 | `bulk-email`          | `enqueueBulkEmail`          | `src/lib/jobs/handlers/bulk-email.ts`          | `src/app/api/jobs/bulk-email/route.ts`          |
 | `image-processing`    | `enqueueImageProcessing`    | `src/lib/jobs/handlers/image-processing.ts`    | `src/app/api/jobs/image-processing/route.ts`    |
+| `account-export`      | `enqueueAccountExport`      | `src/lib/jobs/handlers/account-export.ts`      | `src/app/api/jobs/account-export/route.ts`      |
+| `account-hard-delete` | `enqueueAccountHardDelete`  | `src/lib/jobs/handlers/account-hard-delete.ts` | `src/app/api/jobs/account-hard-delete/route.ts` |
 
 All producers live in `src/lib/jobs/producers.ts`. Shared payload types live
 in `src/lib/jobs/types.ts`.

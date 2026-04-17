@@ -170,11 +170,24 @@ export default async function PrivacyPolicyPage() {
               Data Retention and Deletion
             </h2>
             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-              We retain your personal information for as long as your account is active or as needed
-              to provide the Service. You can delete your account at any time through your profile
-              settings. When you delete your account, we permanently remove your personal data,
-              including your profile, ratings, nominations, and club memberships. Some anonymized
-              data may be retained for aggregate analytics purposes.
+              We retain your personal information for as long as your account is active. You can
+              delete your account at any time through your profile settings.
+            </p>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+              Deletion is a two-step process: when you confirm, we immediately sign you out,
+              anonymize your profile (email, username, display name, avatar, bio, social links), and
+              set your account to the deleted state. Your account is then held for{" "}
+              <strong>30 days</strong> in case you want to restore it — contact support during that
+              window to reverse the deletion. After 30 days your account is permanently removed,
+              including ratings, nominations, private notes, notifications, watch history, and club
+              memberships. Content posted on other users&rsquo; threads (comments, shared club
+              announcements) is kept with your authorship cleared so the surrounding conversation
+              stays coherent.
+            </p>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+              You can also request a copy of your data at any time — we generate a ZIP containing
+              your profile and every row you authored and email you a private download link that
+              expires in 7 days.
             </p>
           </section>
 
