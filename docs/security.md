@@ -82,4 +82,4 @@ Every club has `clubs.max_members` — default **1000** for standard-mode clubs,
 
 - **Upstash dashboard:** keys should land under prefixes `br:rl:api:*` (API routes) and `br:rl:act:*` (server actions).
 - **BotID:** enable Deep Analysis in Vercel dashboard → Firewall. In local dev, `checkBotId()` auto-bypasses.
-- **Env vars:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (Upstash). BotID has no env vars — it's configured via the Vercel dashboard.
+- **Env vars:** `KV_REST_API_URL`, `KV_REST_API_TOKEN` (Vercel Marketplace Upstash; `UPSTASH_REDIS_REST_*` also accepted as a fallback). BotID has no env vars — it's configured via the Vercel dashboard.

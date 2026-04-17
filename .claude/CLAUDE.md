@@ -131,7 +131,7 @@ Defaults:
 - **Email gate:** yes (via `requireVerifiedEmail` from `@/lib/security/require-verified-email`) after `getUser()`.
 - **BotID:** only on high-value actions (signup, club/invite/feedback/contact) via `requireHuman()` from `@/lib/security/botid`.
 
-Backed by Upstash Redis (`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`). Local dev falls back to in-memory when creds are unset.
+Backed by Upstash Redis, provisioned via Vercel Marketplace (`KV_REST_API_URL` / `KV_REST_API_TOKEN`; `UPSTASH_REDIS_REST_*` names are accepted as a fallback). Local dev falls back to in-memory when creds are unset.
 
 ---
 

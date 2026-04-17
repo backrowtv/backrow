@@ -1,4 +1,5 @@
 import { initBotId } from "botid/client/core";
+import * as Sentry from "@sentry/nextjs";
 
 // Protected server-action surfaces. Server-side enforcement via
 // `requireHuman()` / `checkBotId()` in the relevant action files.
@@ -12,3 +13,5 @@ initBotId({
     { path: "/clubs/*", method: "POST" },
   ],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

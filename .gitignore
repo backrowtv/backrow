@@ -70,3 +70,4 @@ licenses/
 
 # Playwright MCP temp files
 .playwright-mcp/
+.env*.local
