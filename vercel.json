@@ -15,7 +15,39 @@
     {
       "path": "/api/cron/delete-archived-notifications",
       "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/cleanup-job-dedup",
+      "schedule": "0 4 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/jobs/notification-fanout/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "notification-fanout",
+          "retryAfterSeconds": 60
+        }
+      ]
+    },
+    "src/app/api/jobs/bulk-email/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "bulk-email",
+          "retryAfterSeconds": 60
+        }
+      ]
+    },
+    "src/app/api/jobs/image-processing/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "image-processing",
+          "retryAfterSeconds": 60
+        }
+      ]
+    }
+  }
 }
-

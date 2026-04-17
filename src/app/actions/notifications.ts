@@ -13,6 +13,11 @@ import {
   sendNotificationEmailBatch,
 } from "@/lib/email/send-notification-email";
 import { sendPushToUser, sendPushToUsers } from "@/lib/push";
+import {
+  parseNotificationPrefs,
+  parseClubNotificationPrefs,
+  getPreferenceKey,
+} from "@/lib/notifications/prefs";
 
 /**
  * Get all notifications for the current user
@@ -308,142 +313,6 @@ export async function deleteOldArchivedNotifications(): Promise<{
 }
 
 /**
- * Default notification preferences (all enabled)
- */
-const DEFAULT_NOTIFICATION_PREFS: Record<string, boolean> = {
-  // Festival
-  festival_updates: true,
-  new_festivals: true,
-  deadline_changes: true,
-  results_revealed: true,
-  // Endless Festival
-  endless_festival: true,
-  // Club
-  club_invites: true,
-  club_updates: true,
-  announcements: true,
-  // Events
-  events: true,
-  // Polls
-  polls: true,
-  // Seasons
-  seasons: true,
-  // Social
-  mentions: true,
-  new_messages: true,
-  badges: true,
-  // Admin
-  admin_feedback: true,
-  // Web Push (master toggle, opt-out by default — no-op if no subscriptions)
-  all_push_notifications: true,
-};
-
-/**
- * Parse notification preferences from social_links
- */
-function parseNotificationPrefs(
-  socialLinks: Record<string, unknown> | null
-): Record<string, boolean> {
-  if (!socialLinks) {
-    return { ...DEFAULT_NOTIFICATION_PREFS };
-  }
-
-  const prefs = (socialLinks.notification_preferences as Record<string, unknown>) || {};
-
-  return {
-    // Festival
-    festival_updates: prefs.festival_updates !== false,
-    new_festivals: prefs.new_festivals !== false,
-    deadline_changes: prefs.deadline_changes !== false,
-    results_revealed: prefs.results_revealed !== false,
-    // Endless Festival
-    endless_festival: prefs.endless_festival !== false,
-    // Club
-    club_invites: prefs.club_invites !== false,
-    club_updates: prefs.club_updates !== false,
-    announcements: prefs.announcements !== false,
-    // Events
-    events: prefs.events !== false,
-    // Polls
-    polls: prefs.polls !== false,
-    // Seasons
-    seasons: prefs.seasons !== false,
-    // Social
-    mentions: prefs.mentions !== false,
-    new_messages: prefs.new_messages !== false,
-    badges: prefs.badges !== false,
-    // Admin
-    admin_feedback: prefs.admin_feedback !== false,
-    // Web Push (master toggle, defaults to true)
-    all_push_notifications: prefs.all_push_notifications !== false,
-  };
-}
-
-/**
- * Parse club-specific notification preferences from social_links
- */
-function parseClubNotificationPrefs(
-  socialLinks: Record<string, unknown> | null,
-  clubId: string
-): Record<string, boolean> {
-  const defaultClubPrefs: Record<string, boolean> = {
-    // Festival
-    festival_updates: true,
-    new_festivals: true,
-    new_nominations: true,
-    phase_changes: true,
-    deadline_changes: true,
-    results_revealed: true,
-    // Endless Festival
-    endless_festival: true,
-    // Club
-    club_updates: true,
-    announcements: true,
-    // Events
-    events: true,
-    // Polls
-    polls: true,
-    // Seasons
-    seasons: true,
-    // Social
-    new_messages: true,
-    mentions: true,
-  };
-
-  if (!socialLinks) {
-    return defaultClubPrefs;
-  }
-
-  const clubPrefs =
-    (socialLinks.club_notification_preferences as Record<string, Record<string, unknown>>) || {};
-  const prefs = clubPrefs[clubId] || {};
-
-  return {
-    // Festival
-    festival_updates: prefs.festival_updates !== false,
-    new_festivals: prefs.new_festivals !== false,
-    new_nominations: prefs.new_nominations !== false,
-    phase_changes: prefs.phase_changes !== false,
-    deadline_changes: prefs.deadline_changes !== false,
-    results_revealed: prefs.results_revealed !== false,
-    // Endless Festival
-    endless_festival: prefs.endless_festival !== false,
-    // Club
-    club_updates: prefs.club_updates !== false,
-    announcements: prefs.announcements !== false,
-    // Events
-    events: prefs.events !== false,
-    // Polls
-    polls: prefs.polls !== false,
-    // Seasons
-    seasons: prefs.seasons !== false,
-    // Social
-    new_messages: prefs.new_messages !== false,
-    mentions: prefs.mentions !== false,
-  };
-}
-
-/**
  * Batch get notification preferences for multiple users (single query)
  */
 interface UserPrefsData {
@@ -490,9 +359,7 @@ async function batchGetNotificationPreferences(
 /**
  * Get user notification preferences along with email info
  */
-async function getUserNotificationPreferences(
-  userId: string
-): Promise<{
+async function getUserNotificationPreferences(userId: string): Promise<{
   prefs: Record<string, boolean>;
   email: string;
   displayName: string;
@@ -533,53 +400,6 @@ async function getClubNotificationPreferences(
     profile?.social_links as Record<string, unknown> | null,
     clubId
   );
-}
-
-/**
- * Map notification type to preference key
- */
-function getPreferenceKey(type: NotificationType, clubId?: string): string {
-  const typeMap: Record<NotificationType, string> = {
-    // Festival notifications
-    festival_started: clubId ? "festival_updates" : "festival_updates",
-    festival_phase_changed: clubId ? "phase_changes" : "festival_updates",
-    nomination_added: clubId ? "new_nominations" : "festival_updates",
-    results_revealed: clubId ? "results_revealed" : "results_revealed",
-    new_festival: clubId ? "new_festivals" : "new_festivals",
-    deadline_changed: clubId ? "deadline_changes" : "deadline_changes",
-    // Endless festival notifications
-    endless_movie_added: clubId ? "endless_festival" : "endless_festival",
-    endless_movie_completed: clubId ? "endless_festival" : "endless_festival",
-    // Club notifications
-    club_invite: "club_invites",
-    club_name_changed: clubId ? "club_updates" : "club_updates",
-    club_archived: "club_updates",
-    club_deleted: "club_updates",
-    announcement: clubId ? "announcements" : "announcements",
-    // Event notifications
-    new_event: clubId ? "events" : "events",
-    event_cancelled: clubId ? "events" : "events",
-    event_modified: clubId ? "events" : "events",
-    // Poll notifications
-    new_poll: clubId ? "polls" : "polls",
-    // Season notifications
-    season_started: clubId ? "seasons" : "seasons",
-    season_ended: clubId ? "seasons" : "seasons",
-    season_date_changed: clubId ? "seasons" : "seasons",
-    season_name_changed: clubId ? "seasons" : "seasons",
-    // Social notifications
-    mention: clubId ? "mentions" : "mentions",
-    new_message: clubId ? "new_messages" : "new_messages",
-    discussion_reply: clubId ? "mentions" : "mentions",
-    discussion_thread_created: clubId ? "mentions" : "mentions",
-    discussion_comment_reply: clubId ? "mentions" : "mentions",
-    vote_received: clubId ? "mentions" : "mentions",
-    badge_earned: "badges",
-    // Admin notifications
-    feedback_submitted: "admin_feedback",
-  };
-
-  return typeMap[type] || "festival_updates";
 }
 
 /**
