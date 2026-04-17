@@ -41,12 +41,12 @@ Configure test accounts in your local environment. The Test Auth Widget and scri
 
 ### Test Data
 
-**Test Club:** Test Movie Club
+**Stable fixture:** `BackRow - Featured` club (`slug: backrow-featured`) is
+always seeded as stephen@backrow.tv's club on fresh databases via the
+2026-04-17 baseline (`supabase/migrations/0001_initial_schema.sql` + the
+retained seed). All other test data is rebuilt on demand by the factories.
 
-- Slug: `test-movie-club`
-- ID: `db59cb27-aa7f-4517-a8e9-b87bff9710ec`
-
-**Test Resources:** Visit `/test-auth` for:
+**Test Resources:** Visit `/test-auth` (dev-only auth widget) for:
 
 - Test movies with TMDB IDs
 - Test directors, actors, composers
@@ -59,6 +59,12 @@ Located in `scripts/test-factory/`:
 
 - `clubs.ts` — Create test clubs with presets
 - `scenarios.ts` — Create full test scenarios
+
+**How factories reach the database.** Factories read `DATABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` from `.env.local`. On feature branches, Supabase
+auto-provisions a preview database via the GitHub integration — point
+`.env.local` at that branch's URL before running factory scripts, OR run
+them against the shared `backrow` project if you're iterating in main.
 
 ### Tools
 

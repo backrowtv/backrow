@@ -32,7 +32,7 @@ Start with [`CLAUDE.md`](CLAUDE.md) for project rules and conventions, then [`AR
 
 - **Node.js 24.11.0+** (see `.nvmrc`)
 - **Bun 1.3.5+** — primary package manager and runtime
-- **Supabase account** (local dev uses ports 54321-54328; production project ID: `ifurgbocssewpoontnml`)
+- **Supabase account** (shared project ID: `nxpeptgrhbveqphwwowj`, us-east-2; preview branches per PR via the Supabase GitHub integration)
 - **TMDB API key** — get one at [themoviedb.org](https://www.themoviedb.org/settings/api)
 
 ### Installation
