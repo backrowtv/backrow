@@ -69,6 +69,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/queue": "^0.1.6",
     "babel-plugin-react-compiler": "^1.0.0",
     "botid": "^1.5.11",
     "canvas-confetti": "^1.9.4",
