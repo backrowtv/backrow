@@ -9,12 +9,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getClubSlug, getFestivalSlug } from "./helpers";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Vote for a theme during theme_selection phase
  * Members can vote for one theme per festival
  */
 export async function voteForTheme(festivalId: string, themeId: string) {
+  const rateCheck = await actionRateLimit("voteForTheme", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -23,6 +28,9 @@ export async function voteForTheme(festivalId: string, themeId: string) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get festival to check phase and club
   const { data: festival, error: festivalError } = await supabase
@@ -194,6 +202,9 @@ export async function getThemeVotes(festivalId: string) {
  * This is separate from festival theme selection voting
  */
 export async function voteOnThemePool(themeId: string) {
+  const rateCheck = await actionRateLimit("voteOnThemePool", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -202,6 +213,9 @@ export async function voteOnThemePool(themeId: string) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get theme to check club and voting enabled
   const { data: theme, error: themeError } = await supabase

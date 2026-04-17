@@ -14,11 +14,20 @@ import { validateKeywords } from "@/types/club-creation";
 import { validateGenres } from "@/lib/genres/constants";
 import { handleActionError } from "@/lib/errors/handler";
 import { generateClubSlug } from "./_helpers";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireHuman } from "@/lib/security/botid";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Create a new club
  */
 export async function createClub(prevState: unknown, formData: FormData) {
+  const rateCheck = await actionRateLimit("createClub", { limit: 3, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
+  const human = await requireHuman();
+  if (!human.ok) return { error: human.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -28,6 +37,9 @@ export async function createClub(prevState: unknown, formData: FormData) {
   if (!user) {
     return { error: "You must be signed in to create a club" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Ensure user exists in public.users table
   try {

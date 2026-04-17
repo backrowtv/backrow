@@ -121,6 +121,18 @@ If it's not working: run `claude plugin install supabase@claude-plugins-official
 - Sanitize user HTML: `import { sanitizeHtml, sanitizeForStorage } from '@/lib/security/sanitize'`
 - Security headers (CSP, X-Frame-Options, HSTS, etc.) are applied via `proxy.ts`
 
+### Security Posture for write-path server actions
+
+Every new user-facing write action must declare its rate limit, BotID coverage, and email-verification gate. See `docs/security.md` for the authoritative call-sequence and coverage table.
+
+Defaults:
+
+- **Rate limit:** yes (via `actionRateLimit` from `@/lib/security/action-rate-limit`).
+- **Email gate:** yes (via `requireVerifiedEmail` from `@/lib/security/require-verified-email`) after `getUser()`.
+- **BotID:** only on high-value actions (signup, club/invite/feedback/contact) via `requireHuman()` from `@/lib/security/botid`.
+
+Backed by Upstash Redis (`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`). Local dev falls back to in-memory when creds are unset.
+
 ---
 
 ## Testing

@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Toggle a vote on a thread or comment
@@ -12,6 +14,9 @@ export async function toggleVote(
   commentId: string | null
 ): Promise<{ success: boolean; voted: boolean } | { error: string }> {
   try {
+    const rateCheck = await actionRateLimit("toggleVote", { limit: 30, windowMs: 60_000 });
+    if (!rateCheck.success) return { error: rateCheck.error };
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -20,6 +25,9 @@ export async function toggleVote(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     if (!threadId && !commentId) {
       return { error: "Either thread or comment ID is required" };
@@ -100,6 +108,9 @@ export async function unlockThread(
   threadId: string
 ): Promise<{ success: boolean } | { error: string }> {
   try {
+    const rateCheck = await actionRateLimit("unlockThread", { limit: 20, windowMs: 60_000 });
+    if (!rateCheck.success) return { error: rateCheck.error };
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -108,6 +119,9 @@ export async function unlockThread(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Get thread to check if it requires unlocking
     const { data: thread } = await supabase
@@ -184,6 +198,12 @@ export async function revealThreadSpoilers(
   threadId: string
 ): Promise<{ success: boolean } | { error: string }> {
   try {
+    const rateCheck = await actionRateLimit("revealThreadSpoilers", {
+      limit: 20,
+      windowMs: 60_000,
+    });
+    if (!rateCheck.success) return { error: rateCheck.error };
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -192,6 +212,9 @@ export async function revealThreadSpoilers(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Check if already revealed
     const { data: existingUnlock } = await supabase

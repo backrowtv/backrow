@@ -7,6 +7,7 @@ import { createNotification } from "../notifications";
 import type { DiscussionComment, CommentSubtreeResult } from "./types";
 import { parseCreateCommentFormData } from "@/lib/validation/server-actions";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Get all comments for a thread
@@ -268,6 +269,9 @@ export async function createComment(
       return { error: "You must be signed in" };
     }
 
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
+
     // Validate input with Zod
     const parseResult = parseCreateCommentFormData(formData);
     if (!parseResult.success) {
@@ -395,6 +399,9 @@ export async function updateComment(
       return { error: "You must be signed in" };
     }
 
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
+
     // Get comment to check ownership
     const { data: comment, error: commentError } = await supabase
       .from("discussion_comments")
@@ -457,6 +464,9 @@ export async function deleteComment(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Get comment to check permissions
     const { data: comment, error: commentError } = await supabase
