@@ -10,6 +10,8 @@ export const JOB_TOPICS = {
   notificationFanout: "notification-fanout",
   bulkEmail: "bulk-email",
   imageProcessing: "image-processing",
+  accountExport: "account-export",
+  accountHardDelete: "account-hard-delete",
 } as const;
 
 export type JobTopic = (typeof JOB_TOPICS)[keyof typeof JOB_TOPICS];
@@ -58,10 +60,28 @@ export interface ImageProcessingPayload {
   ownerId: string;
 }
 
+export interface AccountExportPayload {
+  /** Stable across retries; used in the idempotency key. */
+  dedupId: string;
+  /** The public.users.id whose data is being exported. */
+  userId: string;
+}
+
+export interface AccountHardDeletePayload {
+  /** Stable across retries; used in the idempotency key. */
+  dedupId: string;
+  /** The public.users.id to hard-delete (and its auth.users row via CASCADE). */
+  userId: string;
+}
+
 export type JobPayload<T extends JobTopic> = T extends typeof JOB_TOPICS.notificationFanout
   ? NotificationFanoutPayload
   : T extends typeof JOB_TOPICS.bulkEmail
     ? BulkEmailPayload
     : T extends typeof JOB_TOPICS.imageProcessing
       ? ImageProcessingPayload
-      : never;
+      : T extends typeof JOB_TOPICS.accountExport
+        ? AccountExportPayload
+        : T extends typeof JOB_TOPICS.accountHardDelete
+          ? AccountHardDeletePayload
+          : never;

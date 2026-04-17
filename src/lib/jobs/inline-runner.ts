@@ -28,6 +28,16 @@ export async function runInline<T extends JobTopic>(
       await handleImageProcessing(payload as JobPayload<typeof JOB_TOPICS.imageProcessing>);
       return;
     }
+    case JOB_TOPICS.accountExport: {
+      const { handleAccountExport } = await import("./handlers/account-export");
+      await handleAccountExport(payload as JobPayload<typeof JOB_TOPICS.accountExport>);
+      return;
+    }
+    case JOB_TOPICS.accountHardDelete: {
+      const { handleAccountHardDelete } = await import("./handlers/account-hard-delete");
+      await handleAccountHardDelete(payload as JobPayload<typeof JOB_TOPICS.accountHardDelete>);
+      return;
+    }
     default: {
       const exhaustive: never = topic;
       throw new Error(`[jobs/inline-runner] unknown topic: ${String(exhaustive)}`);

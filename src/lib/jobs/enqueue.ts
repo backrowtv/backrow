@@ -19,7 +19,7 @@ const queueConfigured =
 export async function enqueue<T extends JobTopic>(
   topic: T,
   payload: JobPayload<T>,
-  options: { idempotencyKey: string }
+  options: { idempotencyKey: string; delaySeconds?: number }
 ): Promise<void> {
   if (queueConfigured) {
     await send(topic, payload, options);
