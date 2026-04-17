@@ -1436,9 +1436,9 @@ const cardInstances = [
   },
   {
     id: 76,
-    label: "Movie of Week",
+    label: "Curated Pick",
     location: "Home",
-    file: "src/components/home/MovieOfWeek.tsx",
+    file: "src/components/home/CuratedPick.tsx",
     currentVariant: "elevated",
     component: "Card",
     category: "home",

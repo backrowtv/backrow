@@ -10,7 +10,7 @@ import { handleActionError } from "@/lib/errors/handler";
 import type {
   UpcomingMovie,
   FilmNewsData,
-  MatineeMovie,
+  CuratedPick,
   FeaturedClub,
   PopularMovie,
 } from "./marketing.types";
@@ -273,13 +273,13 @@ export async function getFilmNewsData(): Promise<FilmNewsData> {
 // ============================================
 
 /**
- * Get current matinee movie
+ * Get the current curated pick (admin-selected featured movie on the homepage)
  * Cached for 1 hour
  */
-export async function getCurrentMatinee(): Promise<MatineeMovie | null> {
+export async function getCurrentCuratedPick(): Promise<CuratedPick | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag("matinee:current");
+  cacheTag("curated:current");
 
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
@@ -311,7 +311,7 @@ export async function getCurrentMatinee(): Promise<MatineeMovie | null> {
       .maybeSingle();
 
     if (error) {
-      handleActionError(error, { action: "getCurrentMatinee", silent: true });
+      handleActionError(error, { action: "getCurrentCuratedPick", silent: true });
       return null;
     }
 
@@ -363,7 +363,7 @@ export async function getCurrentMatinee(): Promise<MatineeMovie | null> {
       },
     };
   } catch (error) {
-    handleActionError(error, { action: "getCurrentMatinee", silent: true });
+    handleActionError(error, { action: "getCurrentCuratedPick", silent: true });
     return null;
   }
 }

@@ -175,14 +175,14 @@ export * as badges from "./badges";
 // =============================================================================
 
 import * as marketingActions from "./marketing";
-import * as matineeActions from "./backrow-matinee";
-import * as curatedActions from "./curated-collections";
+import * as curatedPickActions from "./backrow-curated-pick";
+import * as curatedCollectionActions from "./curated-collections";
 import * as contactActions from "./contact";
 
 export const marketing = {
   ...marketingActions,
-  ...matineeActions,
-  ...curatedActions,
+  ...curatedPickActions,
+  ...curatedCollectionActions,
   ...contactActions,
 };
 
