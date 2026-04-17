@@ -32,11 +32,18 @@ jobs:
           set -e
           DEPLOY_URL=""
           for i in $(seq 1 90); do
-            IDS=$(gh api "repos/$REPO/commits/$SHA/deployments" --jq '.[] | select(.environment=="Preview") | .id' 2>/dev/null || true)
-            for ID in $IDS; do
-              URL=$(gh api "repos/$REPO/deployments/$ID/statuses" --jq '.[] | select(.state=="success") | .environment_url' 2>/dev/null | head -1 || true)
-              if [ -n "$URL" ]; then DEPLOY_URL="$URL"; break 2; fi
-            done
+            if DEPS=$(gh api "repos/$REPO/commits/$SHA/deployments" 2>/dev/null); then
+              IDS=$(echo "$DEPS" | jq -r '.[] | select(.environment=="Preview") | .id')
+              for ID in $IDS; do
+                if STATS=$(gh api "repos/$REPO/deployments/$ID/statuses" 2>/dev/null); then
+                  URL=$(echo "$STATS" | jq -r '[.[] | select(.state=="success") | .environment_url] | first // empty')
+                  if [ -n "$URL" ] && [ "$URL" != "null" ]; then
+                    DEPLOY_URL="$URL"
+                    break 2
+                  fi
+                fi
+              done
+            fi
             echo "($i/90) Waiting for Vercel Preview success event..."
             sleep 10
           done
