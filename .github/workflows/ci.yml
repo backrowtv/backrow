@@ -9,6 +9,12 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  deployments: read
+  statuses: read
+  pull-requests: read
+
 jobs:
   check:
     name: Typecheck · Lint · Unit
