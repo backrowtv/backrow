@@ -48,8 +48,23 @@ export default async function LandingPage({ searchParams }: LandingPageProps) {
     redirect("/sign-in");
   }
 
+  const showDeletedBanner = params["deleted"] === "1";
+
   return (
     <div className="flex flex-col" style={{ backgroundColor: "var(--background)" }}>
+      {showDeletedBanner ? (
+        <div
+          role="status"
+          className="border-b border-border bg-warning/10 px-4 py-3 text-center text-sm text-warning-foreground"
+        >
+          Your account is pending deletion. It will be permanently removed in 30 days. Contact{" "}
+          <a href="mailto:support@backrow.tv" className="underline">
+            support@backrow.tv
+          </a>{" "}
+          to restore it before then.
+        </div>
+      ) : null}
+
       {/* Hero with nav + sign-up modal */}
       <LandingHero />
 
