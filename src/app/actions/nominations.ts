@@ -4,9 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { cacheMovie } from "./movies";
-import { createNotificationsForUsers } from "./notifications";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
+import { enqueueNotificationFanout } from "@/lib/jobs/producers";
+import { dedupKey } from "@/lib/jobs/dedup";
 import { getClubSlug, getFestivalSlug } from "./themes/helpers";
 
 export async function createNomination(prevState: unknown, formData: FormData) {
@@ -21,6 +23,9 @@ export async function createNomination(prevState: unknown, formData: FormData) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const emailGate = requireVerifiedEmail(user);
+  if (!emailGate.ok) return { error: emailGate.error };
 
   const festivalId = formData.get("festivalId") as string;
   const tmdbId = parseInt(formData.get("tmdbId") as string);
@@ -152,14 +157,15 @@ export async function createNomination(prevState: unknown, formData: FormData) {
     if (members && members.length > 0) {
       const clubSlug = await getClubSlug(supabase, festival.club_id);
       const festivalSlug = await getFestivalSlug(supabase, festivalId);
-      await createNotificationsForUsers({
-        userIds: members.map((m) => m.user_id).filter((id) => id !== user.id), // Don't notify the nominator
+      await enqueueNotificationFanout({
+        dedupId: dedupKey("nomination", festivalId, tmdbId, user.id),
+        userIds: members.map((m) => m.user_id).filter((id) => id !== user.id),
         type: "nomination_added",
         title: "New Nomination",
         message: `${movieTitle} has been nominated for the festival!`,
         link: `/club/${clubSlug}/festival/${festivalSlug}`,
         clubId: festival.club_id,
-        festivalId: festivalId,
+        festivalId,
       });
     }
   } catch (err) {

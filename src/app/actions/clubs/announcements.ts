@@ -9,10 +9,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getClubSlug, checkAdminPermission } from "./_helpers";
-import { createNotificationsForUsers } from "../notifications";
 import { logClubActivity } from "@/lib/activity/logger";
 import { sanitizeForStorage } from "@/lib/security/sanitize";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
+import { enqueueNotificationFanout } from "@/lib/jobs/producers";
+import { dedupKey } from "@/lib/jobs/dedup";
 import {
   parseCreateAnnouncementFormData,
   parseCreateRichAnnouncementFormData,
@@ -21,6 +24,9 @@ import {
 } from "@/lib/validation/server-actions";
 
 export async function createAnnouncement(prevState: unknown, formData: FormData) {
+  const rateCheck = await actionRateLimit("createAnnouncement", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -29,6 +35,9 @@ export async function createAnnouncement(prevState: unknown, formData: FormData)
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const emailGate = requireVerifiedEmail(user);
+  if (!emailGate.ok) return { error: emailGate.error };
 
   // Validate input with Zod
   const parseResult = parseCreateAnnouncementFormData(formData);
@@ -76,13 +85,14 @@ export async function createAnnouncement(prevState: unknown, formData: FormData)
 
   if (members && members.length > 0) {
     const clubSlugForLink = await getClubSlug(supabase, clubId);
-    await createNotificationsForUsers({
+    await enqueueNotificationFanout({
+      dedupId: dedupKey("announcement", data.id),
       userIds: members.map((m) => m.user_id),
       type: "announcement",
       title: "New Announcement",
       message: `${title.trim()}`,
       link: `/club/${clubSlugForLink}`,
-      clubId: clubId,
+      clubId,
     });
   }
 
@@ -95,6 +105,12 @@ export async function createAnnouncement(prevState: unknown, formData: FormData)
  * Create a rich announcement with HTML content and optional image
  */
 export async function createRichAnnouncement(prevState: unknown, formData: FormData) {
+  const rateCheck = await actionRateLimit("createRichAnnouncement", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -103,6 +119,9 @@ export async function createRichAnnouncement(prevState: unknown, formData: FormD
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const emailGate = requireVerifiedEmail(user);
+  if (!emailGate.ok) return { error: emailGate.error };
 
   // Validate input with Zod
   const parseResult = parseCreateRichAnnouncementFormData(formData);
@@ -169,13 +188,14 @@ export async function createRichAnnouncement(prevState: unknown, formData: FormD
 
   if (members && members.length > 0) {
     const clubSlugForLink = await getClubSlug(supabase, clubId);
-    await createNotificationsForUsers({
+    await enqueueNotificationFanout({
+      dedupId: dedupKey("announcement", data.id),
       userIds: members.map((m) => m.user_id),
       type: "announcement",
       title: "New Announcement",
       message: `${title.trim()}`,
       link: `/club/${clubSlugForLink}`,
-      clubId: clubId,
+      clubId,
     });
   }
 
