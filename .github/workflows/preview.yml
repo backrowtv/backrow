@@ -82,7 +82,6 @@ jobs:
           urls: |
             ${{ steps.preview.outputs.url }}/
             ${{ steps.preview.outputs.url }}/discover
-            ${{ steps.preview.outputs.url }}/club/backrow-featured
           configPath: .github/lighthouse/lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
