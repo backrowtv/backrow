@@ -23,10 +23,49 @@ jobs:
 
       - name: Wait for Vercel preview deployment
         id: preview
-        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          max_timeout: 600
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          set -e
+          DEPLOY_URL=""
+          for i in $(seq 1 90); do
+            IDS=$(gh api "repos/$REPO/commits/$SHA/deployments" --jq '.[] | select(.environment=="Preview") | .id' 2>/dev/null || true)
+            for ID in $IDS; do
+              URL=$(gh api "repos/$REPO/deployments/$ID/statuses" --jq '.[] | select(.state=="success") | .environment_url' 2>/dev/null | head -1 || true)
+              if [ -n "$URL" ]; then DEPLOY_URL="$URL"; break 2; fi
+            done
+            echo "($i/90) Waiting for Vercel Preview success event..."
+            sleep 10
+          done
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "::error::No successful Vercel preview deployment for $SHA after 15 min"
+            exit 1
+          fi
+          echo "Preview URL: $DEPLOY_URL"
+          for i in $(seq 1 60); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "x-vercel-protection-bypass: $BYPASS" "$DEPLOY_URL/")
+            if [ "$CODE" = "200" ]; then
+              echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+              echo "Preview reachable."
+              exit 0
+            fi
+            echo "Got $CODE, retrying..."
+            sleep 5
+          done
+          echo "::error::Preview not reachable (last code $CODE)"
+          exit 1
+
+      - name: Inject bypass header into Lighthouse config
+        env:
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          jq --arg h "$BYPASS" \
+            '.ci.collect.settings.extraHeaders = {"x-vercel-protection-bypass": $h}' \
+            .github/lighthouse/lighthouserc.json > /tmp/lhci.json
+          mv /tmp/lhci.json .github/lighthouse/lighthouserc.json
 
       - name: Run Lighthouse
         uses: treosh/lighthouse-ci-action@v12

@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // Playwright boots `bun run dev` and hits localhost. See docs/development.md.
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const isRemoteTarget = !!process.env.PLAYWRIGHT_BASE_URL;
+const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypass ? { "x-vercel-protection-bypass": bypass } : undefined;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -14,6 +16,7 @@ export default defineConfig({
   reporter: "html",
   use: {
     baseURL,
+    extraHTTPHeaders,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
