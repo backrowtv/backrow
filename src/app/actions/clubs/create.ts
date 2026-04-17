@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub, invalidateDiscover } from "@/lib/cache/invalidate";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { validateKeywords } from "@/types/club-creation";
@@ -425,8 +425,8 @@ export async function createClub(prevState: unknown, formData: FormData) {
     console.error("Club Founder badge check failed:", e);
   }
 
-  revalidatePath("/clubs");
-  revalidatePath("/");
+  invalidateClub(club.id);
+  invalidateDiscover();
 
   // Return success with redirect URL (don't use redirect() as it throws and breaks try/catch on client)
   return { success: true, clubSlug: club.slug || club.id };

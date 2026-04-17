@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { getClubSlug, checkAdminPermission } from "./_helpers";
 import { logClubActivity } from "@/lib/activity/logger";
 import { sanitizeForStorage } from "@/lib/security/sanitize";
@@ -96,8 +96,7 @@ export async function createAnnouncement(prevState: unknown, formData: FormData)
     });
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(clubId);
   return { success: true, data };
 }
 
@@ -199,9 +198,7 @@ export async function createRichAnnouncement(prevState: unknown, formData: FormD
     });
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/director/announcements`);
+  invalidateClub(clubId);
   return { success: true, data };
 }
 
@@ -265,8 +262,7 @@ export async function updateAnnouncement(
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, announcement.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(announcement.club_id);
   return { success: true };
 }
 
@@ -309,7 +305,6 @@ export async function deleteAnnouncement(announcementId: string) {
     return { error: error.message };
   }
 
-  const clubSlug = await getClubSlug(supabase, announcement.club_id);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateClub(announcement.club_id);
   return { success: true };
 }

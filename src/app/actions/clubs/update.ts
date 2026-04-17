@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { logClubActivity } from "@/lib/activity/logger";
 import { handleActionError } from "@/lib/errors/handler";
 import { validateGenres } from "@/lib/genres/constants";
@@ -306,11 +306,6 @@ export async function updateClub(prevState: unknown, formData: FormData) {
     }
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}/settings/general`);
-  revalidatePath(`/club/${clubSlug}/settings`);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath("/");
-  revalidatePath("/discover");
+  invalidateClub(clubId);
   return { success: true };
 }

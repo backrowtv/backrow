@@ -8,8 +8,8 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { getClubSlug, checkProducerPermission, checkMembership } from "./_helpers";
+import { invalidateClub } from "@/lib/cache/invalidate";
+import { checkProducerPermission, checkMembership } from "./_helpers";
 
 export async function transferOwnership(clubId: string, newOwnerId: string) {
   const supabase = await createClient();
@@ -60,9 +60,7 @@ export async function transferOwnership(clubId: string, newOwnerId: string) {
   if (oldOwnerResult.error) return { error: oldOwnerResult.error.message };
   if (newOwnerResult.error) return { error: newOwnerResult.error.message };
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath(`/club/${clubSlug}/settings`);
+  invalidateClub(clubId);
   return { success: true };
 }
 
@@ -114,7 +112,6 @@ export async function deleteClub(clubId: string) {
     return { error: error.message };
   }
 
-  revalidatePath("/clubs");
-  revalidatePath("/");
+  invalidateClub(clubId);
   return { success: true };
 }

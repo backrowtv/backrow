@@ -8,7 +8,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub, invalidateMember } from "@/lib/cache/invalidate";
 import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { checkAndAwardClubBadges } from "../club-badges";
@@ -158,8 +158,7 @@ export async function createJoinRequest(
     await supabase.from("notifications").insert(notifications);
   }
 
-  revalidatePath(`/club/${club.slug || club.id}`);
-  revalidatePath(`/club/${club.slug || club.id}/members`);
+  invalidateClub(clubId);
 
   return { success: true };
 }
@@ -293,9 +292,7 @@ export async function approveJoinRequest(
     console.error("Failed to check club badges:", error);
   }
 
-  const clubSlug = clubData.slug || request.club_id;
-  revalidatePath(`/club/${clubSlug}/members`);
-  revalidatePath(`/club/${clubSlug}`);
+  invalidateMember(request.club_id, request.user_id);
 
   return { success: true };
 }
@@ -373,9 +370,7 @@ export async function denyJoinRequest(
     });
   }
 
-  const clubData = request.clubs as { id: string; name: string; slug: string | null };
-  const clubSlug = clubData.slug || request.club_id;
-  revalidatePath(`/club/${clubSlug}/members`);
+  invalidateClub(request.club_id);
 
   return { success: true };
 }

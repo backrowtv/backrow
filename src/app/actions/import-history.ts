@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { cacheMovie } from "./movies";
 
 interface ImportMovie {
@@ -152,7 +152,7 @@ export async function importClubWatchHistory(
     imported++;
   }
 
-  revalidatePath(`/club/[slug]`);
+  invalidateClub(clubId);
 
   return { success: true, imported, skipped };
 }

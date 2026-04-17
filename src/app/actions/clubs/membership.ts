@@ -7,10 +7,9 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateMember } from "@/lib/cache/invalidate";
 import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
-import { getClubSlug } from "./_helpers";
 import { checkAndAwardClubBadges } from "../club-badges";
 import type { MobileNavPreferences } from "@/lib/navigation-constants";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -154,9 +153,7 @@ export async function joinPublicClub(clubId: string) {
     console.error("Failed to check club badges:", error);
   }
 
-  revalidatePath("/discover");
-  revalidatePath(`/club/${club.slug || club.id}`);
-  revalidatePath("/");
+  invalidateMember(club.id, user.id);
 
   return { success: true, clubId: club.id, clubSlug: club.slug || club.id, clubName: club.name };
 }
@@ -229,10 +226,7 @@ export async function toggleFavoriteClub(clubId: string) {
       }
     }
 
-    revalidatePath("/");
-    revalidatePath("/discover");
-    const clubSlug = await getClubSlug(supabase, clubId);
-    revalidatePath(`/club/${clubSlug}`);
+    invalidateMember(clubId, user.id);
 
     return {
       success: true,
@@ -250,10 +244,7 @@ export async function toggleFavoriteClub(clubId: string) {
       return { error: error.message };
     }
 
-    revalidatePath("/");
-    revalidatePath("/discover");
-    const clubSlug = await getClubSlug(supabase, clubId);
-    revalidatePath(`/club/${clubSlug}`);
+    invalidateMember(clubId, user.id);
 
     return { success: true, isFavorite: true };
   }

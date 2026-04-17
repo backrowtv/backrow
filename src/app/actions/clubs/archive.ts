@@ -7,9 +7,9 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { logClubActivity, logMemberActivity } from "@/lib/activity/logger";
-import { getClubSlug, checkProducerPermission } from "./_helpers";
+import { checkProducerPermission } from "./_helpers";
 import { createNotificationsForUsers } from "../notifications";
 
 /**
@@ -80,10 +80,7 @@ export async function archiveClub(clubId: string) {
     });
   }
 
-  const clubSlug = await getClubSlug(supabase, clubId);
-  revalidatePath(`/club/${clubSlug}/settings`);
-  revalidatePath(`/club/${clubSlug}`);
-  revalidatePath("/");
+  invalidateClub(clubId);
 
   return { success: true };
 }
