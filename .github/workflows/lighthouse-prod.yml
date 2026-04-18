@@ -1,0 +1,42 @@
+name: Production · Lighthouse
+
+# Audits backrow.tv with SEO asserts enabled (unlike preview, which disables
+# SEO because preview URLs are noindex'd). Triggers:
+#   - Immediately after Vercel confirms a successful Production deploy
+#   - Weekly (Monday 10:00 UTC) as drift detection, even without a deploy.
+
+on:
+  deployment_status:
+  schedule:
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: read
+  statuses: read
+
+jobs:
+  lighthouse:
+    name: Lighthouse (production)
+    runs-on: ubuntu-latest
+    # Only fire on deployment_status when Vercel reports a SUCCESS for the
+    # Production environment. For schedule / manual runs, always run.
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://backrow.tv/
+            https://backrow.tv/discover
+            https://backrow.tv/club/backrow-featured
+          configPath: .github/lighthouse/lighthouserc-prod.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
