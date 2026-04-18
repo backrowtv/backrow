@@ -14,7 +14,13 @@ import { DismissedHintsMigration } from "@/components/auth/DismissedHintsMigrati
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { createClient } from "@/lib/supabase/server";
 import { DisplayPreferencesProvider } from "@/contexts/DisplayPreferencesContext";
-import { getDisplayPreferences, getThemePreferences } from "@/app/actions/display-preferences";
+import {
+  DEFAULT_DISPLAY_PREFERENCES,
+  DEFAULT_THEME_PREFERENCES,
+  type DateFormat,
+  type DisplayPreferences,
+  type ThemePreferences,
+} from "@/lib/display-preferences-constants";
 import { ThemeSyncProvider } from "@/components/ThemeSyncProvider";
 import { CookieConsent } from "@/components/compliance/CookieConsent";
 
@@ -115,18 +121,86 @@ export const viewport: Viewport = {
   ],
 };
 
-// Server component that fetches auth and preferences - wrapped in Suspense to not block layout
-async function AuthFetcher({ children }: { children: React.ReactNode }) {
+// Server component that fetches auth and preferences. Wrapped in Suspense
+// so it streams without blocking the shell. Single combined query for auth
+// + both preference sets (was 3 separate round-trips before), plus a hard
+// 2.5s timeout that falls back to defaults — so a slow or hanging Supabase
+// call can never pin the Suspense fallback indefinitely on authenticated
+// pages like /clubs and /club/[slug].
+const AUTH_FETCH_TIMEOUT_MS = 2500;
+
+type AuthSnapshot = {
+  user: Awaited<
+    ReturnType<Awaited<ReturnType<typeof createClient>>["auth"]["getUser"]>
+  >["data"]["user"];
+  displayPreferences: DisplayPreferences;
+  themePreferences: ThemePreferences;
+};
+
+async function fetchAuthAndPreferences(): Promise<AuthSnapshot> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch preferences in parallel (will use defaults if not authenticated)
-  const [displayPreferences, themePreferences] = await Promise.all([
-    getDisplayPreferences(),
-    getThemePreferences(),
+  if (!user) {
+    return {
+      user: null,
+      displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
+      themePreferences: DEFAULT_THEME_PREFERENCES,
+    };
+  }
+
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("social_links")
+    .eq("id", user.id)
+    .single();
+
+  const socialLinks = (userRow?.social_links ?? {}) as Record<string, unknown>;
+  const dp = socialLinks.display_preferences as Partial<DisplayPreferences> | undefined;
+  const tp = socialLinks.theme_preferences as Partial<ThemePreferences> | undefined;
+
+  return {
+    user,
+    displayPreferences: {
+      timeFormat: dp?.timeFormat === "24h" ? "24h" : "12h",
+      dateFormat: (["MDY", "DMY", "YMD"] as DateFormat[]).includes(dp?.dateFormat as DateFormat)
+        ? (dp!.dateFormat as DateFormat)
+        : "MDY",
+    },
+    themePreferences: {
+      theme: tp?.theme === "light" ? "light" : "dark",
+      colorTheme: typeof tp?.colorTheme === "string" ? tp.colorTheme : "default",
+    },
+  };
+}
+
+async function AuthFetcher({ children }: { children: React.ReactNode }) {
+  const fallback: AuthSnapshot = {
+    user: null,
+    displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
+    themePreferences: DEFAULT_THEME_PREFERENCES,
+  };
+
+  const timeoutPromise = new Promise<AuthSnapshot>((resolve) =>
+    setTimeout(() => {
+      console.warn(
+        `[AuthFetcher] Supabase auth/prefs fetch exceeded ${AUTH_FETCH_TIMEOUT_MS}ms — rendering with defaults`
+      );
+      resolve(fallback);
+    }, AUTH_FETCH_TIMEOUT_MS)
+  );
+
+  const result = await Promise.race([
+    fetchAuthAndPreferences().catch((err) => {
+      console.error("[AuthFetcher] Supabase auth/prefs fetch threw:", err);
+      return fallback;
+    }),
+    timeoutPromise,
   ]);
+
+  const { user, displayPreferences, themePreferences } = result;
 
   return (
     <AuthProvider initialUser={user}>
