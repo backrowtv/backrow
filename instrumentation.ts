@@ -45,22 +45,64 @@ export async function register() {
   // Vercel runtime (helps diagnose whether onRequestError below should fire).
   console.log("[backrow:register] runtime=", process.env.NEXT_RUNTIME);
 
-  // Probe: read the sharp external chunk as a string and grep for the
-  // hash-wrapped require. If the post-build patch ran, the chunk contains
-  // `require("sharp")`. If it didn't, the chunk still has
-  // `require("sharp-<hash>")` and every request that hits it will crash.
+  // Runtime chunk patch. Vercel's @vercel/next adapter packages .next/server/
+  // into the lambda AFTER `bun run build` exits, so our post-build patch
+  // (scripts/patch-turbopack-hash-externals.mjs) never touches the deployed
+  // copy. Patch here instead, at cold-start — before any route hits the
+  // broken externalRequire thunks. Chunks are loaded lazily per-route, so
+  // rewriting them on disk before the first request works: the first
+  // `require("<pkg>-<hash>")` call now reads the patched `require("<pkg>")`.
+  //
+  // Upstream Turbopack bug: vercel/next.js#64022.
   if (process.env.NEXT_RUNTIME === "nodejs") {
     try {
-      const { readFileSync } = await import("node:fs");
-      const path = ".next/server/chunks/[externals]_sharp_0936.fv._.js";
-      const content = readFileSync(path, "utf8");
-      const hashed = /sharp-[0-9a-f]{16}/.test(content);
+      const { readFileSync, writeFileSync, readdirSync } = await import("node:fs");
+      const { join } = await import("node:path");
+      const HASH_RE = /([@a-zA-Z0-9_/.-]+)-([0-9a-f]{16})(?=["`'])/g;
+
+      const walk = (dir: string, acc: string[] = []): string[] => {
+        let entries: import("node:fs").Dirent[];
+        try {
+          entries = readdirSync(dir, { withFileTypes: true });
+        } catch {
+          return acc;
+        }
+        for (const e of entries) {
+          const full = join(dir, e.name);
+          if (e.isDirectory()) walk(full, acc);
+          else if (e.isFile() && e.name.endsWith(".js")) acc.push(full);
+        }
+        return acc;
+      };
+
+      const start = Date.now();
+      const files = walk(".next/server");
+      let patched = 0;
+      const touched: string[] = [];
+      for (const file of files) {
+        try {
+          const content = readFileSync(file, "utf8");
+          if (!HASH_RE.test(content)) {
+            HASH_RE.lastIndex = 0;
+            continue;
+          }
+          HASH_RE.lastIndex = 0;
+          const next = content.replace(HASH_RE, (_m, pkg) => pkg);
+          if (next !== content) {
+            writeFileSync(file, next, "utf8");
+            patched++;
+            touched.push(file);
+          }
+        } catch {
+          // read-only filesystem or transient — continue
+        }
+      }
       console.log(
-        `[backrow:probe] sharp chunk hashed=${hashed} (patch ${hashed ? "DID NOT run" : "ran"})`
+        `[backrow:runtime-patch] scanned=${files.length} patched=${patched} ms=${Date.now() - start} files=${touched.join("|")}`
       );
     } catch (err) {
       const e = err as { code?: string; message?: string };
-      console.log(`[backrow:probe] sharp chunk read failed ${e?.code} ${e?.message}`);
+      console.error(`[backrow:runtime-patch] failed ${e?.code} ${e?.message}`);
     }
   }
 
