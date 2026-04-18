@@ -13,23 +13,6 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.csb.app", "192.168.1.110"],
   // Enable Cache Components (Next.js 16+) for 'use cache' directive
   cacheComponents: true,
-  // Force Next.js/Turbopack to treat these as real Node modules rather than
-  // trying to externalize them through Turbopack's runtime wrapper. Without
-  // this, server-component requests fail with `Failed to load external
-  // module <pkg>: ERR_MODULE_NOT_FOUND` because Turbopack's externalImport
-  // can't resolve them from the Vercel function runtime bundle.
-  serverExternalPackages: [
-    "@supabase/ssr",
-    "@supabase/supabase-js",
-    "@sentry/nextjs",
-    "@vercel/queue",
-    "@upstash/ratelimit",
-    "@upstash/redis",
-    "resend",
-    "web-push",
-    "sharp",
-    "jszip",
-  ],
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback
   reactCompiler: true,
