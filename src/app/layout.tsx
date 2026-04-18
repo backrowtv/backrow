@@ -18,9 +18,20 @@ import { getDisplayPreferences, getThemePreferences } from "@/app/actions/displa
 import { ThemeSyncProvider } from "@/components/ThemeSyncProvider";
 import { CookieConsent } from "@/components/compliance/CookieConsent";
 
-// Simple loading skeleton for layout
+// Layout skeleton rendered while AuthFetcher resolves.
+// MUST contain visible content — an empty fallback causes Lighthouse to
+// report NO_FCP on heavy pages (e.g. /club/[slug]) when streaming takes
+// longer than the FCP measurement window. Giving browsers something
+// paintable lets FCP fire on the shell instead of the streamed content.
 function LayoutSkeleton() {
-  return <div className="flex-1" />;
+  return (
+    <div
+      className="flex-1 flex items-center justify-center text-[var(--text-muted)] text-sm"
+      aria-hidden="true"
+    >
+      <span className="opacity-60">Loading…</span>
+    </div>
+  );
 }
 
 // Primary sans-serif font (body text)
