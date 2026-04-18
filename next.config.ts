@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.csb.app", "192.168.1.110"],
   // Enable Cache Components (Next.js 16+) for 'use cache' directive
   cacheComponents: true,
+  // These packages must be treated as real Node externals (not wrapped in
+  // Turbopack's externalImport runtime helper). Without this, Turbopack
+  // emits calls like `.y("import-in-the-middle-<hash>")` at runtime which
+  // throw `Failed to load external module: ERR_MODULE_NOT_FOUND` because
+  // the hash-suffixed id doesn't resolve. Covers Sentry's OpenTelemetry
+  // instrumentation deps + jsdom (server-side isomorphic-dompurify) + sharp.
+  serverExternalPackages: ["import-in-the-middle", "require-in-the-middle", "jsdom", "sharp"],
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback
   reactCompiler: true,

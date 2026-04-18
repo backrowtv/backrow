@@ -189,20 +189,4 @@ export function stripHtml(html: string): string {
   return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
 }
 
-/**
- * Validates that a string is a valid hex color.
- * Prevents CSS injection attacks when interpolating colors into style tags.
- *
- * @param color - The color string to validate
- * @returns True if the color is a valid 6-character hex color
- *
- * @example
- * isValidHexColor('#FF5500') // true
- * isValidHexColor('#fff') // false (must be 6 chars)
- * isValidHexColor('red') // false (not hex)
- * isValidHexColor('#FF5500</style><script>') // false (injection attempt)
- */
-export function isValidHexColor(color: string): boolean {
-  if (!color) return false;
-  return /^#[0-9A-Fa-f]{6}$/.test(color);
-}
+export { isValidHexColor } from "./validators";
