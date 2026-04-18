@@ -298,3 +298,4 @@ export default function RootLayout({
     </html>
   );
 }
+// force-build marker (workflow-only change would be skipped by Vercel Ignored Build Step; this line makes the PR trigger a real deploy so the sharded E2E can target the per-SHA preview)
