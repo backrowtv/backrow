@@ -59,9 +59,17 @@ export async function GET() {
     }
   }
 
+  let marker: unknown = null;
+  try {
+    marker = JSON.parse(readFileSync(".next/server/PATCH_RAN.json", "utf8"));
+  } catch {
+    marker = "missing";
+  }
+
   return NextResponse.json({
     cwd: process.cwd(),
     existing,
+    marker,
     totalScanned: files.length,
     filesWithHashExternals: hits.length,
     hits,

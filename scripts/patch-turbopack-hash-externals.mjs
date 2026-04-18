@@ -74,11 +74,13 @@ async function main() {
   console.log(`[patch-turbopack-hash-externals] scanning ${files.length} .js files`);
   let patchedCount = 0;
   const totalHits = new Map();
+  const patchedFiles = [];
   for (const file of files) {
     const hits = await patchFile(file);
     if (hits) {
       console.log(`  patched ${file}: ${hits.join(", ")}`);
       patchedCount++;
+      patchedFiles.push({ file, hits });
       for (const h of hits) {
         const [pkg] = h.split("×");
         totalHits.set(pkg, (totalHits.get(pkg) ?? 0) + 1);
@@ -91,6 +93,36 @@ async function main() {
       ? "[patch-turbopack-hash-externals] no chunks needed patching"
       : `[patch-turbopack-hash-externals] patched ${patchedCount} file(s) — ${summary}`
   );
+
+  // Marker file — lets a request-time probe verify whether the lambda filesystem
+  // is the same one we patched. If .next/server/PATCH_RAN.json shows up at
+  // runtime with the recorded patch count, our writes ship with the bundle.
+  // If it doesn't, Vercel packages .next/ from a different copy than we patched.
+  try {
+    const { writeFile } = await import("node:fs/promises");
+    const marker = {
+      timestamp: new Date().toISOString(),
+      patchedCount,
+      patchedFiles,
+      totalHits: Object.fromEntries(totalHits),
+    };
+    await writeFile(".next/server/PATCH_RAN.json", JSON.stringify(marker, null, 2));
+    console.log("[patch-turbopack-hash-externals] wrote marker .next/server/PATCH_RAN.json");
+  } catch (err) {
+    console.error("[patch-turbopack-hash-externals] marker write failed:", err);
+  }
+
+  // Re-verify: read back each patched file and confirm the hash is gone.
+  for (const { file } of patchedFiles) {
+    try {
+      const { readFile } = await import("node:fs/promises");
+      const content = await readFile(file, "utf8");
+      const stillThere = /[@a-zA-Z0-9_/.-]+-[0-9a-f]{16}(?=["`'])/.test(content);
+      console.log(`  verify ${file}: hash ${stillThere ? "STILL PRESENT" : "gone"}`);
+    } catch (err) {
+      console.error(`  verify ${file} failed:`, err);
+    }
+  }
 }
 
 main().catch((err) => {
