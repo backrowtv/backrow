@@ -25,10 +25,10 @@
 import { readFile, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
-// Patch all JS under .next/server/ — chunks/, app/, ssr/, etc. Turbopack
-// sometimes leaves external-require thunks outside chunks/ (e.g. in app-route
-// stubs), and we'd rather be thorough than surgical.
-const ROOTS = [".next/server"];
+// Patch all JS under both .next/server/ AND /vercel/output/ — Vercel's
+// Next.js adapter copies chunks to /vercel/output/functions/... DURING
+// next build, so .next/-only patches don't reach the deployed lambda.
+const ROOTS = [".next/server", ".vercel/output", "/vercel/output"];
 
 // Generic hash-suffix pattern — any `<identifier>-<16 hex>` wrapped by
 // Turbopack's externalRequire. Catches sharp, import-in-the-middle,
