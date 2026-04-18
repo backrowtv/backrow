@@ -45,6 +45,25 @@ export async function register() {
   // Vercel runtime (helps diagnose whether onRequestError below should fire).
   console.log("[backrow:register] runtime=", process.env.NEXT_RUNTIME);
 
+  // Probe: read the sharp external chunk as a string and grep for the
+  // hash-wrapped require. If the post-build patch ran, the chunk contains
+  // `require("sharp")`. If it didn't, the chunk still has
+  // `require("sharp-<hash>")` and every request that hits it will crash.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    try {
+      const { readFileSync } = await import("node:fs");
+      const path = ".next/server/chunks/[externals]_sharp_0936.fv._.js";
+      const content = readFileSync(path, "utf8");
+      const hashed = /sharp-[0-9a-f]{16}/.test(content);
+      console.log(
+        `[backrow:probe] sharp chunk hashed=${hashed} (patch ${hashed ? "DID NOT run" : "ran"})`
+      );
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
+      console.log(`[backrow:probe] sharp chunk read failed ${e?.code} ${e?.message}`);
+    }
+  }
+
   // Top-level catch for unhandled rejections — these bypass onRequestError
   // when the error escapes a server-action or streaming render path.
   if (process.env.NEXT_RUNTIME === "nodejs" && typeof process !== "undefined") {

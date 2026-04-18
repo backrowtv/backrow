@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/patch-turbopack-hash-externals.mjs",
+    "build": "node scripts/vercel-build.mjs",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:a11y": "eslint . --ext .ts,.tsx --max-warnings 0 2>&1 | grep jsx-a11y || echo 'No a11y warnings!'",
