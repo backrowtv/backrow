@@ -16,7 +16,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import sharp from "sharp";
+import { getSharp } from "@/lib/image/sharp-loader";
 import { handleActionError } from "@/lib/errors/handler";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
@@ -140,7 +140,7 @@ export async function updateUserAvatar(
       const rawBuffer = Buffer.from(arrayBuffer);
       const heif = isHeif(avatarFile);
       const uploadBuffer = heif
-        ? await sharp(rawBuffer).rotate().jpeg({ quality: 90 }).toBuffer()
+        ? await (await getSharp())(rawBuffer).rotate().jpeg({ quality: 90 }).toBuffer()
         : rawBuffer;
       const finalExt = heif ? "jpg" : fileExtension.replace(".", "") || "jpg";
       const contentType = heif ? "image/jpeg" : avatarFile.type || "application/octet-stream";

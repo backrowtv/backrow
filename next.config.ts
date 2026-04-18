@@ -12,13 +12,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.csb.app", "192.168.1.110"],
   // Enable Cache Components (Next.js 16+) for 'use cache' directive
   cacheComponents: true,
-  // These packages must be treated as real Node externals (not wrapped in
-  // Turbopack's externalImport runtime helper). Without this, Turbopack
-  // emits calls like `.y("import-in-the-middle-<hash>")` at runtime which
-  // throw `Failed to load external module: ERR_MODULE_NOT_FOUND` because
-  // the hash-suffixed id doesn't resolve. Covers Sentry's OpenTelemetry
-  // instrumentation deps + jsdom (server-side isomorphic-dompurify) + sharp.
-  serverExternalPackages: ["import-in-the-middle", "require-in-the-middle", "jsdom", "sharp"],
+  // Packages that must not be bundled (native binaries or deliberately external).
+  // jsdom: required by isomorphic-dompurify server path.
+  // Note on sharp: even when listed here, Turbopack hash-wraps it in externalRequire
+  // ("sharp-<hash>") which fails at runtime on Vercel Functions (vercel/next.js#64022).
+  // Sharp imports are therefore converted to runtime `await import("sharp")` inside
+  // the functions that use it, bypassing the server-component static-import chain
+  // that pulls sharp into /clubs, /club/[slug]/*, and other chunks.
+  serverExternalPackages: ["jsdom", "sharp"],
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback
   reactCompiler: true,

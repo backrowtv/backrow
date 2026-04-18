@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import { getSharp } from "@/lib/image/sharp-loader";
 import { getTMDBBlurDataURL, getBackdropBlurDataURL } from "./blur-placeholder";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
@@ -50,6 +50,7 @@ export async function generateBlurDataURL(
 
     const [width, height] = type === "backdrop" ? [16, 9] : type === "profile" ? [8, 12] : [8, 12];
 
+    const sharp = await getSharp();
     const blurBuffer = await sharp(buffer)
       .resize(width, height, { fit: "cover" })
       .jpeg({ quality: 20 })

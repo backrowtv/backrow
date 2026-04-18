@@ -7,7 +7,7 @@
  * kept on the user/club row continues to work without a schema change.
  */
 
-import sharp from "sharp";
+import { getSharp } from "@/lib/image/sharp-loader";
 import { claimJob } from "../dedup";
 import type { ImageProcessingPayload } from "../types";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -34,6 +34,7 @@ export async function handleImageProcessing(payload: ImageProcessingPayload): Pr
 
   const dim = payload.variant === "user-avatar" ? USER_AVATAR_DIM : CLUB_PICTURE_DIM;
   const inputBuffer = Buffer.from(await rawBlob.arrayBuffer());
+  const sharp = await getSharp();
   const optimizedBuffer = await sharp(inputBuffer)
     .rotate()
     .resize(dim, dim, { fit: "cover", position: "centre" })
