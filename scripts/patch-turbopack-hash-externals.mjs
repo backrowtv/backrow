@@ -25,11 +25,17 @@
 import { readFile, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
-const CHUNKS_DIR = ".next/server/chunks";
+// Patch all JS under .next/server/ — chunks/, app/, ssr/, etc. Turbopack
+// sometimes leaves external-require thunks outside chunks/ (e.g. in app-route
+// stubs), and we'd rather be thorough than surgical.
+const ROOTS = [".next/server"];
 
-// Packages Turbopack hash-wraps that we know don't exist as `<pkg>-<hash>`
-// in node_modules. Extend as new bugs surface.
-const NATIVE_EXTERNALS = ["sharp"];
+// Generic hash-suffix pattern — any `<identifier>-<16 hex>` wrapped by
+// Turbopack's externalRequire. Catches sharp, import-in-the-middle,
+// require-in-the-middle, and any future native external that this bug hits.
+// We match only identifiers that look like package names (no spaces, no
+// special chars beyond [@/_-.]) so we don't accidentally rewrite content.
+const HASH_RE = /([@a-zA-Z0-9_/.-]+)-([0-9a-f]{16})(?=["`'])/g;
 
 async function collectChunkFiles(dir, acc = []) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -43,36 +49,47 @@ async function collectChunkFiles(dir, acc = []) {
 
 async function patchFile(file) {
   const original = await readFile(file, "utf8");
-  let patched = original;
-  const hits = [];
-  for (const pkg of NATIVE_EXTERNALS) {
-    const re = new RegExp(`${pkg}-[0-9a-f]{16}`, "g");
-    const matches = original.match(re);
-    if (!matches) continue;
-    patched = patched.replace(re, pkg);
-    hits.push(`${pkg}×${matches.length}`);
-  }
+  const hits = new Map();
+  const patched = original.replace(HASH_RE, (_m, pkg) => {
+    hits.set(pkg, (hits.get(pkg) ?? 0) + 1);
+    return pkg;
+  });
   if (patched !== original) {
     await writeFile(file, patched, "utf8");
-    return hits;
+    return [...hits.entries()].map(([k, v]) => `${k}×${v}`);
   }
   return null;
 }
 
 async function main() {
-  const files = await collectChunkFiles(CHUNKS_DIR);
+  console.log("[patch-turbopack-hash-externals] START");
+  const files = [];
+  for (const root of ROOTS) {
+    try {
+      await collectChunkFiles(root, files);
+    } catch (err) {
+      console.log(`[patch-turbopack-hash-externals] skipping ${root}:`, err.message);
+    }
+  }
+  console.log(`[patch-turbopack-hash-externals] scanning ${files.length} .js files`);
   let patchedCount = 0;
+  const totalHits = new Map();
   for (const file of files) {
     const hits = await patchFile(file);
     if (hits) {
-      console.log(`  patched ${file.replace(CHUNKS_DIR + "/", "")}: ${hits.join(", ")}`);
+      console.log(`  patched ${file}: ${hits.join(", ")}`);
       patchedCount++;
+      for (const h of hits) {
+        const [pkg] = h.split("×");
+        totalHits.set(pkg, (totalHits.get(pkg) ?? 0) + 1);
+      }
     }
   }
+  const summary = [...totalHits.entries()].map(([k, v]) => `${k}:${v}file(s)`).join(", ");
   console.log(
     patchedCount === 0
       ? "[patch-turbopack-hash-externals] no chunks needed patching"
-      : `[patch-turbopack-hash-externals] patched ${patchedCount} chunk(s)`
+      : `[patch-turbopack-hash-externals] patched ${patchedCount} file(s) — ${summary}`
   );
 }
 

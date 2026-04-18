@@ -41,7 +41,34 @@ function extractCauseChain(err: unknown, depth = 0, max = 5): CauseChainEntry[] 
 }
 
 export async function register() {
-  // Intentionally empty. See header.
+  // Log at boot so we can confirm instrumentation.ts is actually loaded on the
+  // Vercel runtime (helps diagnose whether onRequestError below should fire).
+  console.log("[backrow:register] runtime=", process.env.NEXT_RUNTIME);
+
+  // Top-level catch for unhandled rejections — these bypass onRequestError
+  // when the error escapes a server-action or streaming render path.
+  if (process.env.NEXT_RUNTIME === "nodejs" && typeof process !== "undefined") {
+    process.on("unhandledRejection", (reason: unknown) => {
+      try {
+        console.error(
+          "[backrow:unhandledRejection]",
+          JSON.stringify({ chain: extractCauseChain(reason) })
+        );
+      } catch {
+        // ignore
+      }
+    });
+    process.on("uncaughtException", (err: unknown) => {
+      try {
+        console.error(
+          "[backrow:uncaughtException]",
+          JSON.stringify({ chain: extractCauseChain(err) })
+        );
+      } catch {
+        // ignore
+      }
+    });
+  }
 }
 
 export const onRequestError = (err: unknown, request: unknown, errorContext: unknown) => {
