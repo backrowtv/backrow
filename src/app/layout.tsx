@@ -12,14 +12,10 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { UserProfileProvider } from "@/components/auth/UserProfileProvider";
 import { DismissedHintsMigration } from "@/components/auth/DismissedHintsMigration";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { createClient } from "@/lib/supabase/server";
 import { DisplayPreferencesProvider } from "@/contexts/DisplayPreferencesContext";
 import {
   DEFAULT_DISPLAY_PREFERENCES,
   DEFAULT_THEME_PREFERENCES,
-  type DateFormat,
-  type DisplayPreferences,
-  type ThemePreferences,
 } from "@/lib/display-preferences-constants";
 import { ThemeSyncProvider } from "@/components/ThemeSyncProvider";
 import { CookieConsent } from "@/components/compliance/CookieConsent";
@@ -121,104 +117,6 @@ export const viewport: Viewport = {
   ],
 };
 
-// Server component that fetches auth and preferences. Wrapped in Suspense
-// so it streams without blocking the shell. Single combined query for auth
-// + both preference sets (was 3 separate round-trips before), plus a hard
-// 2.5s timeout that falls back to defaults — so a slow or hanging Supabase
-// call can never pin the Suspense fallback indefinitely on authenticated
-// pages like /clubs and /club/[slug].
-const AUTH_FETCH_TIMEOUT_MS = 2500;
-
-type AuthSnapshot = {
-  user: Awaited<
-    ReturnType<Awaited<ReturnType<typeof createClient>>["auth"]["getUser"]>
-  >["data"]["user"];
-  displayPreferences: DisplayPreferences;
-  themePreferences: ThemePreferences;
-};
-
-async function fetchAuthAndPreferences(): Promise<AuthSnapshot> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      user: null,
-      displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
-      themePreferences: DEFAULT_THEME_PREFERENCES,
-    };
-  }
-
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("social_links")
-    .eq("id", user.id)
-    .single();
-
-  const socialLinks = (userRow?.social_links ?? {}) as Record<string, unknown>;
-  const dp = socialLinks.display_preferences as Partial<DisplayPreferences> | undefined;
-  const tp = socialLinks.theme_preferences as Partial<ThemePreferences> | undefined;
-
-  return {
-    user,
-    displayPreferences: {
-      timeFormat: dp?.timeFormat === "24h" ? "24h" : "12h",
-      dateFormat: (["MDY", "DMY", "YMD"] as DateFormat[]).includes(dp?.dateFormat as DateFormat)
-        ? (dp!.dateFormat as DateFormat)
-        : "MDY",
-    },
-    themePreferences: {
-      theme: tp?.theme === "light" ? "light" : "dark",
-      colorTheme: typeof tp?.colorTheme === "string" ? tp.colorTheme : "default",
-    },
-  };
-}
-
-async function AuthFetcher({ children }: { children: React.ReactNode }) {
-  const fallback: AuthSnapshot = {
-    user: null,
-    displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
-    themePreferences: DEFAULT_THEME_PREFERENCES,
-  };
-
-  const timeoutPromise = new Promise<AuthSnapshot>((resolve) =>
-    setTimeout(() => {
-      console.warn(
-        `[AuthFetcher] Supabase auth/prefs fetch exceeded ${AUTH_FETCH_TIMEOUT_MS}ms — rendering with defaults`
-      );
-      resolve(fallback);
-    }, AUTH_FETCH_TIMEOUT_MS)
-  );
-
-  const result = await Promise.race([
-    fetchAuthAndPreferences().catch((err) => {
-      console.error("[AuthFetcher] Supabase auth/prefs fetch threw:", err);
-      return fallback;
-    }),
-    timeoutPromise,
-  ]);
-
-  const { user, displayPreferences, themePreferences } = result;
-
-  return (
-    <AuthProvider initialUser={user}>
-      <UserProfileProvider>
-        <DismissedHintsMigration />
-        <DisplayPreferencesProvider initialPreferences={displayPreferences}>
-          <ThemeSyncProvider
-            theme={themePreferences.theme}
-            colorTheme={themePreferences.colorTheme}
-          >
-            {children}
-          </ThemeSyncProvider>
-        </DisplayPreferencesProvider>
-      </UserProfileProvider>
-    </AuthProvider>
-  );
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -273,25 +171,38 @@ export default function RootLayout({
         </a>
         <CookieConsent />
         {/*
-          AuthFetcher is wrapped in Suspense but with a fallback that renders the shell.
-          This allows the UI to render immediately with null user, then hydrate with real user.
+          No server-side auth fetch in the root layout — AuthProvider (client)
+          resolves the session from the browser cookie on mount, which avoids
+          making the entire site's SSR critical path wait on Supabase Auth.
+          Pages that need the user server-side still call supabase.auth.getUser()
+          themselves.
         */}
         <Suspense fallback={<LayoutSkeleton />}>
-          <AuthFetcher>
-            <TooltipProvider delayDuration={300} skipDelayDuration={100}>
-              <SidebarProvider>
-                <MobileSidebarProvider>
-                  <Suspense fallback={<div style={{ height: "64px" }} />}>
-                    <TopNav />
-                  </Suspense>
-                  <Suspense fallback={<LayoutSkeleton />}>
-                    <ConditionalLayout>{children}</ConditionalLayout>
-                  </Suspense>
-                  <FooterWithCredits />
-                </MobileSidebarProvider>
-              </SidebarProvider>
-            </TooltipProvider>
-          </AuthFetcher>
+          <AuthProvider initialUser={null}>
+            <UserProfileProvider>
+              <DismissedHintsMigration />
+              <DisplayPreferencesProvider initialPreferences={DEFAULT_DISPLAY_PREFERENCES}>
+                <ThemeSyncProvider
+                  theme={DEFAULT_THEME_PREFERENCES.theme}
+                  colorTheme={DEFAULT_THEME_PREFERENCES.colorTheme}
+                >
+                  <TooltipProvider delayDuration={300} skipDelayDuration={100}>
+                    <SidebarProvider>
+                      <MobileSidebarProvider>
+                        <Suspense fallback={<div style={{ height: "64px" }} />}>
+                          <TopNav />
+                        </Suspense>
+                        <Suspense fallback={<LayoutSkeleton />}>
+                          <ConditionalLayout>{children}</ConditionalLayout>
+                        </Suspense>
+                        <FooterWithCredits />
+                      </MobileSidebarProvider>
+                    </SidebarProvider>
+                  </TooltipProvider>
+                </ThemeSyncProvider>
+              </DisplayPreferencesProvider>
+            </UserProfileProvider>
+          </AuthProvider>
         </Suspense>
         <Toaster />
       </body>
