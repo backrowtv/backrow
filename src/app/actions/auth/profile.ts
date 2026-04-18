@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
 import { CacheTags } from "@/lib/cache/invalidate";
-import sharp from "sharp";
+import { getSharp } from "@/lib/image/sharp-loader";
 import { handleActionError } from "@/lib/errors/handler";
 import { enqueueImageProcessing } from "@/lib/jobs/producers";
 
@@ -194,6 +194,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
         const arrayBuffer = await avatarFile.arrayBuffer();
         const inputBuffer = Buffer.from(arrayBuffer);
 
+        const sharp = await getSharp();
         uploadBuffer = await sharp(inputBuffer).jpeg({ quality: 90 }).toBuffer();
 
         finalExt = "jpg";

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { cacheLife, cacheTag } from "next/cache";
 import { CacheTags, invalidateFestival } from "@/lib/cache/invalidate";
-import sharp from "sharp";
+import { getSharp } from "@/lib/image/sharp-loader";
 import { logClubActivity } from "@/lib/activity/logger";
 import { validateKeywords } from "@/types/club-creation";
 import { createNotificationsForUsers } from "../notifications";
@@ -195,6 +195,7 @@ export async function createFestival(prevState: unknown, formData: FormData) {
       }
 
       // Re-encode to mozjpeg q85, cap at 1920 wide, strip metadata (privacy).
+      const sharp = await getSharp();
       const bgBuffer = await sharp(Buffer.from(await backgroundImageFile.arrayBuffer()))
         .rotate()
         .resize({ width: 1920, withoutEnlargement: true })
@@ -245,6 +246,7 @@ export async function createFestival(prevState: unknown, formData: FormData) {
 
       // Re-encode to mozjpeg q85, cap at 2048×2048 (fit:inside preserves aspect),
       // strip metadata (privacy).
+      const sharp = await getSharp();
       const picBuffer = await sharp(Buffer.from(await pictureFile.arrayBuffer()))
         .rotate()
         .resize(2048, 2048, { fit: "inside", withoutEnlargement: true })
