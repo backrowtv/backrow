@@ -66,11 +66,14 @@ Authenticated user types `DELETE` and clicks **Delete Account**.
 
 1. Block if `SELECT count FROM clubs WHERE producer_id = user.id > 0`. The
    user must transfer or archive each club first.
-2. `UPDATE public.users` to set `deleted_at = now()` and anonymize `email`,
+2. `enqueueAccountHardDelete(userId, { delaySeconds: 30 * 86400 })` — enqueue
+   the job **before** touching user data, so an enqueue failure leaves the
+   account intact and retryable. The Phase 3 worker re-checks `deleted_at`
+   and is a safe no-op if anonymize later fails or never runs.
+3. `UPDATE public.users` to set `deleted_at = now()` and anonymize `email`,
    `username`, `display_name`, `avatar_url`, `bio`, `social_links`. The row
    persists; the auth row persists.
-3. `supabase.auth.signOut()`.
-4. `enqueueAccountHardDelete(userId, { delaySeconds: 30 * 86400 })`.
+4. `supabase.auth.signOut()`.
 
 ### Phase 2 — sign-in block (middleware)
 

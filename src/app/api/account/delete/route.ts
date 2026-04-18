@@ -74,6 +74,20 @@ export async function POST() {
     );
   }
 
+  // Enqueue the hard-delete job BEFORE anonymizing. If enqueue fails, the
+  // user's data is untouched and they can retry. If anonymize fails after
+  // a successful enqueue, the worker re-checks `deleted_at` when it fires
+  // in 30 days and aborts cleanly when it's NULL — a safe no-op.
+  try {
+    await enqueueAccountHardDelete(user.id, { delaySeconds: THIRTY_DAYS_SECONDS });
+  } catch (enqueueErr) {
+    console.error("[api/account/delete] hard-delete enqueue failed", enqueueErr);
+    return NextResponse.json(
+      { success: false, error: "Could not process deletion. Try again shortly." },
+      { status: 500 }
+    );
+  }
+
   const anonymizedEmail = `deleted+${user.id}@backrow.tv`;
   const anonymizedUsername = `deleted_${user.id.replace(/-/g, "").slice(0, 16)}`;
 
@@ -99,8 +113,6 @@ export async function POST() {
   }
 
   await supabase.auth.signOut();
-
-  await enqueueAccountHardDelete(user.id, { delaySeconds: THIRTY_DAYS_SECONDS });
 
   return NextResponse.json({ success: true });
 }
