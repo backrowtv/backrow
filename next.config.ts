@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
-import { withSentryConfig } from "@sentry/nextjs";
 import { withBotId } from "botid/next/config";
 
 const withBundleAnalyzer = bundleAnalyzer({
@@ -175,11 +174,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withBotId(withBundleAnalyzer(nextConfig)), {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: !process.env.CI,
-  sourcemaps: {
-    disable: !process.env.SENTRY_AUTH_TOKEN,
-  },
-});
+// withSentryConfig removed: @sentry/nextjs' build-time wrapper pulls in the
+// OpenTelemetry instrumentation chain (import-in-the-middle/require-in-the-middle)
+// which Turbopack hash-wraps and fails to resolve at runtime on Vercel Functions.
+// See instrumentation.ts header for the full rationale. Client-side Sentry
+// in sentry.client.config.ts is untouched and still captures browser errors.
+export default withBotId(withBundleAnalyzer(nextConfig));
