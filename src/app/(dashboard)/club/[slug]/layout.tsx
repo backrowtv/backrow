@@ -3,7 +3,7 @@ import { ClubThemeProvider } from "@/components/clubs/ClubThemeProvider";
 import { createClient } from "@/lib/supabase/server";
 import { getClubThemeColor } from "@/lib/clubs/theme-colors";
 import { resolveClub } from "@/lib/clubs/resolveClub";
-import { isValidHexColor } from "@/lib/security/sanitize";
+import { isValidHexColor } from "@/lib/security/validators";
 
 /**
  * Club Layout
