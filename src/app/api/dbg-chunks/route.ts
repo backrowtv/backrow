@@ -10,9 +10,6 @@ import { join } from "node:path";
  * Unprotected because it only reveals bundle filenames + grep stats; no
  * secrets. Delete after diagnosis.
  */
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 const HASH_RE = /([@a-zA-Z0-9_/.-]+)-[0-9a-f]{16}/g;
 
 function walk(dir: string, acc: string[] = []): string[] {
