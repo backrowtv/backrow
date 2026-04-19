@@ -155,19 +155,21 @@ export async function GET() {
     allExternalIds: allExternalIdList,
     externalResults,
     nodeModulesEntries,
-    // Raw content of the externals_sharp and in-the-middle chunks
+    // First 3 chunks with sharp/in-the-middle/jsdom hashes — dump the content
     chunkSamples: (() => {
-      const targets = [
-        files.find((p) => p.includes("sharp_0") && p.includes("externals")),
-        files.find((p) => p.includes("0yx2a_") || p.includes("0ds52ll")),
-        files.find((p) => p.includes("0f303dm")),
-      ].filter(Boolean) as string[];
       const out: Record<string, string> = {};
-      for (const f of targets) {
+      const targetHits = hits
+        .filter((h) =>
+          h.matches.some((m) =>
+            /^(sharp|jsdom|import-in-the-middle|require-in-the-middle)-/.test(m)
+          )
+        )
+        .slice(0, 3);
+      for (const h of targetHits) {
         try {
-          out[f] = readFileSync(f, "utf8").slice(0, 3000);
+          out[h.file] = readFileSync(h.file, "utf8").slice(0, 4000);
         } catch (e) {
-          out[f] = `read-failed: ${(e as Error).message}`;
+          out[h.file] = `read-failed: ${(e as Error).message}`;
         }
       }
       return out;
