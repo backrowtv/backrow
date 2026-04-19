@@ -80,11 +80,21 @@ export async function GET() {
   const KNOWN_HASH_NAMES = [
     "sharp-20c6a5da84e2135f",
     "jsdom-5c8b869800590804",
+    "jsdom-4cccfac9827ebcfe",
     "import-in-the-middle-ac114f323ad7e863",
     "import-in-the-middle-fb77e65c6e343162",
     "import-in-the-middle-b96cfec811360091",
     "require-in-the-middle-2ca7b9c2766f317e",
   ];
+  // Also list node_modules entries matching our hash patterns
+  let nodeModulesEntries: string[] = [];
+  try {
+    nodeModulesEntries = readdirSync("node_modules")
+      .filter((n) => /-[0-9a-f]{16}$/.test(n))
+      .sort();
+  } catch {
+    nodeModulesEntries = ["readdir-failed"];
+  }
   const requireResults: Record<string, string> = {};
   for (const name of KNOWN_HASH_NAMES) {
     try {
@@ -120,5 +130,6 @@ export async function GET() {
     requireResults,
     allRequireNames: allRequireList,
     allRequireResults,
+    nodeModulesEntries,
   });
 }
