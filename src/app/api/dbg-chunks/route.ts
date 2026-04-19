@@ -66,6 +66,26 @@ export async function GET() {
     marker = "missing";
   }
 
+  const KNOWN_HASH_NAMES = [
+    "sharp-20c6a5da84e2135f",
+    "jsdom-5c8b869800590804",
+    "import-in-the-middle-ac114f323ad7e863",
+    "import-in-the-middle-fb77e65c6e343162",
+    "import-in-the-middle-b96cfec811360091",
+    "require-in-the-middle-2ca7b9c2766f317e",
+  ];
+  const requireResults: Record<string, string> = {};
+  for (const name of KNOWN_HASH_NAMES) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mod = require(name);
+      requireResults[name] = `OK (${typeof mod})`;
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
+      requireResults[name] = `FAIL ${e?.code ?? ""} ${e?.message ?? ""}`.slice(0, 200);
+    }
+  }
+
   return NextResponse.json({
     cwd: process.cwd(),
     existing,
@@ -73,5 +93,6 @@ export async function GET() {
     totalScanned: files.length,
     filesWithHashExternals: hits.length,
     hits,
+    requireResults,
   });
 }
