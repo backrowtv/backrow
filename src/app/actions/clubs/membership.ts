@@ -197,6 +197,7 @@ export async function toggleFavoriteClub(clubId: string) {
 }
 
 async function _toggleFavoriteClubImpl(clubId: string) {
+  console.error("[backrow:toggleFavoriteClub ENTERED]", clubId);
   const supabase = await createClient();
 
   const {

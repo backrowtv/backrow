@@ -10,7 +10,13 @@ import { NextResponse, type NextRequest } from "next/server";
  * 2. Security headers (CSP, X-Frame-Options, etc.)
  */
 export async function proxy(request: NextRequest) {
-  console.error("[proxy] enter", request.nextUrl.pathname);
+  const method = request.method;
+  const nextAction = request.headers.get("next-action");
+  if (method === "POST") {
+    console.error(`[proxy] POST ${request.nextUrl.pathname} next-action=${nextAction ?? "none"}`);
+  } else {
+    console.error("[proxy] enter", request.nextUrl.pathname);
+  }
   // Basic auth gate — remove SITE_PASSWORD env var to disable
   const sitePassword = env.SITE_PASSWORD;
   if (sitePassword) {
