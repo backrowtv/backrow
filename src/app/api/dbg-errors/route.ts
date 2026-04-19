@@ -7,8 +7,6 @@ import { NextResponse } from "next/server";
  * making it impossible to see the full error chain for hash-external
  * failures. Delete after diagnosis.
  */
-export const dynamic = "force-dynamic";
-
 type ErrorRingEntry = unknown;
 
 export async function GET() {
