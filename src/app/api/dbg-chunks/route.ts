@@ -11,9 +11,11 @@ import { join } from "node:path";
  * secrets. Delete after diagnosis.
  */
 const HASH_RE = /([@a-zA-Z0-9_/.-]+)-[0-9a-f]{16}/g;
-// Matches only the actual broken thunks: `require("<name>-<hash>")`.
-// This ignores incidental hash-looking strings in comments, URLs, etc.
 const REQUIRE_RE = /require\(["`']([@a-zA-Z0-9_/.-]+-[0-9a-f]{16})["`']\)/g;
+// Also find every `e.x("<name>", ...)` externalRequire call — these are the
+// Turbopack thunks, whether hash-suffixed or not. `e.x("sharp", ...)` with
+// NO hash should still work, but `e.x("something-hash", ...)` may fail.
+const EX_RE = /[a-z]\.x\(["`']([@a-zA-Z0-9_/.:-]+)["`']/g;
 
 function walk(dir: string, acc: string[] = []): string[] {
   let entries: import("node:fs").Dirent[];
@@ -49,15 +51,20 @@ export async function GET() {
   const files = walk(".next/server");
   const hits: Array<{ file: string; matches: string[] }> = [];
   const allRequires = new Set<string>();
+  const allExternalIds = new Set<string>();
   for (const file of files) {
     try {
       const content = readFileSync(file, "utf8");
       let m: RegExpExecArray | null;
       const localReqs = new Set<string>();
-      const re = new RegExp(REQUIRE_RE.source, REQUIRE_RE.flags);
-      while ((m = re.exec(content)) !== null) {
+      const reqRe = new RegExp(REQUIRE_RE.source, REQUIRE_RE.flags);
+      while ((m = reqRe.exec(content)) !== null) {
         localReqs.add(m[1]);
         allRequires.add(m[1]);
+      }
+      const exRe = new RegExp(EX_RE.source, EX_RE.flags);
+      while ((m = exRe.exec(content)) !== null) {
+        allExternalIds.add(m[1]);
       }
       const matches = content.match(HASH_RE);
       if ((matches && matches.length > 0) || localReqs.size > 0) {
@@ -69,6 +76,7 @@ export async function GET() {
     }
   }
   const allRequireList = [...allRequires].sort();
+  const allExternalIdList = [...allExternalIds].sort();
 
   let marker: unknown = null;
   try {
@@ -120,6 +128,20 @@ export async function GET() {
     }
   }
 
+  // Test each external ID (from e.x(...) patterns) via a LITERAL require
+  // Use `Function` constructor to bypass @vercel/nft's "too dynamic" detection
+  const externalResults: Record<string, string> = {};
+  for (const id of allExternalIdList) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mod = require(id);
+      externalResults[id] = `OK (${typeof mod})`;
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
+      externalResults[id] = `FAIL ${e?.code ?? ""} ${e?.message ?? ""}`.slice(0, 200);
+    }
+  }
+
   return NextResponse.json({
     cwd: process.cwd(),
     existing,
@@ -130,6 +152,8 @@ export async function GET() {
     requireResults,
     allRequireNames: allRequireList,
     allRequireResults,
+    allExternalIds: allExternalIdList,
+    externalResults,
     nodeModulesEntries,
   });
 }
