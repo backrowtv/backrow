@@ -159,6 +159,39 @@ export async function joinPublicClub(clubId: string) {
 }
 
 export async function toggleFavoriteClub(clubId: string) {
+  try {
+    return await _toggleFavoriteClubImpl(clubId);
+  } catch (err) {
+    const e = err as { message?: string; code?: string; stack?: string; cause?: unknown };
+    const chain: Array<{ message?: string; code?: string; name?: string }> = [];
+    let cur: unknown = err;
+    for (let i = 0; i < 6 && cur; i++) {
+      const c = cur as { message?: string; code?: string; name?: string; cause?: unknown };
+      chain.push({
+        message: String(c?.message ?? "").slice(0, 500),
+        code: c?.code,
+        name: c?.name,
+      });
+      cur = c?.cause;
+    }
+    const g = globalThis as unknown as {
+      __backrowErrorRing?: Array<Record<string, unknown>>;
+    };
+    if (!g.__backrowErrorRing) g.__backrowErrorRing = [];
+    g.__backrowErrorRing.push({
+      ts: Date.now(),
+      source: "toggleFavoriteClub",
+      clubId,
+      chain,
+      stack: e?.stack?.split("\n").slice(0, 15).join("\n"),
+    });
+    if (g.__backrowErrorRing.length > 50) g.__backrowErrorRing.shift();
+    console.error("[backrow:toggleFavoriteClub THREW]", JSON.stringify({ clubId, chain }));
+    throw err;
+  }
+}
+
+async function _toggleFavoriteClubImpl(clubId: string) {
   const supabase = await createClient();
 
   const {

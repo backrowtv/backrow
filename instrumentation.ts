@@ -40,10 +40,27 @@ function extractCauseChain(err: unknown, depth = 0, max = 5): CauseChainEntry[] 
   return [entry, ...extractCauseChain(e.cause, depth + 1, max)];
 }
 
+type ErrorRingEntry = {
+  ts: number;
+  source: string;
+  path?: string;
+  method?: string;
+  routerKind?: string;
+  routePath?: string;
+  chain: CauseChainEntry[];
+};
+
+function pushErrorRing(entry: ErrorRingEntry) {
+  const g = globalThis as unknown as { __backrowErrorRing?: ErrorRingEntry[] };
+  if (!g.__backrowErrorRing) g.__backrowErrorRing = [];
+  g.__backrowErrorRing.push(entry);
+  if (g.__backrowErrorRing.length > 50) g.__backrowErrorRing.shift();
+}
+
 export async function register() {
   // Log at boot so we can confirm instrumentation.ts is actually loaded on the
   // Vercel runtime (helps diagnose whether onRequestError below should fire).
-  console.log("[backrow:register] runtime=", process.env.NEXT_RUNTIME);
+  console.error("[backrow:register] runtime=", process.env.NEXT_RUNTIME);
 
   // Turbopack hash-externals are resolved via real stub packages installed
   // by scripts/install-hash-stubs.mjs BEFORE next build. No runtime hook
@@ -55,20 +72,18 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs" && typeof process !== "undefined") {
     process.on("unhandledRejection", (reason: unknown) => {
       try {
-        console.error(
-          "[backrow:unhandledRejection]",
-          JSON.stringify({ chain: extractCauseChain(reason) })
-        );
+        const chain = extractCauseChain(reason);
+        pushErrorRing({ ts: Date.now(), source: "unhandledRejection", chain });
+        console.error("[backrow:unhandledRejection]", JSON.stringify({ chain }));
       } catch {
         // ignore
       }
     });
     process.on("uncaughtException", (err: unknown) => {
       try {
-        console.error(
-          "[backrow:uncaughtException]",
-          JSON.stringify({ chain: extractCauseChain(err) })
-        );
+        const chain = extractCauseChain(err);
+        pushErrorRing({ ts: Date.now(), source: "uncaughtException", chain });
+        console.error("[backrow:uncaughtException]", JSON.stringify({ chain }));
       } catch {
         // ignore
       }
@@ -78,15 +93,23 @@ export async function register() {
 
 export const onRequestError = (err: unknown, request: unknown, errorContext: unknown) => {
   try {
+    const chain = extractCauseChain(err);
+    const path = (request as { path?: string } | undefined)?.path;
+    const method = (request as { method?: string } | undefined)?.method;
+    const routerKind = (errorContext as { routerKind?: string } | undefined)?.routerKind;
+    const routePath = (errorContext as { routePath?: string } | undefined)?.routePath;
+    pushErrorRing({
+      ts: Date.now(),
+      source: "onRequestError",
+      path,
+      method,
+      routerKind,
+      routePath,
+      chain,
+    });
     console.error(
       "[backrow:onRequestError]",
-      JSON.stringify({
-        path: (request as { path?: string } | undefined)?.path,
-        method: (request as { method?: string } | undefined)?.method,
-        routerKind: (errorContext as { routerKind?: string } | undefined)?.routerKind,
-        routePath: (errorContext as { routePath?: string } | undefined)?.routePath,
-        chain: extractCauseChain(err),
-      })
+      JSON.stringify({ path, method, routerKind, routePath, chain })
     );
   } catch {
     // never let logging break the error pipeline
