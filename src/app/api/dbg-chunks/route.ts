@@ -155,15 +155,22 @@ export async function GET() {
     allExternalIds: allExternalIdList,
     externalResults,
     nodeModulesEntries,
-    // Raw content of a failing external chunk to see what nft did to it
-    sharpChunkContent: (() => {
-      try {
-        const f = files.find((p) => p.includes("externals_sharp"));
-        if (!f) return "not-found";
-        return readFileSync(f, "utf8").slice(0, 2000);
-      } catch (e) {
-        return `read-failed: ${(e as Error).message}`;
+    // Raw content of the externals_sharp and in-the-middle chunks
+    chunkSamples: (() => {
+      const targets = [
+        files.find((p) => p.includes("sharp_0") && p.includes("externals")),
+        files.find((p) => p.includes("0yx2a_") || p.includes("0ds52ll")),
+        files.find((p) => p.includes("0f303dm")),
+      ].filter(Boolean) as string[];
+      const out: Record<string, string> = {};
+      for (const f of targets) {
+        try {
+          out[f] = readFileSync(f, "utf8").slice(0, 3000);
+        } catch (e) {
+          out[f] = `read-failed: ${(e as Error).message}`;
+        }
       }
+      return out;
     })(),
   });
 }
