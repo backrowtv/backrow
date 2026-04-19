@@ -155,5 +155,15 @@ export async function GET() {
     allExternalIds: allExternalIdList,
     externalResults,
     nodeModulesEntries,
+    // Raw content of a failing external chunk to see what nft did to it
+    sharpChunkContent: (() => {
+      try {
+        const f = files.find((p) => p.includes("externals_sharp"));
+        if (!f) return "not-found";
+        return readFileSync(f, "utf8").slice(0, 2000);
+      } catch (e) {
+        return `read-failed: ${(e as Error).message}`;
+      }
+    })(),
   });
 }
