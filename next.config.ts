@@ -20,6 +20,17 @@ const nextConfig: NextConfig = {
   // the functions that use it, bypassing the server-component static-import chain
   // that pulls sharp into /clubs, /club/[slug]/*, and other chunks.
   serverExternalPackages: ["jsdom", "sharp"],
+  // Force @vercel/nft to copy jsdom's full lib/ tree into every lambda.
+  // jsdom is listed in serverExternalPackages above so Turbopack emits
+  // `require("jsdom")` without bundling, but NFT sometimes fails to trace
+  // jsdom's main entry (lib/api.js) into server action chunks — visible as
+  // `Error: Failed to load external module jsdom: Cannot find module
+  // '/var/task/node_modules/jsdom/lib/api.js'`. Force-including keeps the
+  // package intact in the lambda. Keyed by glob so it applies to every
+  // page/route/action output that NFT traces.
+  outputFileTracingIncludes: {
+    "/**/*": ["./node_modules/jsdom/**/*"],
+  },
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback
   reactCompiler: true,
