@@ -22,12 +22,8 @@ import { join } from "node:path";
 // When a new hash appears in runtime errors, add it here.
 const STUBS = {
   sharp: ["20c6a5da84e2135f", "03c9e6d01f648d5d"],
-  jsdom: ["5c8b869800590804"],
-  "import-in-the-middle": [
-    "ac114f323ad7e863",
-    "fb77e65c6e343162",
-    "b96cfec811360091",
-  ],
+  jsdom: ["5c8b869800590804", "4cccfac9827ebcfe"],
+  "import-in-the-middle": ["ac114f323ad7e863", "fb77e65c6e343162", "b96cfec811360091"],
   "require-in-the-middle": ["2ca7b9c2766f317e"],
 };
 
