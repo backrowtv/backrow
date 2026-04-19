@@ -45,40 +45,10 @@ export async function register() {
   // Vercel runtime (helps diagnose whether onRequestError below should fire).
   console.log("[backrow:register] runtime=", process.env.NEXT_RUNTIME);
 
-  // Turbopack hash-external workaround. Turbopack (Next 16.2.4) emits calls
-  // like `require("sharp-20c6a5da84e2135f")` wrapped in its externalRequire
-  // helper. The hash-suffixed id has no corresponding package in node_modules
-  // so the require throws MODULE_NOT_FOUND. Upstream: vercel/next.js#64022.
-  //
-  // Chunks cannot be patched on disk because Vercel's @vercel/next adapter
-  // packages /vercel/output/ after our build script finishes, and the
-  // deployed lambda rootfs is read-only.
-  //
-  // Fix: install a Node module resolver hook so require("<pkg>-<hash>")
-  // resolves the real <pkg>. Only strips hashes for packages we know
-  // Turbopack hash-wraps; any other `<pkg>-<hash>` name still goes through
-  // normal resolution untouched.
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    try {
-      const Module = (await import("node:module")).default as unknown as {
-        _resolveFilename: (request: string, parent: unknown, ...rest: unknown[]) => string;
-      };
-      const KNOWN_EXTERNALS = ["sharp", "jsdom", "import-in-the-middle", "require-in-the-middle"];
-      const HASHED = new RegExp(`^(${KNOWN_EXTERNALS.join("|")})-[0-9a-f]{16}$`);
-      const original = Module._resolveFilename;
-      Module._resolveFilename = function (request: string, parent: unknown, ...rest: unknown[]) {
-        const m = HASHED.exec(request);
-        if (m) {
-          return original.call(this, m[1], parent, ...rest);
-        }
-        return original.call(this, request, parent, ...rest);
-      };
-      console.error("[backrow:resolve] installed Module._resolveFilename hook");
-    } catch (err) {
-      const e = err as { code?: string; message?: string };
-      console.error(`[backrow:resolve] install failed ${e?.code} ${e?.message}`);
-    }
-  }
+  // Turbopack hash-externals are resolved via real stub packages installed
+  // by scripts/install-hash-stubs.mjs BEFORE next build. No runtime hook
+  // needed — node_modules/<pkg>-<hash>/ is a real directory that re-exports
+  // the real <pkg>. See scripts/install-hash-stubs.mjs for details.
 
   // Top-level catch for unhandled rejections — these bypass onRequestError
   // when the error escapes a server-action or streaming render path.
