@@ -11,6 +11,9 @@ import { join } from "node:path";
  * secrets. Delete after diagnosis.
  */
 const HASH_RE = /([@a-zA-Z0-9_/.-]+)-[0-9a-f]{16}/g;
+// Matches only the actual broken thunks: `require("<name>-<hash>")`.
+// This ignores incidental hash-looking strings in comments, URLs, etc.
+const REQUIRE_RE = /require\(["`']([@a-zA-Z0-9_/.-]+-[0-9a-f]{16})["`']\)/g;
 
 function walk(dir: string, acc: string[] = []): string[] {
   let entries: import("node:fs").Dirent[];
@@ -45,19 +48,27 @@ export async function GET() {
 
   const files = walk(".next/server");
   const hits: Array<{ file: string; matches: string[] }> = [];
+  const allRequires = new Set<string>();
   for (const file of files) {
     try {
       const content = readFileSync(file, "utf8");
+      let m: RegExpExecArray | null;
+      const localReqs = new Set<string>();
+      const re = new RegExp(REQUIRE_RE.source, REQUIRE_RE.flags);
+      while ((m = re.exec(content)) !== null) {
+        localReqs.add(m[1]);
+        allRequires.add(m[1]);
+      }
       const matches = content.match(HASH_RE);
-      if (matches && matches.length > 0) {
-        // Dedupe and limit
-        const uniq = [...new Set(matches)].slice(0, 20);
+      if ((matches && matches.length > 0) || localReqs.size > 0) {
+        const uniq = [...new Set(matches ?? [])].slice(0, 20);
         hits.push({ file, matches: uniq });
       }
     } catch {
       // skip
     }
   }
+  const allRequireList = [...allRequires].sort();
 
   let marker: unknown = null;
   try {
@@ -86,6 +97,19 @@ export async function GET() {
     }
   }
 
+  // Test each discovered require name to see which ones still fail
+  const allRequireResults: Record<string, string> = {};
+  for (const name of allRequireList) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mod = require(name);
+      allRequireResults[name] = `OK (${typeof mod})`;
+    } catch (err) {
+      const e = err as { code?: string; message?: string };
+      allRequireResults[name] = `FAIL ${e?.code ?? ""} ${e?.message ?? ""}`.slice(0, 200);
+    }
+  }
+
   return NextResponse.json({
     cwd: process.cwd(),
     existing,
@@ -94,5 +118,7 @@ export async function GET() {
     filesWithHashExternals: hits.length,
     hits,
     requireResults,
+    allRequireNames: allRequireList,
+    allRequireResults,
   });
 }
