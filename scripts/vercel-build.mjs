@@ -25,6 +25,10 @@ function run(cmd, args) {
   });
 }
 
+const stubExit = await run("node", ["scripts/install-hash-stubs.mjs"]);
+console.log(`[vercel-build] install-hash-stubs exited with ${stubExit}`);
+if (stubExit !== 0) process.exit(stubExit);
+
 const buildExit = await run("next", ["build"]);
 console.log(`[vercel-build] next build exited with ${buildExit}`);
 
