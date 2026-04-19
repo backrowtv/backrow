@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   // package intact in the lambda. Keyed by glob so it applies to every
   // page/route/action output that NFT traces.
   outputFileTracingIncludes: {
-    "/**/*": ["./node_modules/jsdom/**/*"],
+    "/**/*": ["./node_modules/jsdom/**/*", "./node_modules/sharp/**/*", "./node_modules/@img/**/*"],
   },
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback

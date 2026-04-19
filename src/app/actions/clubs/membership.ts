@@ -187,7 +187,12 @@ export async function toggleFavoriteClub(clubId: string) {
     });
     if (g.__backrowErrorRing.length > 50) g.__backrowErrorRing.shift();
     console.error("[backrow:toggleFavoriteClub THREW]", JSON.stringify({ clubId, chain }));
-    throw err;
+    // Return error in the response body instead of rethrowing, so the
+    // actual error chain is visible to the Playwright verifier.
+    // To be reverted in Phase 3 cleanup.
+    return {
+      error: `[DEBUG] ${chain[0]?.message ?? "unknown"} | chain=${JSON.stringify(chain).slice(0, 400)}`,
+    };
   }
 }
 
