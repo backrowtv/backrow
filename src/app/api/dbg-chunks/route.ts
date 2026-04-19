@@ -93,6 +93,18 @@ export async function GET() {
     "import-in-the-middle-fb77e65c6e343162",
     "import-in-the-middle-b96cfec811360091",
     "require-in-the-middle-2ca7b9c2766f317e",
+    // Next.js internal externals referenced from the same chunks
+    "next/dist/compiled/next-server/app-page-turbo.runtime.prod.js",
+    "next/dist/compiled/next-server/app-route-turbo.runtime.prod.js",
+    "next/dist/server/app-render/action-async-storage.external.js",
+    "next/dist/server/app-render/after-task-async-storage.external.js",
+    "next/dist/server/app-render/dynamic-access-async-storage.external.js",
+    "next/dist/server/app-render/module-loading/track-module-loading.external.js",
+    "next/dist/server/app-render/work-async-storage.external.js",
+    "next/dist/server/app-render/work-unit-async-storage.external.js",
+    "next/dist/server/lib/incremental-cache/memory-cache.external.js",
+    "next/dist/server/lib/incremental-cache/shared-cache-controls.external.js",
+    "next/dist/shared/lib/no-fallback-error.external.js",
   ];
   // Also list node_modules entries matching our hash patterns
   let nodeModulesEntries: string[] = [];
