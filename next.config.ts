@@ -175,9 +175,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-// withSentryConfig removed: @sentry/nextjs' build-time wrapper pulls in the
-// OpenTelemetry instrumentation chain (import-in-the-middle/require-in-the-middle)
-// which Turbopack hash-wraps and fails to resolve at runtime on Vercel Functions.
-// See instrumentation.ts header for the full rationale. Client-side Sentry
-// in sentry.client.config.ts is untouched and still captures browser errors.
+// @sentry/nextjs removed in favor of @sentry/browser for client-side error
+// reporting only. The nextjs package pulls @opentelemetry/instrumentation →
+// import-in-the-middle / require-in-the-middle, which Turbopack hash-wraps
+// into runtime-unresolvable externals (vercel/next.js#64022 / #87737).
+// Client-side Sentry init now lives in instrumentation-client.ts.
+// scripts/install-hash-stubs.mjs + the remaining hash stubs stay in place
+// until Next 16.3+ fixes the upstream Turbopack bug.
 export default withBotId(withBundleAnalyzer(nextConfig));

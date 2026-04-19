@@ -1,6 +1,6 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/browser";
 import { useEffect, useState } from "react";
 import { FilmReel, ArrowClockwise, House, Warning } from "@phosphor-icons/react";
 import Link from "next/link";

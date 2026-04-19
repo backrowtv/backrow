@@ -1,17 +1,14 @@
 /**
  * Next.js instrumentation.
  *
- * Server-side Sentry is intentionally NOT loaded here. @sentry/nextjs pulls
- * @opentelemetry/instrumentation → import-in-the-middle / require-in-the-middle,
- * which Turbopack hash-wraps in its externalRequire helper. The hash-suffixed
- * ids don't resolve at runtime on Vercel Functions, causing every request that
- * touches that chunk to throw "Failed to load external module …" and the
- * Suspense-never-resolves bug. Upstream: vercel/next.js#64022.
+ * @sentry/nextjs was removed repo-wide in favor of @sentry/browser (client-only)
+ * because its transitive OpenTelemetry chain (import-in-the-middle /
+ * require-in-the-middle) was being traced into the server bundle by Turbopack,
+ * producing hash-suffixed externalRequire ids that fail at runtime on Vercel
+ * Functions. Upstream: vercel/next.js#64022 / #87737.
  *
- * Client-side Sentry (sentry.client.config.ts) is untouched — it continues to
- * capture browser errors including those bubbled up to error.tsx/global-error.tsx.
- * Server errors are still visible in Vercel runtime logs via the console.error
- * in onRequestError below.
+ * Server errors are captured via the onRequestError hook below plus
+ * process-level unhandledRejection / uncaughtException handlers.
  */
 
 type CauseChainEntry = {

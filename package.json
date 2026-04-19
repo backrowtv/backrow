@@ -59,7 +59,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^1.0.12",
     "@ridemountainpig/svgl-react": "^1.0.16",
-    "@sentry/nextjs": "^10.48.0",
+    "@sentry/browser": "^10.49.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
     "@tiptap/extension-image": "^3.22.3",
