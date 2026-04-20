@@ -30,8 +30,11 @@ export async function GET() {
   // Also dynamic imports
   await (async () => {
     try {
+      // @ts-expect-error — jsdom has no type declarations
       const mod = await import("jsdom");
-      results["import(jsdom)"] = `OK keys=${Object.keys(mod).slice(0, 5).join(",")}`;
+      results["import(jsdom)"] = `OK keys=${Object.keys(mod as object)
+        .slice(0, 5)
+        .join(",")}`;
     } catch (err) {
       const e = err as { code?: string; message?: string };
       results["import(jsdom)"] =
