@@ -195,12 +195,6 @@ bun run test:e2e:headed  # Run with visible browser
 
 Note: `bun run test` runs Vitest unit tests (`src/__tests__/cache/**`), not Playwright. See `docs/development.md#testing` for the three-tier breakdown.
 
-### BotID in tests
-
-Vercel BotID (`botid` package, `checkBotId()`) **auto-bypasses** when `NODE_ENV !== "production"`. Playwright, `bun run dev`, and any local test harness see `{ isBot: false }` without configuration. No env vars, headers, or bypass secrets are needed.
-
-Deep Analysis enforcement only kicks in on production deployments (preview + production). If you specifically need to test the bot-rejection branch, pass `developmentOptions.bypass: "BAD-BOT"` into the `checkBotId()` call directly in the test-specific action path.
-
 ### Rate limits in tests
 
 Rate limits apply per `(actionName, IP)`. All Playwright tests run from the same origin, so firing 6 rapid sign-ups in a single test run _will_ hit the 5/min cap. Either space actions across tests, use distinct users/flows, or drop the cap in a test-only env override. When `UPSTASH_REDIS_REST_URL` is unset locally, the limiter falls back to an in-memory Map — safe for tests, but the state persists across the dev-server process lifetime.

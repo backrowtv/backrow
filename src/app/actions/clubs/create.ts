@@ -15,7 +15,6 @@ import { validateGenres } from "@/lib/genres/constants";
 import { handleActionError } from "@/lib/errors/handler";
 import { generateClubSlug } from "./_helpers";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
-import { requireHuman } from "@/lib/security/botid";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
@@ -24,9 +23,6 @@ import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 export async function createClub(prevState: unknown, formData: FormData) {
   const rateCheck = await actionRateLimit("createClub", { limit: 3, windowMs: 60_000 });
   if (!rateCheck.success) return { error: rateCheck.error };
-
-  const human = await requireHuman();
-  if (!human.ok) return { error: human.error };
 
   const supabase = await createClient();
 

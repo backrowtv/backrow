@@ -1,27 +1,11 @@
-import { initBotId } from "botid/client/core";
 import * as Sentry from "@sentry/browser";
 
-// Protected server-action surfaces. Every entry here MUST be guarded by
-// `requireHuman()` in the corresponding server action — the drift test at
-// src/__tests__/security/botid-coverage.test.ts enforces this. Sign-in is
-// intentionally not BotID-protected: credential-verification is already
-// rate-limited and adding BotID there was theater without server enforcement.
-initBotId({
-  protect: [
-    { path: "/sign-up", method: "POST" },
-    { path: "/feedback", method: "POST" },
-    { path: "/contact", method: "POST" },
-    { path: "/clubs/new", method: "POST" },
-    { path: "/clubs/*", method: "POST" },
-  ],
-});
-
-// Client-side Sentry. Replaces the previous sentry.client.config.ts +
-// @sentry/nextjs setup because @sentry/nextjs' transitive deps
-// (@opentelemetry/instrumentation → import-in-the-middle /
-// require-in-the-middle) were still being traced into the server bundle
-// by Turbopack, producing hash-suffixed externals that fail at runtime.
-// Upstream: vercel/next.js#64022 / #87737.
+// Client-side Sentry. @sentry/nextjs was removed repo-wide because its
+// transitive OpenTelemetry chain (import-in-the-middle /
+// require-in-the-middle) was being traced into the server bundle by
+// Turbopack, producing hash-suffixed externals that fail at runtime on
+// Vercel Functions. @sentry/browser is the browser-only subset.
+// Upstream context: vercel/next.js#64022 / #87737.
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   enabled: process.env.NODE_ENV === "production",

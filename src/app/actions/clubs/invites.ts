@@ -12,7 +12,6 @@ import { randomBytes } from "crypto";
 import { sendEmail } from "@/lib/email/resend";
 import { inviteEmailHtml } from "@/lib/email/templates/render";
 import { actionRateLimit, actionRateLimitByUser } from "@/lib/security/action-rate-limit";
-import { requireHuman } from "@/lib/security/botid";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 const TOKEN_EXPIRY_DAYS = 7;
@@ -29,9 +28,6 @@ export async function createInviteToken(
     windowMs: 60_000,
   });
   if (!rateCheck.success) return { error: rateCheck.error };
-
-  const human = await requireHuman();
-  if (!human.ok) return { error: human.error };
 
   const supabase = await createClient();
 

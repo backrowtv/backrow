@@ -7,7 +7,6 @@ import { createNotificationsForUsers } from "./notifications";
 import { parseAddFeedbackItemFormData, UUIDSchema } from "@/lib/validation/server-actions";
 import type { FeedbackType, FeedbackStatus, FeedbackItemWithUser } from "./feedback.types";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
-import { requireHuman } from "@/lib/security/botid";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
@@ -134,9 +133,6 @@ export async function addFeedbackItem(
 ): Promise<{ success?: boolean; error?: string }> {
   const rateCheck = await actionRateLimit("addFeedbackItem", { limit: 5, windowMs: 60_000 });
   if (!rateCheck.success) return { error: rateCheck.error };
-
-  const human = await requireHuman();
-  if (!human.ok) return { error: human.error };
 
   const supabase = await createClient();
 

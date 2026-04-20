@@ -15,7 +15,6 @@
 
 import { NextResponse } from "next/server";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
-import { requireHuman } from "@/lib/security/botid";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { createClient } from "@/lib/supabase/server";
 import { enqueueAccountHardDelete } from "@/lib/jobs/producers";
@@ -29,11 +28,6 @@ export async function POST() {
   });
   if (!rateCheck.success) {
     return NextResponse.json({ success: false, error: rateCheck.error }, { status: 429 });
-  }
-
-  const human = await requireHuman();
-  if (!human.ok) {
-    return NextResponse.json({ success: false, error: human.error }, { status: 403 });
   }
 
   const supabase = await createClient();

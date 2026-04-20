@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
-import { withBotId } from "botid/next/config";
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
@@ -179,4 +178,4 @@ const nextConfig: NextConfig = {
 // Client-side Sentry init now lives in instrumentation-client.ts.
 // scripts/install-hash-stubs.mjs + the remaining hash stubs stay in place
 // until Next 16.3+ fixes the upstream Turbopack bug.
-export default withBotId(withBundleAnalyzer(nextConfig));
+export default withBundleAnalyzer(nextConfig);

@@ -11,7 +11,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
-import { requireHuman } from "@/lib/security/botid";
 import { sendEmail } from "@/lib/email/resend";
 import { welcomeEmailHtml } from "@/lib/email/templates/render";
 import { resolveRedirect } from "@/lib/auth/redirect";
@@ -19,9 +18,6 @@ import { resolveRedirect } from "@/lib/auth/redirect";
 export async function signUp(prevState: unknown, formData: FormData) {
   const rateCheck = await actionRateLimit("signUp", { limit: 5, windowMs: 60_000 });
   if (!rateCheck.success) return { error: rateCheck.error };
-
-  const human = await requireHuman();
-  if (!human.ok) return { error: human.error };
 
   const supabase = await createClient();
 

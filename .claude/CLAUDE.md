@@ -152,13 +152,14 @@ Bulk fanouts (>10 recipients for emails/notifications, any image resize) MUST en
 
 ### Security Posture for write-path server actions
 
-Every new user-facing write action must declare its rate limit, BotID coverage, and email-verification gate. See `docs/security.md` for the authoritative call-sequence and coverage table.
+Every new user-facing write action must declare its rate limit and email-verification gate. See `docs/security.md` for the authoritative call-sequence and coverage table.
 
 Defaults:
 
 - **Rate limit:** yes (via `actionRateLimit` from `@/lib/security/action-rate-limit`).
 - **Email gate:** yes (via `requireVerifiedEmail` from `@/lib/security/require-verified-email`) after `getUser()`.
-- **BotID:** only on high-value actions (signup, club/invite/feedback/contact) via `requireHuman()` from `@/lib/security/botid`.
+
+Vercel BotID was removed (previous commits had `requireHuman()` + `initBotId()` scaffolding) because it classified real iOS Safari sessions as bots and blocked legitimate users. Rate limit + auth + email verification are the primary defenses; those are in place on every high-value write. Don't re-add a bot-detection layer without first validating the client runtime works end-to-end across iOS Safari, Chrome, Firefox, and the PWA.
 
 Backed by Upstash Redis, provisioned via Vercel Marketplace (`KV_REST_API_URL` / `KV_REST_API_TOKEN`; `UPSTASH_REDIS_REST_*` names are accepted as a fallback). Local dev falls back to in-memory when creds are unset.
 
