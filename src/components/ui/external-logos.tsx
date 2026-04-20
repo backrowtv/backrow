@@ -105,7 +105,7 @@ export function ExternalLink({ href, logo, label, className }: ExternalLinkProps
         "opacity-80 hover:opacity-100",
         "transition-all duration-200",
         "group",
-        "px-1", // Add horizontal padding for spacing
+        "px-0.5", // Tight horizontal padding so 5 links fit on one line on mobile
         className
       )}
       style={{

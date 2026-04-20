@@ -422,7 +422,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 {/* External Links - Logo buttons (rendered in user's preferred order) */}
                 <div className="flex items-center justify-between">
                   {visibleLinksOrdered.length > 0 && (
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 flex-nowrap min-w-0">
                       {visibleLinksOrdered.map((linkType) => {
                         if (linkType === "imdb" && movie.external_ids?.imdb_id) {
                           return (
