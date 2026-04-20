@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { readFileSync, existsSync } from "node:fs";
 
 /**
- * Direct module-load probe. Tries to require/import common packages
- * using LITERAL strings so @vercel/nft traces them. Exposes what
- * actually loads on the lambda vs what's missing.
+ * Direct module-load probe + server-reference-manifest dump. Tells us
+ * which action-id maps to toggleFavoriteClub on the PROD lambda (hashes
+ * are platform-dependent, so local builds don't match prod).
  * Delete after diagnosis.
  */
 export async function GET() {
@@ -19,7 +20,6 @@ export async function GET() {
     }
   };
 
-  // Literal requires — NFT traces these
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   tryLoad("require(jsdom)", () => require("jsdom"));
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -27,7 +27,6 @@ export async function GET() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   tryLoad("require(sharp)", () => require("sharp"));
 
-  // Also dynamic imports
   await (async () => {
     try {
       // @ts-expect-error — jsdom has no type declarations
@@ -53,7 +52,6 @@ export async function GET() {
     }
   })();
 
-  // Try loading the actions module the same way the action dispatcher would
   await (async () => {
     try {
       const mod = await import("@/app/actions/clubs/membership");
@@ -65,5 +63,39 @@ export async function GET() {
     }
   })();
 
-  return NextResponse.json({ results });
+  // Read the action-ids manifest for the club slug page, so we can map
+  // the next-action header observed on prod to the exported function.
+  const manifests: Array<{
+    path: string;
+    entries?: Record<string, string>;
+    error?: string;
+  }> = [];
+  const candidates = [
+    "/var/task/.next/server/app/(dashboard)/club/[slug]/page/server-reference-manifest.json",
+    ".next/server/app/(dashboard)/club/[slug]/page/server-reference-manifest.json",
+    "/var/task/.next/server/server-reference-manifest.json",
+    ".next/server/server-reference-manifest.json",
+  ];
+  for (const p of candidates) {
+    try {
+      if (!existsSync(p)) {
+        manifests.push({ path: p, error: "missing" });
+        continue;
+      }
+      const raw = readFileSync(p, "utf8");
+      const json = JSON.parse(raw);
+      const node = json.node ?? json;
+      const entries: Record<string, string> = {};
+      for (const [actionId, info] of Object.entries(node)) {
+        const i = info as { exportedName?: string; filename?: string };
+        entries[actionId] = `${i.filename}#${i.exportedName}`;
+      }
+      manifests.push({ path: p, entries });
+    } catch (err) {
+      const e = err as { message?: string };
+      manifests.push({ path: p, error: e.message?.slice(0, 200) });
+    }
+  }
+
+  return NextResponse.json({ results, manifests });
 }
