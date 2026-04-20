@@ -281,6 +281,44 @@ export async function createClub(prevState: unknown, formData: FormData) {
     settings.auto_start_next_festival = autoStartNextFestival === "true";
   }
 
+  // Sync dedicated columns that mirror settings JSON keys.
+  //
+  // clubs has both a `settings` JSON blob AND dedicated columns for the same
+  // keys. The settings UI (e.g. src/app/(dashboard)/club/[slug]/manage/festival)
+  // reads the columns via mergePreferences() — column wins over JSON. If we
+  // only write to the JSON here, the UI falls back to DB column defaults
+  // (blind_nominations_enabled=false, theme_governance=democracy,
+  // max_nominations_per_user=3, etc.) instead of what the user picked in the
+  // wizard. See updateClubSettings() in src/app/actions/clubs/settings.ts for
+  // the same sync pattern on updates.
+  const dedicatedColumnKeys = [
+    "festival_type",
+    "themes_enabled",
+    "blind_nominations_enabled",
+    "allow_non_admin_nominations",
+    "max_nominations_per_user",
+    "max_themes_per_user",
+    "theme_governance",
+    "theme_voting_enabled",
+    "club_ratings_enabled",
+    "rating_min",
+    "rating_max",
+    "rating_increment",
+    "scoring_enabled",
+    "nomination_guessing_enabled",
+    "season_standings_enabled",
+    "auto_start_next_festival",
+    "results_reveal_type",
+    "results_reveal_direction",
+    "rubric_enforcement",
+  ] as const;
+  const columnSync: Record<string, unknown> = {};
+  for (const key of dedicatedColumnKeys) {
+    if (key in settings) {
+      columnSync[key] = settings[key];
+    }
+  }
+
   // Prepare club data
   const clubData: {
     name: string;
@@ -299,6 +337,7 @@ export async function createClub(prevState: unknown, formData: FormData) {
     avatar_icon?: string | null;
     avatar_color_index?: number | null;
     avatar_border_color_index?: number | null;
+    [key: string]: unknown;
   } = {
     name: name.trim(),
     description: description?.trim() || null,
@@ -318,6 +357,8 @@ export async function createClub(prevState: unknown, formData: FormData) {
     avatar_border_color_index: avatarBorderColorIndexStr
       ? parseInt(avatarBorderColorIndexStr, 10)
       : null,
+    // Dedicated column sync — see comment above.
+    ...columnSync,
   };
 
   // Create club
