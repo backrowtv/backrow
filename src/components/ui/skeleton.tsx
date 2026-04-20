@@ -42,12 +42,17 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
       none: "",
     };
 
+    // The `.skeleton` + `.animate-shimmer` CSS classes each set their own
+    // background. Only the static `none` variant needs a baseline fill, and
+    // even then we keep it dim so it blends with surrounding cards.
+    const baseBackground = animation === "none" ? "bg-[var(--surface-2)] opacity-50" : "";
+
     return (
       <div
         ref={ref}
         aria-hidden={ariaHidden ?? true}
         className={cn(
-          "bg-[var(--surface-2)]",
+          baseBackground,
           variantClasses[variant],
           animationClasses[animation],
           className

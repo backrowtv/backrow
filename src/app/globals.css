@@ -1238,15 +1238,18 @@ html {
    ============================================ */
 
 .skeleton {
-  background: var(--surface-2);
-  animation: skeleton-pulse 2.5s var(--easing-smooth) infinite;
+  /* Blend halfway between card surface and surface-2 so skeletons sit
+     softly on top of cards/backgrounds instead of punching through. */
+  background: color-mix(in srgb, var(--surface-1) 55%, var(--surface-2) 45%);
+  animation: skeleton-pulse 3s var(--easing-smooth) infinite;
   border-radius: 4px;
 }
 
 @keyframes skeleton-pulse {
-  0% { opacity: 0.9; }
-  50% { opacity: 0.4; }
-  100% { opacity: 0.9; }
+  /* Shallower, dimmer pulse — duller visual rhythm, easier on the eye. */
+  0% { opacity: 0.45; }
+  50% { opacity: 0.2; }
+  100% { opacity: 0.45; }
 }
 
 /* Skeleton fade-out when content loads */
