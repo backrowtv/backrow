@@ -246,18 +246,15 @@ export function UnifiedClubCardSkeleton({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-lg)] h-full flex flex-col",
+        "relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] flex flex-col",
         className
       )}
       aria-hidden="true"
     >
-      {/* Header gradient band */}
-      <div
-        className="h-16 w-full"
-        style={{
-          background: "color-mix(in srgb, var(--primary) 80%, white)",
-        }}
-      />
+      {/* Header band — rendered as a dim Skeleton instead of a saturated
+          primary-color gradient so the placeholder doesn't read as
+          "real content with visual weight". */}
+      <Skeleton className="h-16 w-full rounded-none" />
       {/* Avatar overlap */}
       <div className="flex justify-center -mt-7 relative z-10">
         <div className="ring-[3px] ring-[var(--card)] rounded-full">
@@ -275,10 +272,7 @@ export function UnifiedClubCardSkeleton({
             </div>
             <div className="flex gap-2 items-center justify-center mt-3">
               {[0, 1, 2].map((i) => (
-                <Skeleton
-                  key={i}
-                  className="w-9 h-9 rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]"
-                />
+                <Skeleton key={i} className="w-9 h-9 rounded-full" />
               ))}
             </div>
           </>
