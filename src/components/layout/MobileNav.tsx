@@ -558,7 +558,10 @@ export function MobileNav() {
                   </div>
                   {!hideLabels && (
                     <span
-                      className={cn("text-[10px] mt-0.5", isHamburgerActive && "font-medium")}
+                      className={cn(
+                        "text-[10px] mt-0.5 whitespace-nowrap",
+                        isHamburgerActive && "font-medium"
+                      )}
                       style={{
                         color: isHamburgerActive ? "var(--primary)" : "var(--glass-text-subtle)",
                       }}
@@ -613,7 +616,10 @@ export function MobileNav() {
                   />
                   {!hideLabels && (
                     <span
-                      className={cn("text-[10px] mt-0.5", isActive && "font-medium")}
+                      className={cn(
+                        "text-[10px] mt-0.5 whitespace-nowrap",
+                        isActive && "font-medium"
+                      )}
                       style={{
                         textDecoration: "none",
                         color: isActive ? "var(--primary)" : "var(--glass-text-subtle)",
@@ -689,7 +695,10 @@ export function MobileNav() {
                   </div>
                   {!hideLabels && (
                     <span
-                      className={cn("text-[10px] mt-0.5", isHamburgerActive && "font-medium")}
+                      className={cn(
+                        "text-[10px] mt-0.5 whitespace-nowrap",
+                        isHamburgerActive && "font-medium"
+                      )}
                       style={{
                         color: isHamburgerActive ? "var(--primary)" : "var(--glass-text-subtle)",
                       }}
