@@ -7,7 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { invalidateClub, invalidateDiscover } from "@/lib/cache/invalidate";
+import { invalidateClub, invalidateDiscover, invalidateMember } from "@/lib/cache/invalidate";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { validateKeywords } from "@/types/club-creation";
@@ -423,6 +423,10 @@ export async function createClub(prevState: unknown, formData: FormData) {
 
   invalidateClub(club.id);
   invalidateDiscover();
+  // Bust the creator's own "my clubs" + membership cache so the just-created
+  // club appears in /clubs and the new-club page shows the user as producer
+  // on first render. invalidateClub alone doesn't cover CacheTags.member(userId).
+  invalidateMember(club.id, user.id);
 
   // Return success with redirect URL (don't use redirect() as it throws and breaks try/catch on client)
   return { success: true, clubSlug: club.slug || club.id };
