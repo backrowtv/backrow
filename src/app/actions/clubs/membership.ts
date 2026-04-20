@@ -159,16 +159,6 @@ export async function joinPublicClub(clubId: string) {
 }
 
 export async function toggleFavoriteClub(clubId: string) {
-  // TEMP DEBUG: isolate whether the 500 comes from the body or the
-  // action-dispatch machinery. If this returns 200, the body is the
-  // problem. If it still 500s, Next.js action dispatch itself is broken.
-  // Revert after diagnosis.
-  console.error("[backrow:toggleFavoriteClub NOOP-ENTERED]", clubId);
-  // Unconditional early return to isolate action-dispatch vs body.
-  if (clubId || !clubId) {
-    return { success: true, isFavorite: true, clearedFromNav: false };
-  }
-
   try {
     return await _toggleFavoriteClubImpl(clubId);
   } catch (err) {

@@ -2,7 +2,7 @@ import { handleCallback } from "@vercel/queue";
 import { handleNotificationFanout } from "@/lib/jobs/handlers/notification-fanout";
 import type { NotificationFanoutPayload } from "@/lib/jobs/types";
 
-export const POST = handleCallback<NotificationFanoutPayload>(async (message, metadata) => {
+const _handler = handleCallback<NotificationFanoutPayload>(async (message, metadata) => {
   try {
     await handleNotificationFanout(message);
   } catch (err) {
@@ -13,3 +13,7 @@ export const POST = handleCallback<NotificationFanoutPayload>(async (message, me
     throw err;
   }
 });
+
+export async function POST(request: Request): Promise<Response> {
+  return _handler(request);
+}

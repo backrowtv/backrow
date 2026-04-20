@@ -1,22 +1,21 @@
 #!/usr/bin/env node
 /**
- * Wrapper around `next build` that guarantees the Turbopack hash-external
- * patcher runs even when next build's exit code is non-zero.
+ * Thin wrapper around `next build --webpack`.
  *
- * Why: `next build` may exit non-zero from prerender HANGING_PROMISE_REJECTION
- * stderr spam (a separate AuthFetcher/cookies() bug). Using
- * `next build && node scripts/...` in package.json#build short-circuits in that
- * case, so the post-build chunk patch never runs and the deployed lambda keeps
- * hash-wrapped `require("<pkg>-<hash>")` thunks that fail at runtime.
+ * We use webpack instead of Turbopack because Next.js 16 Turbopack has a
+ * known regression in server-action dispatch on Vercel Functions — specific
+ * action IDs return 500 even when the action module loads and the function
+ * is exported. Webpack is Next's official workaround until
+ * vercel/next.js#87737 ships a fix.
  *
- * This wrapper:
- *   1. Runs `next build`, remembers its exit code.
- *   2. Runs the patcher unconditionally if .next/server/ exists.
- *   3. Propagates next build's original exit code so real build failures
- *      still surface to Vercel/CI.
+ * Historical note: earlier revisions ran scripts/install-hash-stubs.mjs
+ * before the build and scripts/patch-turbopack-hash-externals.mjs after.
+ * Both were Turbopack-specific workarounds for hash-suffixed externalRequire
+ * thunks (sharp-<hex16> etc.). Webpack doesn't emit those, so neither
+ * script is needed and both have been removed. Revert this wrapper to plain
+ * `next build` once 16.3+ fixes the upstream bug.
  */
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
 
 function run(cmd, args) {
   return new Promise((resolve) => {
@@ -25,22 +24,6 @@ function run(cmd, args) {
   });
 }
 
-const stubExit = await run("node", ["scripts/install-hash-stubs.mjs"]);
-console.log(`[vercel-build] install-hash-stubs exited with ${stubExit}`);
-if (stubExit !== 0) process.exit(stubExit);
-
-const buildExit = await run("next", ["build"]);
-console.log(`[vercel-build] next build exited with ${buildExit}`);
-
-if (existsSync(".next/server")) {
-  const patchExit = await run("node", ["scripts/patch-turbopack-hash-externals.mjs"]);
-  console.log(`[vercel-build] patch exited with ${patchExit}`);
-  if (patchExit !== 0) {
-    console.error("[vercel-build] patch failed — failing build");
-    process.exit(patchExit);
-  }
-} else {
-  console.log("[vercel-build] .next/server missing — nothing to patch");
-}
-
+const buildExit = await run("next", ["build", "--webpack"]);
+console.log(`[vercel-build] next build --webpack exited with ${buildExit}`);
 process.exit(buildExit);

@@ -4,7 +4,7 @@ import type { ImageProcessingPayload } from "@/lib/jobs/types";
 
 const MAX_DELIVERIES = 5;
 
-export const POST = handleCallback<ImageProcessingPayload>(
+const _handler = handleCallback<ImageProcessingPayload>(
   async (message, metadata) => {
     try {
       await handleImageProcessing(message);
@@ -29,3 +29,7 @@ export const POST = handleCallback<ImageProcessingPayload>(
     },
   }
 );
+
+export async function POST(request: Request): Promise<Response> {
+  return _handler(request);
+}

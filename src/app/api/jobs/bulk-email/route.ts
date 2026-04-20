@@ -4,7 +4,7 @@ import type { BulkEmailPayload } from "@/lib/jobs/types";
 
 const MAX_DELIVERIES = 8;
 
-export const POST = handleCallback<BulkEmailPayload>(
+const _handler = handleCallback<BulkEmailPayload>(
   async (message, metadata) => {
     try {
       await handleBulkEmail(message);
@@ -29,3 +29,7 @@ export const POST = handleCallback<BulkEmailPayload>(
     },
   }
 );
+
+export async function POST(request: Request): Promise<Response> {
+  return _handler(request);
+}

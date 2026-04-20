@@ -4,7 +4,7 @@ import type { AccountHardDeletePayload } from "@/lib/jobs/types";
 
 const MAX_DELIVERIES = 3;
 
-export const POST = handleCallback<AccountHardDeletePayload>(
+const _handler = handleCallback<AccountHardDeletePayload>(
   async (message, metadata) => {
     try {
       await handleAccountHardDelete(message);
@@ -29,3 +29,7 @@ export const POST = handleCallback<AccountHardDeletePayload>(
     },
   }
 );
+
+export async function POST(request: Request): Promise<Response> {
+  return _handler(request);
+}

@@ -1,24 +1,25 @@
 /**
  * HTML Sanitization Utilities
  *
- * Provides XSS protection for user-generated HTML content using DOMPurify.
- * Used primarily for TipTap rich text editor content in announcements.
+ * Provides XSS protection for user-generated HTML content.
  *
- * @example
- * import { sanitizeHtml, sanitizeForStorage } from '@/lib/security/sanitize'
+ * Server path: sanitize-html (htmlparser2-backed, no DOM). Runs in every
+ *   "use server" action that stores rich-text content.
+ * Client path: dompurify (browser-native DOMParser, no jsdom). Runs inside
+ *   the TipTap editor for defense-in-depth display.
  *
- * // Before rendering user content
- * <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
- *
- * // Before storing in database
- * const safeHtml = sanitizeForStorage(userInput)
+ * Previous implementation used isomorphic-dompurify which drags jsdom into
+ * the server bundle. jsdom is webpack-hostile (ESM-only transitive deps,
+ * __dirname-relative fs reads), so we dropped it in favor of two
+ * runtime-specific libs with a shared public API. See the plan file at
+ * ~/.claude/plans/i-need-you-to-indexed-volcano.md for the full story.
  */
 
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtmlLib from "sanitize-html";
+import DOMPurify from "dompurify";
 
 /**
  * Allowed HTML tags for rich text content.
- * Restricts to safe formatting and structure tags only.
  */
 const ALLOWED_TAGS = [
   // Text formatting
@@ -64,8 +65,7 @@ const ALLOWED_TAGS = [
 ] as const;
 
 /**
- * Allowed HTML attributes.
- * Restricts to safe attributes for styling and linking.
+ * Allowed HTML attributes — flat list, applied to every tag.
  */
 const ALLOWED_ATTR = [
   "href",
@@ -80,69 +80,83 @@ const ALLOWED_ATTR = [
 ] as const;
 
 /**
- * Default DOMPurify configuration for rich text content.
+ * Stricter attribute denylist used by sanitizeForStorage. sanitize-html's
+ * allow-only model makes this implicit, but we keep the constant for
+ * documentation and parity with the old FORBID_ATTR config.
  */
-const DEFAULT_CONFIG = {
+const STORAGE_FORBID_ATTR = ["style", "onerror", "onload", "onclick", "onmouseover"] as const;
+
+/**
+ * Stricter tag denylist used by sanitizeForStorage.
+ */
+const STORAGE_FORBID_TAGS = ["style", "script", "iframe", "object", "embed", "form"] as const;
+
+const SERVER_CONFIG_DEFAULT: sanitizeHtmlLib.IOptions = {
+  allowedTags: [...ALLOWED_TAGS],
+  allowedAttributes: { "*": [...ALLOWED_ATTR] },
+  disallowedTagsMode: "discard",
+};
+
+const SERVER_CONFIG_STORAGE: sanitizeHtmlLib.IOptions = {
+  ...SERVER_CONFIG_DEFAULT,
+  // Explicitly drop these even if ALLOWED_TAGS later broadens.
+  exclusiveFilter: (frame) =>
+    STORAGE_FORBID_TAGS.includes(frame.tag as (typeof STORAGE_FORBID_TAGS)[number]),
+};
+
+function isBrowser(): boolean {
+  return typeof window !== "undefined" && typeof window.document !== "undefined";
+}
+
+const CLIENT_CONFIG = {
   ALLOWED_TAGS: [...ALLOWED_TAGS],
   ALLOWED_ATTR: [...ALLOWED_ATTR],
   ALLOW_DATA_ATTR: false,
-  // Force all links to open in new tab with security attributes
-  ADD_ATTR: ["target", "rel"],
 };
 
 /**
  * Sanitizes HTML content for safe rendering in the browser.
- * Removes potentially dangerous elements, attributes, and scripts.
- *
- * @param dirty - The untrusted HTML string to sanitize
- * @returns Sanitized HTML string safe for rendering
- *
- * @example
- * // Safe to use with dangerouslySetInnerHTML
- * <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(userContent) }} />
  */
 export function sanitizeHtml(dirty: string): string {
   if (!dirty) return "";
-
-  return DOMPurify.sanitize(dirty, DEFAULT_CONFIG);
+  if (isBrowser()) {
+    return DOMPurify.sanitize(dirty, CLIENT_CONFIG);
+  }
+  // Server fallback — not used today but kept for API parity.
+  return sanitizeHtmlLib(dirty, SERVER_CONFIG_DEFAULT);
 }
 
 /**
- * Sanitizes HTML content for storage in the database.
- * Uses stricter settings and normalizes the output.
- *
- * @param dirty - The untrusted HTML string to sanitize
- * @returns Sanitized and normalized HTML string
- *
- * @example
- * // Before storing announcement content
- * const safeContent = sanitizeForStorage(formData.get('content'))
- * await supabase.from('announcements').insert({ content_html: safeContent })
+ * Sanitizes HTML content for storage in the database. Stricter than
+ * sanitizeHtml: also removes STORAGE_FORBID_ATTR and STORAGE_FORBID_TAGS.
  */
 export function sanitizeForStorage(dirty: string): string {
   if (!dirty) return "";
 
-  const sanitized = DOMPurify.sanitize(dirty, {
-    ...DEFAULT_CONFIG,
-    // Additional restrictions for storage
-    FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form"],
-    FORBID_ATTR: ["style", "onerror", "onload", "onclick", "onmouseover"],
-  });
+  const forbidSet = new Set<string>(STORAGE_FORBID_ATTR);
+  const storageAttrs = ALLOWED_ATTR.filter((a) => !forbidSet.has(a));
 
-  // Normalize: trim and ensure valid HTML structure
+  let sanitized: string;
+  if (isBrowser()) {
+    sanitized = DOMPurify.sanitize(dirty, {
+      ALLOWED_TAGS: [...ALLOWED_TAGS],
+      ALLOWED_ATTR: [...storageAttrs],
+      ALLOW_DATA_ATTR: false,
+      FORBID_TAGS: [...STORAGE_FORBID_TAGS],
+      FORBID_ATTR: [...STORAGE_FORBID_ATTR],
+    });
+  } else {
+    sanitized = sanitizeHtmlLib(dirty, {
+      ...SERVER_CONFIG_STORAGE,
+      allowedAttributes: { "*": [...storageAttrs] },
+    });
+  }
+
   return sanitized.trim() || "<p></p>";
 }
 
 /**
  * Sanitizes plain text input by escaping HTML entities.
- * Use for text fields that shouldn't contain any HTML.
- *
- * @param text - The untrusted text to escape
- * @returns Escaped text safe for rendering
- *
- * @example
- * // For user names, titles, or other plain text
- * <span>{escapeHtml(userName)}</span>
  */
 export function escapeHtml(text: string): string {
   if (!text) return "";
@@ -153,7 +167,6 @@ export function escapeHtml(text: string): string {
     return div.innerHTML;
   }
 
-  // Fallback for SSR
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -164,29 +177,22 @@ export function escapeHtml(text: string): string {
 
 /**
  * Checks if a string contains potentially dangerous HTML.
- * Useful for validation before processing.
- *
- * @param html - The HTML string to check
- * @returns True if the HTML contains script tags or event handlers
  */
 export function containsDangerousHtml(html: string): boolean {
   if (!html) return false;
-
   const dangerous = /<script|javascript:|on\w+\s*=/i;
   return dangerous.test(html);
 }
 
 /**
- * Strips all HTML tags from content, returning plain text.
- * Useful for generating previews or summaries.
- *
- * @param html - The HTML string to strip
- * @returns Plain text content
+ * Strips all HTML tags, returning plain text.
  */
 export function stripHtml(html: string): string {
   if (!html) return "";
-
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
+  if (isBrowser()) {
+    return DOMPurify.sanitize(html, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+  }
+  return sanitizeHtmlLib(html, { allowedTags: [], allowedAttributes: {} });
 }
 
 export { isValidHexColor } from "./validators";

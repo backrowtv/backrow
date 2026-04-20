@@ -12,25 +12,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.csb.app", "192.168.1.110"],
   // Enable Cache Components (Next.js 16+) for 'use cache' directive
   cacheComponents: true,
-  // Packages that must not be bundled (native binaries or deliberately external).
-  // jsdom: required by isomorphic-dompurify server path.
-  // Note on sharp: even when listed here, Turbopack hash-wraps it in externalRequire
-  // ("sharp-<hash>") which fails at runtime on Vercel Functions (vercel/next.js#64022).
-  // Sharp imports are therefore converted to runtime `await import("sharp")` inside
-  // the functions that use it, bypassing the server-component static-import chain
-  // that pulls sharp into /clubs, /club/[slug]/*, and other chunks.
-  serverExternalPackages: ["jsdom", "sharp"],
-  // Force @vercel/nft to copy jsdom's full lib/ tree into every lambda.
-  // jsdom is listed in serverExternalPackages above so Turbopack emits
-  // `require("jsdom")` without bundling, but NFT sometimes fails to trace
-  // jsdom's main entry (lib/api.js) into server action chunks — visible as
-  // `Error: Failed to load external module jsdom: Cannot find module
-  // '/var/task/node_modules/jsdom/lib/api.js'`. Force-including keeps the
-  // package intact in the lambda. Keyed by glob so it applies to every
-  // page/route/action output that NFT traces.
-  outputFileTracingIncludes: {
-    "/**/*": ["./node_modules/jsdom/**/*", "./node_modules/sharp/**/*", "./node_modules/@img/**/*"],
-  },
+  // Native binary; must stay external. sharp is imported via a lazy
+  // `await import("sharp")` in src/lib/image/sharp-loader.ts so @vercel/nft
+  // traces it into the lambda via the dynamic-import chain without the
+  // hash-externalize trap.
+  serverExternalPackages: ["sharp"],
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback
   reactCompiler: true,
