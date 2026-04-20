@@ -159,45 +159,6 @@ export async function joinPublicClub(clubId: string) {
 }
 
 export async function toggleFavoriteClub(clubId: string) {
-  try {
-    return await _toggleFavoriteClubImpl(clubId);
-  } catch (err) {
-    const e = err as { message?: string; code?: string; stack?: string; cause?: unknown };
-    const chain: Array<{ message?: string; code?: string; name?: string }> = [];
-    let cur: unknown = err;
-    for (let i = 0; i < 6 && cur; i++) {
-      const c = cur as { message?: string; code?: string; name?: string; cause?: unknown };
-      chain.push({
-        message: String(c?.message ?? "").slice(0, 500),
-        code: c?.code,
-        name: c?.name,
-      });
-      cur = c?.cause;
-    }
-    const g = globalThis as unknown as {
-      __backrowErrorRing?: Array<Record<string, unknown>>;
-    };
-    if (!g.__backrowErrorRing) g.__backrowErrorRing = [];
-    g.__backrowErrorRing.push({
-      ts: Date.now(),
-      source: "toggleFavoriteClub",
-      clubId,
-      chain,
-      stack: e?.stack?.split("\n").slice(0, 15).join("\n"),
-    });
-    if (g.__backrowErrorRing.length > 50) g.__backrowErrorRing.shift();
-    console.error("[backrow:toggleFavoriteClub THREW]", JSON.stringify({ clubId, chain }));
-    // Return error in the response body instead of rethrowing, so the
-    // actual error chain is visible to the Playwright verifier.
-    // To be reverted in Phase 3 cleanup.
-    return {
-      error: `[DEBUG] ${chain[0]?.message ?? "unknown"} | chain=${JSON.stringify(chain).slice(0, 400)}`,
-    };
-  }
-}
-
-async function _toggleFavoriteClubImpl(clubId: string) {
-  console.error("[backrow:toggleFavoriteClub ENTERED]", clubId);
   const supabase = await createClient();
 
   const {

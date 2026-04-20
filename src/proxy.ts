@@ -10,13 +10,6 @@ import { NextResponse, type NextRequest } from "next/server";
  * 2. Security headers (CSP, X-Frame-Options, etc.)
  */
 export async function proxy(request: NextRequest) {
-  const method = request.method;
-  const nextAction = request.headers.get("next-action");
-  if (method === "POST") {
-    console.error(`[proxy] POST ${request.nextUrl.pathname} next-action=${nextAction ?? "none"}`);
-  } else {
-    console.error("[proxy] enter", request.nextUrl.pathname);
-  }
   // Basic auth gate — remove SITE_PASSWORD env var to disable
   const sitePassword = env.SITE_PASSWORD;
   if (sitePassword) {
@@ -44,23 +37,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Get the response from Supabase auth middleware
-  console.error("[proxy] updateSession starting", request.nextUrl.pathname);
-  let response: NextResponse;
-  try {
-    response = await updateSession(request);
-    console.error("[proxy] updateSession done", request.nextUrl.pathname);
-  } catch (err) {
-    const e = err as { message?: string; code?: string; stack?: string; cause?: unknown };
-    console.error("[proxy] updateSession THREW", {
-      pathname: request.nextUrl.pathname,
-      message: e?.message,
-      code: e?.code,
-      stack: e?.stack?.split("\n").slice(0, 10).join("\n"),
-      cause: e?.cause,
-      causeMessage: (e?.cause as { message?: string })?.message,
-    });
-    throw err;
-  }
+  const response = await updateSession(request);
 
   // Add security headers to all responses
   addSecurityHeaders(response);
