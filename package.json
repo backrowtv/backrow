@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "vitest run src/__tests__/cache",
+    "test": "vitest run src/__tests__/cache src/__tests__/security",
     "test:all": "vitest run",
     "test:integration": "vitest run src/__tests__/actions",
     "test:watch": "vitest",

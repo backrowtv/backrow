@@ -96,8 +96,15 @@ function buildCSP(isDev: boolean): string {
     // Default: only allow same origin
     "default-src 'self'",
 
-    // Scripts: self + inline (needed for Next.js) + eval (dev only for hot reload)
-    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+    // Scripts: self + inline (needed for Next.js) + eval. 'unsafe-eval' is
+    // required in prod too because Vercel BotID's Kasada runtime uses
+    // Function()/eval for challenge token generation; without it the
+    // challenge script runs but fails silently, never generates a token,
+    // and every POST to a requireHuman()-guarded action (create club,
+    // signup, feedback, invite, account delete/export) is rejected as
+    // "Automated traffic blocked." The incremental XSS surface is limited
+    // since 'unsafe-inline' is already present for React stream rendering.
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
 
     // Styles: self + inline (needed for styled-components, Tailwind, etc.)
     "style-src 'self' 'unsafe-inline'",

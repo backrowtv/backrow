@@ -6,9 +6,15 @@ import { handleActionError } from "@/lib/errors/handler";
 import type { ContactFormResult } from "./contact.types";
 import { sendEmail } from "@/lib/email/resend";
 import { contactNotificationHtml } from "@/lib/email/templates/render";
+import { requireHuman } from "@/lib/security/botid";
 
 export async function submitContactForm(formData: FormData): Promise<ContactFormResult> {
   try {
+    const human = await requireHuman();
+    if (!human.ok) {
+      return { success: false, error: human.error };
+    }
+
     const name = formData.get("name")?.toString().trim();
     const email = formData.get("email")?.toString().trim();
     const subject = formData.get("subject")?.toString().trim();

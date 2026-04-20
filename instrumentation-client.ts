@@ -1,12 +1,14 @@
 import { initBotId } from "botid/client/core";
 import * as Sentry from "@sentry/browser";
 
-// Protected server-action surfaces. Server-side enforcement via
-// `requireHuman()` / `checkBotId()` in the relevant action files.
+// Protected server-action surfaces. Every entry here MUST be guarded by
+// `requireHuman()` in the corresponding server action — the drift test at
+// src/__tests__/security/botid-coverage.test.ts enforces this. Sign-in is
+// intentionally not BotID-protected: credential-verification is already
+// rate-limited and adding BotID there was theater without server enforcement.
 initBotId({
   protect: [
     { path: "/sign-up", method: "POST" },
-    { path: "/sign-in", method: "POST" },
     { path: "/feedback", method: "POST" },
     { path: "/contact", method: "POST" },
     { path: "/clubs/new", method: "POST" },
