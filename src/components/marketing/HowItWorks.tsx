@@ -1,62 +1,74 @@
-"use client";
-
 import { Heading, Text } from "@/components/ui/typography";
-import { Trophy, FilmStrip } from "@phosphor-icons/react";
-import Link from "next/link";
 
-const modes = [
+const steps = [
   {
-    icon: Trophy,
-    name: "Standard Festival",
-    description: "Themed seasons with phases, scoring, and standings. See whose picks win.",
-    type: "standard",
+    number: "1",
+    title: "Create or join a club",
+    body: "Find a group that shares your taste in film, or start your own and invite your people.",
   },
   {
-    icon: FilmStrip,
-    name: "Endless Festival",
-    description: "Continuous watching, casual ratings, no competition. Watch at your own pace.",
-    type: "endless",
+    number: "2",
+    title: "Pick a theme, build the lineup",
+    body: "Anyone can nominate a film. The club votes the lineup into order for the season.",
+  },
+  {
+    number: "3",
+    title: "Watch, rate, crown a winner",
+    body: "Log your ratings, discuss each film, and see the leaderboard once the festival wraps.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section>
-      <div className="mb-8">
-        <Heading level={2} className="text-2xl md:text-3xl font-bold">
-          How does your club watch?
+    <section aria-labelledby="how-it-works-heading">
+      <div className="mb-12 md:mb-16 text-center">
+        <Heading
+          id="how-it-works-heading"
+          level={2}
+          className="text-3xl md:text-4xl font-bold tracking-tight"
+        >
+          How{" "}
+          <span
+            style={{
+              fontFamily: "var(--font-brand)",
+              color: "var(--primary)",
+              fontWeight: 600,
+            }}
+          >
+            BackRow
+          </span>{" "}
+          works
         </Heading>
-        <Text size="body" className="mt-2 text-[var(--text-secondary)] max-w-2xl">
-          Every club is different. Pick a style that fits your group — you can always adjust as you
-          go.
+        <Text size="body" className="mt-3 text-[var(--text-secondary)] max-w-xl mx-auto">
+          Three steps from zero to your first festival.
         </Text>
       </div>
 
-      {/* Mode cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {modes.map((mode) => {
-          const Icon = mode.icon;
-          return (
-            <Link
-              key={mode.name}
-              href={`/create-club?type=${mode.type}`}
-              className="group rounded-xl border border-[var(--border)] p-5 transition-colors hover:border-[var(--text-muted)]"
+      <ol className="relative grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
+        {/* Horizontal connector on desktop */}
+        <div
+          aria-hidden="true"
+          className="hidden md:block absolute left-[16.666%] right-[16.666%] top-6 h-px"
+          style={{ backgroundColor: "var(--border)" }}
+        />
+        {steps.map((step) => (
+          <li key={step.number} className="relative flex flex-col items-center text-center">
+            <div
+              className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full font-semibold text-lg mb-4"
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 rounded-lg" style={{ backgroundColor: "var(--surface-1)" }}>
-                  <Icon className="w-5 h-5" style={{ color: "var(--text-primary)" }} />
-                </div>
-                <h3 className="text-base font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">
-                  {mode.name}
-                </h3>
-              </div>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                {mode.description}
-              </p>
-            </Link>
-          );
-        })}
-      </div>
+              {step.number}
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{step.title}</h3>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-xs">
+              {step.body}
+            </p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

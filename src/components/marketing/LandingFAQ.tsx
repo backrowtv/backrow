@@ -1,100 +1,82 @@
-"use client";
-
 import { Heading, Text } from "@/components/ui/typography";
-import { Question } from "@phosphor-icons/react";
+import { Question, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { getLandingFAQs, landingCategories } from "@/data/faq";
+import type { FAQQuestion } from "@/data/faq";
 import Link from "next/link";
 
 export function LandingFAQ() {
   const landingFAQs = getLandingFAQs();
 
-  const categories = [
-    { key: "basics" as const, ...landingCategories.basics, questions: landingFAQs.basics },
-    { key: "watching" as const, ...landingCategories.watching, questions: landingFAQs.watching },
-    { key: "competing" as const, ...landingCategories.competing, questions: landingFAQs.competing },
-    { key: "social" as const, ...landingCategories.social, questions: landingFAQs.social },
+  const categories: Array<{
+    key: "basics" | "watching" | "competing" | "social";
+    title: string;
+    description: string;
+    questions: FAQQuestion[];
+  }> = [
+    { key: "basics", ...landingCategories.basics, questions: landingFAQs.basics },
+    { key: "watching", ...landingCategories.watching, questions: landingFAQs.watching },
+    { key: "competing", ...landingCategories.competing, questions: landingFAQs.competing },
+    { key: "social", ...landingCategories.social, questions: landingFAQs.social },
   ];
 
   return (
-    <section aria-labelledby="faq-heading" className="space-y-6">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-            <Question className="h-5 w-5 text-[var(--primary)]" />
-          </div>
+    <section aria-labelledby="faq-heading">
+      <div className="mb-12 md:mb-16 max-w-2xl">
+        <div className="flex items-center gap-3 mb-3">
+          <Question className="h-6 w-6" style={{ color: "var(--primary)" }} weight="duotone" />
           <Heading
             id="faq-heading"
             level={2}
-            className="text-left text-4xl font-bold tracking-tight md:text-4xl"
+            className="text-3xl md:text-4xl font-bold tracking-tight"
           >
             Questions?
           </Heading>
         </div>
-        <Text
-          size="body"
-          className="max-w-md text-left text-lg md:text-base leading-relaxed"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          Everything you need to know about movie clubs and festivals.
+        <Text size="body" className="text-[var(--text-secondary)]">
+          Everything worth knowing about clubs and festivals before you jump in.
         </Text>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
         {categories.map((category) => (
-          <div
-            key={category.key}
-            className="rounded-lg border p-5"
-            style={{
-              borderColor: "rgba(148, 163, 184, 0.2)",
-              backgroundColor: "var(--surface-1)",
-              boxShadow: "0 2px 8px rgba(15, 23, 42, 0.2)",
-            }}
-          >
-            <h3 className="text-base font-semibold text-[var(--text-primary)] pb-3 border-b border-[var(--border)] mb-3">
+          <div key={category.key}>
+            <h3 className="text-xs uppercase tracking-[0.15em] font-semibold text-[var(--text-muted)] mb-3">
               {category.title}
             </h3>
-            <div className="space-y-1">
-              {category.questions.map((item) => (
-                <details
+            <ul>
+              {category.questions.map((item, idx) => (
+                <li
                   key={item.id}
-                  className="group cursor-pointer py-2 border-b border-[var(--border)]/50 last:border-0"
+                  className={`border-t border-[var(--border)] ${
+                    idx === category.questions.length - 1 ? "border-b" : ""
+                  }`}
                 >
-                  <summary className="flex items-center justify-between font-medium text-sm list-none text-[var(--text-primary)]">
-                    <span>{item.question}</span>
-                    <svg
-                      className="h-4 w-4 flex-shrink-0 ml-4 transition-transform group-open:rotate-180 text-[var(--text-muted)]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
+                  <details className="group">
+                    <summary className="flex items-center justify-between gap-4 py-4 cursor-pointer list-none font-medium text-[var(--text-primary)] hover:text-[var(--primary)] transition-colors">
+                      <span>{item.question}</span>
+                      <CaretRight
+                        className="h-4 w-4 flex-shrink-0 transition-transform group-open:rotate-90 text-[var(--text-muted)]"
+                        weight="bold"
                       />
-                    </svg>
-                  </summary>
-                  <p className="mt-2 text-sm text-[var(--text-muted)] leading-relaxed">
-                    {item.answer}
-                  </p>
-                </details>
+                    </summary>
+                    <p className="pb-4 pr-8 text-sm text-[var(--text-secondary)] leading-relaxed">
+                      {item.answer}
+                    </p>
+                  </details>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         ))}
       </div>
 
-      {/* Link to full FAQ */}
-      <div className="text-center pt-4">
+      <div className="mt-10 text-center">
         <Link
           href="/faq"
-          className="inline-flex items-center text-sm font-medium text-[var(--primary)] hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)] hover:underline"
         >
           View all FAQs
-          <svg className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          <CaretRight className="h-3.5 w-3.5" weight="bold" />
         </Link>
       </div>
     </section>
