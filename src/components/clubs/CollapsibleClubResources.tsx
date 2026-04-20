@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useClubPreference } from "@/lib/hooks/useClubPreferences";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ClubResource, ResourceType } from "@/app/actions/club-resources.types";
 import {
   createClubResource,
@@ -778,6 +779,38 @@ export function CollapsibleClubResources({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+export function ClubResourcesSkeleton({
+  expanded = false,
+  className,
+}: {
+  expanded?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className} aria-hidden="true">
+      <div className="w-full flex items-center justify-between py-2 gap-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-5 w-5 rounded-sm" />
+      </div>
+      {expanded && (
+        <div className="rounded-lg bg-[var(--surface-1)]/50 p-3 mt-1 space-y-1">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-2 py-2 px-1">
+              <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
+              <div className="flex-1 min-w-0 space-y-1">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

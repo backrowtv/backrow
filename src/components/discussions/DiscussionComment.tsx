@@ -29,14 +29,13 @@ import { UserPopupModal } from "@/components/profile/UserPopupModal";
 import type { DiscussionComment as CommentType } from "@/app/actions/discussions";
 import { isContentEmpty, TEXT_LIMITS } from "@/lib/text/formatting";
 import { THREAD_CONSTANTS } from "@/lib/constants/ui";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Dynamic import for heavy rich text editor
 const SimpleRichTextEditor = dynamic(
   () => import("@/components/movies/SimpleRichTextEditor").then((mod) => mod.SimpleRichTextEditor),
   {
-    loading: () => (
-      <div className="h-[80px] bg-[var(--surface-1)] rounded-lg border border-[var(--border)] animate-pulse" />
-    ),
+    loading: () => <Skeleton className="h-[80px] rounded-lg border border-[var(--border)]" />,
     ssr: false,
   }
 );

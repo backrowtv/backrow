@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getPosterUrl } from "@/lib/tmdb/client";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { getLogoKeyForProvider } from "@/lib/logos/streaming-providers";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WatchProvider {
   provider_id: number;
@@ -109,6 +110,34 @@ export function WatchProviders({ providers, justWatchUrl, isVisible = true }: Wa
         <span>View on JustWatch</span>
         <ArrowSquareOut className="h-3 w-3" />
       </a>
+    </div>
+  );
+}
+
+/**
+ * Default: renders nothing. Most movies have no streaming providers, so the
+ * most-likely real state is an empty block. When you know the movie has
+ * providers, pass `count > 0` to render placeholder logos.
+ */
+export function WatchProvidersSkeleton({
+  count = 0,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  if (count === 0) return null;
+  return (
+    <div className={className} aria-hidden="true">
+      <Skeleton className="h-4 w-32 mb-3" />
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          {Array.from({ length: count }).map((_, i) => (
+            <Skeleton key={i} className="h-5 w-5 rounded" />
+          ))}
+        </div>
+        <Skeleton className="h-3 w-24" />
+      </div>
     </div>
   );
 }

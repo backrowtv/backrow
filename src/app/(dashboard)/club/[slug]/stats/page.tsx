@@ -19,10 +19,8 @@ function LeaderboardSkeleton({ title }: { title: string }) {
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-4">
-          <div className="h-5 w-40 bg-[var(--surface-2)] rounded animate-pulse" />
-          {title === "Season Leaderboard" && (
-            <div className="h-8 w-36 bg-[var(--surface-2)] rounded-lg animate-pulse" />
-          )}
+          <Skeleton className="h-5 w-40" />
+          {title === "Season Leaderboard" && <Skeleton className="h-8 w-36 rounded-lg" />}
         </div>
       </CardHeader>
       <CardContent className="pt-0">

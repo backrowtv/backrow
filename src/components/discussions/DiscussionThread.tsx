@@ -33,14 +33,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DiscussionComment } from "./DiscussionComment";
 import { cn } from "@/lib/utils";
+import { Skeleton, SkeletonAvatar } from "@/components/ui/skeleton";
 
 // Dynamic import for heavy rich text editor
 const SimpleRichTextEditor = dynamic(
   () => import("@/components/movies/SimpleRichTextEditor").then((mod) => mod.SimpleRichTextEditor),
   {
-    loading: () => (
-      <div className="h-[100px] bg-[var(--surface-1)] rounded-lg border border-[var(--border)] animate-pulse" />
-    ),
+    loading: () => <Skeleton className="h-[100px] rounded-lg border border-[var(--border)]" />,
     ssr: false,
   }
 );
@@ -554,14 +553,15 @@ export function DiscussionThread({
 
           {/* Comments list */}
           {isLoadingComments ? (
-            <div className="space-y-4">
+            <div className="space-y-4" role="status" aria-busy="true" aria-live="polite">
+              <span className="sr-only">Loading comments</span>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse">
+                <div key={i}>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-[var(--surface-3)]" />
-                    <div className="w-20 h-3 rounded bg-[var(--surface-3)]" />
+                    <SkeletonAvatar size="xs" />
+                    <Skeleton className="w-20 h-3" />
                   </div>
-                  <div className="w-full h-12 rounded bg-[var(--surface-3)]" />
+                  <Skeleton className="w-full h-12" />
                 </div>
               ))}
             </div>

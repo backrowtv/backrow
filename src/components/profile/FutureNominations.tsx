@@ -23,6 +23,7 @@ import {
 } from "@phosphor-icons/react";
 import { AddFutureNominationModal } from "./AddFutureNominationModal";
 import { MovieDetailsPanel } from "./MovieDetailsPanel";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FutureNominationsList } from "./FutureNominationsList";
 import { ManageThemeLinksModal } from "./ManageThemeLinksModal";
 import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
@@ -741,5 +742,25 @@ export function FutureNominations({
         isLoading={deletingId !== null}
       />
     </>
+  );
+}
+
+export function FutureNominationsSkeleton({
+  count = 4,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  return (
+    <div className={`flex gap-3 overflow-hidden ${className ?? ""}`} aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex-shrink-0 w-28">
+          <Skeleton className="w-28 aspect-[2/3] rounded-lg mb-2" />
+          <Skeleton className="h-3 w-full mb-1" />
+          <Skeleton className="h-2.5 w-16" />
+        </div>
+      ))}
+    </div>
   );
 }

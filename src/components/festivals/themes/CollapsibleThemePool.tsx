@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ThemePool } from "./ThemePool";
 import { cn } from "@/lib/utils";
 import { useClubPreference } from "@/lib/hooks/useClubPreferences";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Database } from "@/types/database";
 
 type ThemeRow = Database["public"]["Tables"]["theme_pool"]["Row"];
@@ -174,6 +175,44 @@ export function CollapsibleThemePool({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+export function CollapsibleThemePoolSkeleton({
+  expanded = false,
+  className,
+}: {
+  expanded?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className} aria-hidden="true">
+      <div className="w-full flex items-center justify-between py-2 gap-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-5 w-6 rounded-full" />
+        </div>
+        <Skeleton className="h-5 w-5 rounded-sm" />
+      </div>
+      {expanded && (
+        <div className="rounded-lg bg-[var(--surface-1)]/50 p-3 mt-1 space-y-2">
+          <div className="flex items-center justify-between py-1">
+            <Skeleton className="h-6 w-20 rounded-md" />
+            <div className="flex items-center gap-1">
+              <Skeleton className="h-5 w-10 rounded" />
+              <Skeleton className="h-5 w-10 rounded" />
+              <Skeleton className="h-5 w-10 rounded" />
+            </div>
+          </div>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-2 py-1.5">
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-4 w-6" />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

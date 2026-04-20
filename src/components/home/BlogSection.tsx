@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Notebook } from "@phosphor-icons/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Re-export for backwards compatibility
 export { SAMPLE_BLOG_POSTS, type BlogPost } from "./sample-data";
@@ -43,15 +44,15 @@ export function BlogSectionSkeleton() {
       }}
     >
       <div className="px-2.5 py-1.5 border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="h-2.5 w-20 bg-[var(--surface-2)] rounded animate-pulse" />
+        <Skeleton className="h-2.5 w-20" />
       </div>
       <div className="divide-y" style={{ borderColor: "var(--border)" }}>
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center gap-2 px-2.5 py-2">
-            <div className="w-10 h-10 rounded bg-[var(--surface-2)] animate-pulse flex-shrink-0" />
+            <Skeleton className="w-10 h-10 rounded flex-shrink-0" />
             <div className="flex-1 space-y-1">
-              <div className="h-2.5 w-full bg-[var(--surface-2)] rounded animate-pulse" />
-              <div className="h-2 w-1/3 bg-[var(--surface-2)] rounded animate-pulse" />
+              <Skeleton className="h-2.5 w-full" />
+              <Skeleton className="h-2 w-1/3" />
             </div>
           </div>
         ))}

@@ -1,100 +1,36 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { ReactNode, useRef } from "react";
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
 interface ContentRevealerProps {
-  /** The actual content to display once loaded */
   children: ReactNode;
-  /** The skeleton/placeholder to show while loading */
   skeleton: ReactNode;
-  /** Whether the content is still loading */
   isLoading: boolean;
-  /** Duration of the crossfade in milliseconds (default: 400) */
+  /** @deprecated Kept for API compatibility; no longer used. Swap is instant. */
   duration?: number;
-  /** Optional className for the wrapper */
   className?: string;
 }
 
-// Smooth easing for premium dissolve effect
+// Shared easing for other helpers below.
 const easeOutExpo: [number, number, number, number] = [0.16, 1, 0.3, 1];
-const easeIn: [number, number, number, number] = [0.4, 0, 1, 1];
 
 /**
- * ContentRevealer - Smoothly crossfades from skeleton to real content.
+ * ContentRevealer - instant swap between skeleton and content.
  *
- * Instead of skeletons disappearing instantly when content loads,
- * this creates a dissolve effect where the skeleton fades out
- * as the content fades in, overlapping for a seamless transition.
+ * The previous implementation used an AnimatePresence crossfade that delayed
+ * real content's first paint by ~240ms. That trade (polish for perceived
+ * latency) didn't pay off, so this is now a straight conditional render.
  *
- * Usage:
- * ```tsx
- * <ContentRevealer
- *   isLoading={isLoading}
- *   skeleton={<MySkeleton />}
- * >
- *   <ActualContent />
- * </ContentRevealer>
- * ```
+ * For intentional entry animations, use FadeIn / StaggerChildren below.
  */
 export function ContentRevealer({
   children,
   skeleton,
   isLoading,
-  duration = 400,
   className = "",
 }: ContentRevealerProps) {
-  // Track if we've ever finished loading (for initial mount)
-  // Use a ref since this only affects animation and doesn't need to trigger re-renders
-  const hasLoadedRef = useRef(!isLoading);
-
-  // Update ref when loading finishes (this doesn't cause re-renders)
-  if (!isLoading && !hasLoadedRef.current) {
-    hasLoadedRef.current = true;
-  }
-
-  const hasLoaded = hasLoadedRef.current;
-
-  const durationInSeconds = duration / 1000;
-
-  return (
-    <div className={`relative ${className}`}>
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.div
-            key="skeleton"
-            initial={hasLoaded ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{
-              opacity: 0,
-              transition: {
-                duration: durationInSeconds * 0.6, // Skeleton exits faster
-                ease: easeIn,
-              },
-            }}
-          >
-            {skeleton}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: 1,
-              transition: {
-                duration: durationInSeconds,
-                ease: easeOutExpo,
-                // Slight delay so skeleton starts fading first
-                delay: 0.05,
-              },
-            }}
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  return <div className={className}>{isLoading ? skeleton : children}</div>;
 }
 
 /**

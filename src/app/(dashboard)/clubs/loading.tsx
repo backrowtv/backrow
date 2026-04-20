@@ -1,8 +1,8 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 
 export default function ClubsLoading() {
   return (
-    <div className="bg-[var(--background)]">
+    <SkeletonRegion label="Loading clubs" className="bg-[var(--background)] block">
       <div className="max-w-4xl mx-auto px-4 lg:px-6 py-6">
         {/* Header Row: Filter Toggle (left) + View Toggle & Create (right) */}
         <div className="flex items-center justify-between gap-2 mb-4">
@@ -55,6 +55,6 @@ export default function ClubsLoading() {
           ))}
         </div>
       </div>
-    </div>
+    </SkeletonRegion>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { CaretRight, CalendarDots, FilmSlate } from "@phosphor-icons/react";
 import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Movie {
   id: number;
@@ -120,14 +121,14 @@ export function UpcomingReleases({ movies, className }: UpcomingReleasesProps) {
 export function UpcomingReleasesSkeleton() {
   return (
     <div className="space-y-3">
-      <div className="h-4 w-28 bg-[var(--surface-1)] rounded animate-pulse" />
+      <Skeleton className="h-4 w-28" />
       <div className="space-y-2">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center gap-3 p-2">
-            <div className="w-10 h-14 rounded bg-[var(--surface-1)] animate-pulse" />
+            <Skeleton className="w-10 h-14 rounded" />
             <div className="flex-1 space-y-1">
-              <div className="h-3 w-3/4 bg-[var(--surface-1)] rounded animate-pulse" />
-              <div className="h-2 w-1/2 bg-[var(--surface-1)] rounded animate-pulse" />
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-2 w-1/2" />
             </div>
           </div>
         ))}

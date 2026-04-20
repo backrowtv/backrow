@@ -16,6 +16,7 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { formatRatingDisplay } from "@/lib/ratings/normalize";
 import { ManageThemeLinksModal } from "@/components/profile/ManageThemeLinksModal";
 import { useThemeLinking } from "@/components/profile/hooks/useThemeLinking";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MovieActionsProps {
   tmdbId: number;
@@ -452,6 +453,16 @@ export function MovieActions({
             : undefined
         }
       />
+    </div>
+  );
+}
+
+export function MovieActionsSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn("grid grid-cols-3 gap-2 w-fit", className)} aria-hidden="true">
+      {[0, 1, 2].map((i) => (
+        <Skeleton key={i} className="min-w-[72px] min-h-[72px] aspect-square rounded-lg" />
+      ))}
     </div>
   );
 }

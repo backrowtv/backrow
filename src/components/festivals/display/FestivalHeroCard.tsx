@@ -15,6 +15,8 @@ import type { FestivalType, ThemeGovernance } from "@/types/club-settings";
 import toast from "react-hot-toast";
 import { FilmReel, Play, CaretDown, CaretUp, Sparkle, Shuffle, Check } from "@phosphor-icons/react";
 import { FlipCountdown } from "@/components/ui/flip-countdown";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const PHASE_ACTIONS: Record<FestivalPhase, { action: string; actionLabel: string }> = {
   theme_selection: { action: "select", actionLabel: "Select Theme" },
@@ -631,5 +633,87 @@ export function NoActiveFestivalCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+export function FestivalHeroCardSkeleton({
+  phase = "nomination",
+  className,
+}: {
+  phase?: "theme_selection" | "nomination" | "watch_rate";
+  className?: string;
+}) {
+  return (
+    <div className={cn("relative", className)} aria-hidden="true">
+      <div className="relative z-10 text-center">
+        {/* Title */}
+        <div className="flex justify-center mb-2">
+          <Skeleton className="h-7 md:h-8 w-2/3 max-w-sm" />
+        </div>
+        {/* Phase breadcrumbs — 4 pills with bullet separators */}
+        <div className="flex items-center justify-center gap-3 text-xs mb-4">
+          <div className="flex items-center">
+            {["Theme", "Nominate", "Watch", "Results"].map((_, i) => (
+              <div key={i} className="flex items-center">
+                {i > 0 && (
+                  <span
+                    className="mx-1.5 text-[10px]"
+                    style={{ color: "var(--text-muted)", opacity: 0.4 }}
+                  >
+                    •
+                  </span>
+                )}
+                <Skeleton className="h-5 w-14 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Flip countdown */}
+        <div className="mb-4 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-1.5">
+            <Skeleton className="h-3 w-28" />
+            <div className="flex items-center gap-1.5">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-10 w-10 rounded-md" />
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Phase-specific body */}
+        {phase === "nomination" && (
+          <div className="mb-5">
+            <div className="flex gap-3 md:gap-4 justify-center px-3 md:px-4 py-2.5 md:py-3">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton
+                  key={i}
+                  className="flex-shrink-0 w-[70px] md:w-24 aspect-[2/3] rounded-md"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {phase === "watch_rate" && (
+          <div className="mb-5">
+            <div className="flex gap-3 md:gap-4 justify-center px-3 md:px-4 py-2.5 md:py-3">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex-shrink-0 w-[70px] md:w-24">
+                  <Skeleton className="w-full aspect-[2/3] rounded-md mb-1.5" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {phase === "theme_selection" && (
+          <div className="flex justify-center mb-5">
+            <Skeleton className="h-10 w-40 rounded-lg" />
+          </div>
+        )}
+        {/* Primary action button */}
+        <div className="flex justify-center">
+          <Skeleton className="h-10 w-36 rounded-lg" />
+        </div>
+      </div>
+    </div>
   );
 }

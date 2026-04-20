@@ -4,12 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Dynamic import for heavy TipTap editor (reduces initial bundle size)
 const TipTapEditor = dynamic(() => import("./TipTapEditor").then((mod) => mod.TipTapEditor), {
-  loading: () => (
-    <div className="h-[200px] bg-[var(--surface-1)] rounded-lg border border-[var(--border)] animate-pulse" />
-  ),
+  loading: () => <Skeleton className="h-[200px] rounded-lg border border-[var(--border)]" />,
   ssr: false,
 });
 const TipTapPreview = dynamic(() => import("./TipTapEditor").then((mod) => mod.TipTapPreview), {

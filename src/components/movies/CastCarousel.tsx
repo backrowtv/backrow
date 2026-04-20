@@ -7,6 +7,7 @@ import { ScrollNavButton } from "@/components/ui/scroll-nav-button";
 import { getPersonUrl } from "@/lib/persons/slugs";
 import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
 import { useRef, useState, useEffect, useCallback } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CastMember {
   id: number;
@@ -274,5 +275,28 @@ export function CastCarousel({
         </section>
       )}
     </div>
+  );
+}
+
+export function CastCarouselSkeleton({
+  count = 6,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  return (
+    <section className={className} aria-hidden="true">
+      <Skeleton className="h-4 w-24 mb-3" />
+      <div className="flex gap-3 px-4 py-2 overflow-hidden">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex-shrink-0 w-[96px]">
+            <Skeleton className="aspect-[2/3] rounded-lg mb-1.5" />
+            <Skeleton className="h-3 w-full mb-1" />
+            <Skeleton className="h-2.5 w-2/3" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

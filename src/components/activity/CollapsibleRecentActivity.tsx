@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import type { GroupedActivity } from "@/lib/activity/club-activity-feed";
 import { NewActivityItem } from "./NewActivityItem";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CollapsibleRecentActivityProps {
   activities: GroupedActivity[];
@@ -57,6 +58,36 @@ export function CollapsibleRecentActivity({
       ) : (
         <p className="text-sm text-[var(--text-muted)] text-center py-4">No recent activity</p>
       )}
+    </div>
+  );
+}
+
+export function RecentActivitySkeleton({
+  limit = 5,
+  className,
+}: {
+  limit?: number;
+  className?: string;
+}) {
+  return (
+    <div className={className} aria-hidden="true">
+      <div className="flex items-center justify-between py-2 gap-2">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-4 w-8" />
+      </div>
+      <div className="divide-y divide-[var(--border)] pt-1">
+        {Array.from({ length: limit }).map((_, i) => (
+          <div key={i} className="flex items-center gap-2.5 py-2.5 px-2">
+            <div className="w-7 flex-shrink-0 flex items-center justify-center">
+              <Skeleton className="w-[19px] h-7 rounded-sm" />
+            </div>
+            <div className="flex-1 min-w-0 space-y-1">
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-2.5 w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

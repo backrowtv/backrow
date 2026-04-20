@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { RecentlyWatchedClient } from "./RecentlyWatchedClient";
 import { Eye } from "@phosphor-icons/react/dist/ssr";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RecentlyWatchedProps {
   userId: string;
@@ -90,4 +91,20 @@ export async function RecentlyWatched({ userId, limit = 12 }: RecentlyWatchedPro
   }
 
   return <RecentlyWatchedClient movies={watchedMovies} />;
+}
+
+export function RecentlyWatchedSkeleton({
+  count = 6,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  return (
+    <div className={`flex gap-4 overflow-hidden ${className ?? ""}`} aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton key={i} className="w-24 md:w-28 aspect-[2/3] rounded-md flex-shrink-0" />
+      ))}
+    </div>
+  );
 }

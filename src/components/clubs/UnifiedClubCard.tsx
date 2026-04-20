@@ -6,6 +6,7 @@ import { EntityAvatar } from "@/components/ui/entity-avatar";
 import { clubToAvatarData } from "@/lib/avatar-helpers";
 import { cn } from "@/lib/utils";
 import { Users, FilmReel, FilmStrip, Lock, Globe, CheckCircle } from "@phosphor-icons/react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getClubThemeColor } from "@/lib/clubs/theme-colors";
 import { GenreIcon } from "@/components/genres/GenreIcon";
 import { getGenreBySlug } from "@/lib/genres/constants";
@@ -82,8 +83,7 @@ export function UnifiedClubCard({
               ? `color-mix(in srgb, ${themeColor} 80%, white)`
               : "color-mix(in srgb, var(--primary) 80%, white)",
           }}
-        >
-        </div>
+        ></div>
 
         {/* Avatar overlapping header — tap to collapse/expand only on club dashboard */}
         <div className="flex justify-center -mt-7 relative z-10">
@@ -233,6 +233,67 @@ export function UnifiedClubCard({
         </TooltipProvider>
       </div>
     </Wrapper>
+  );
+}
+
+export function UnifiedClubCardSkeleton({
+  collapsed = false,
+  className,
+}: {
+  collapsed?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-lg)] h-full flex flex-col",
+        className
+      )}
+      aria-hidden="true"
+    >
+      {/* Header gradient band */}
+      <div
+        className="h-16 w-full"
+        style={{
+          background: "color-mix(in srgb, var(--primary) 80%, white)",
+        }}
+      />
+      {/* Avatar overlap */}
+      <div className="flex justify-center -mt-7 relative z-10">
+        <div className="ring-[3px] ring-[var(--card)] rounded-full">
+          <Skeleton className="w-14 h-14 rounded-full" />
+        </div>
+      </div>
+      {/* Content area */}
+      <div className="flex-1 flex flex-col items-center px-4 pt-2 pb-3">
+        <Skeleton className="h-5 w-40" />
+        {!collapsed && (
+          <>
+            <div className="w-full mt-2 space-y-1.5">
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-3/4 mx-auto" />
+            </div>
+            <div className="flex gap-2 items-center justify-center mt-3">
+              {[0, 1, 2].map((i) => (
+                <Skeleton
+                  key={i}
+                  className="w-9 h-9 rounded-full shadow-[inset_0_1px_3px_rgba(0,0,0,0.3)]"
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      {/* Stats bar */}
+      <div className="flex items-center border-t border-[var(--border)] divide-x divide-[var(--border)]">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex-1 flex items-center justify-center gap-1.5 py-2.5">
+            <Skeleton className="w-3.5 h-3.5 rounded-sm" />
+            <Skeleton className="h-3 w-6" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

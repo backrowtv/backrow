@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MoviePool } from "./MoviePool";
 import { getEndlessFestivalData, getMoviePoolCount } from "@/app/actions/endless-festival";
 import { useClubPreference } from "@/lib/hooks/useClubPreferences";
+import { Skeleton, SkeletonPoster } from "@/components/ui/skeleton";
 import type { EndlessMovie } from "@/app/actions/endless-festival";
 import type { PoolVoteState } from "@/app/actions/endless-festival/types";
 import type { MoviePoolGovernance } from "@/types/club-settings";
@@ -190,6 +191,38 @@ export function CollapsibleMoviePool({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+export function CollapsibleMoviePoolSkeleton({
+  expanded = false,
+  className,
+}: {
+  expanded?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`border-t border-[var(--border)] pt-2 mt-2 ${className ?? ""}`}
+      aria-hidden="true"
+    >
+      <div className="w-full flex items-center justify-between py-2 gap-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-5 w-6 rounded-full" />
+        </div>
+        <Skeleton className="h-5 w-5 rounded-sm" />
+      </div>
+      {expanded && (
+        <div className="rounded-lg bg-[var(--surface-1)]/50 p-3 mt-1">
+          <div className="grid grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <SkeletonPoster key={i} size="sm" />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

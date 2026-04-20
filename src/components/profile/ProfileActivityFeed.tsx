@@ -6,6 +6,7 @@ import {
 import { NewActivityItem } from "@/components/activity/NewActivityItem";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Clock } from "@phosphor-icons/react/dist/ssr";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProfileActivityFeedProps {
   userId: string;
@@ -54,6 +55,26 @@ export async function ProfileActivityFeed({
           fixedHeight={false}
           index={index}
         />
+      ))}
+    </div>
+  );
+}
+
+export function ProfileActivityFeedSkeleton({
+  limit = 5,
+  className,
+}: {
+  limit?: number;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-1 ${className ?? ""}`} aria-hidden="true">
+      {Array.from({ length: limit }).map((_, i) => (
+        <div key={i} className="flex items-center gap-2 py-1.5">
+          <Skeleton className="w-6 h-6 rounded-full flex-shrink-0" />
+          <Skeleton className="h-3 flex-1" />
+          <Skeleton className="h-2.5 w-12 flex-shrink-0" />
+        </div>
       ))}
     </div>
   );

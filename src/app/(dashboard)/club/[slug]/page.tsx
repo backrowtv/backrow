@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { BrandText } from "@/components/ui/brand-text";
 import { CaretRight, Gear, Sliders } from "@phosphor-icons/react/dist/ssr";
 import { UnifiedClubCard } from "@/components/clubs/UnifiedClubCard";
+import { FestivalHeroCardSkeleton } from "@/components/festivals/display/FestivalHeroCard";
 
 import { resolveClub } from "@/lib/clubs/resolveClub";
 import { ClubNavigation } from "@/components/clubs/ClubNavigation";
@@ -659,13 +660,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
 
                 {/* Active Festival Hero / Deadline Alert */}
                 {festivalType === "endless" ? (
-                  <Suspense
-                    fallback={
-                      <div className="animate-pulse">
-                        <div className="h-32 lg:h-48 rounded-lg bg-[var(--surface-1)]" />
-                      </div>
-                    }
-                  >
+                  <Suspense fallback={<FestivalHeroCardSkeleton phase="watch_rate" />}>
                     <EndlessFestivalSection
                       clubId={clubId}
                       clubSlug={clubSlug}
@@ -679,13 +674,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
                   </Suspense>
                 ) : activeFestival && activeFestival.phase === "watch_rate" ? (
                   /* Use MovieCarousel for Watch & Rate phase - same as Endless Festival */
-                  <Suspense
-                    fallback={
-                      <div className="animate-pulse">
-                        <div className="h-32 lg:h-48 rounded-lg bg-[var(--surface-1)]" />
-                      </div>
-                    }
-                  >
+                  <Suspense fallback={<FestivalHeroCardSkeleton phase="watch_rate" />}>
                     <FestivalCarouselSection
                       festivalId={activeFestival.id}
                       festivalSlug={activeFestival.slug}

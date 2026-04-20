@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { DiscussionAvatar, type DiscussionAvatarType } from "./DiscussionAvatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Discussion {
   id: string;
@@ -129,6 +130,34 @@ export function CollapsibleRecentDiscussions({
           }
         />
       )}
+    </div>
+  );
+}
+
+export function RecentDiscussionsSkeleton({
+  count = 3,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  return (
+    <div className={className} aria-hidden="true">
+      <div className="flex items-center justify-between py-2 gap-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-8" />
+      </div>
+      <div className="pt-1 space-y-1">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex items-start gap-2.5 py-2 px-1">
+            <Skeleton className="w-8 h-8 rounded-md shrink-0" />
+            <div className="flex-1 min-w-0 space-y-1">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

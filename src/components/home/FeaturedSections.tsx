@@ -10,6 +10,7 @@ import { BrandText } from "@/components/ui/brand-text";
 import { getTMDBBlurDataURL, getBackdropBlurDataURL } from "@/lib/utils/blur-placeholder";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { FilmReel, UsersThree } from "@phosphor-icons/react/dist/ssr";
+import { Skeleton, SkeletonPoster, SkeletonAvatar } from "@/components/ui/skeleton";
 
 // ============================================
 // FEATURED MOVIES (Throwback + New Release)
@@ -503,17 +504,17 @@ export async function FeaturedClubSection() {
 
 function MovieCardSkeleton() {
   return (
-    <div className="rounded-xl overflow-hidden flex-1 border border-[var(--border)] bg-[var(--card)]">
+    <div className="rounded-xl overflow-hidden flex-1 border border-[var(--border)] bg-[var(--card)] shadow-lg">
       <div className="px-4 pt-3 pb-2">
-        <div className="h-2 w-24 bg-[var(--surface-2)] rounded animate-pulse" />
+        <Skeleton className="h-2 w-24" />
       </div>
       <div className="px-4 pb-4 flex gap-4">
-        <div className="w-24 h-36 rounded-lg bg-[var(--surface-2)] animate-pulse flex-shrink-0" />
+        <SkeletonPoster size="sm" />
         <div className="flex-1 space-y-2 py-1">
-          <div className="h-4 w-3/4 bg-[var(--surface-2)] rounded animate-pulse" />
-          <div className="h-3 w-full bg-[var(--surface-2)] rounded animate-pulse mt-1.5" />
-          <div className="h-3 w-2/3 bg-[var(--surface-2)] rounded animate-pulse" />
-          <div className="h-7 w-20 bg-[var(--surface-2)] rounded animate-pulse mt-2" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-3 w-full mt-1.5" />
+          <Skeleton className="h-3 w-2/3" />
+          <Skeleton className="h-7 w-20 mt-2" />
         </div>
       </div>
     </div>
@@ -521,8 +522,11 @@ function MovieCardSkeleton() {
 }
 
 export function FeaturedMovieSkeleton() {
+  // Real page renders both `featured` and `throwback` side-by-side when both exist.
+  // Show two cards to match the most common state.
   return (
     <div className="flex flex-col md:flex-row gap-3">
+      <MovieCardSkeleton />
       <MovieCardSkeleton />
     </div>
   );
@@ -530,17 +534,17 @@ export function FeaturedMovieSkeleton() {
 
 export function FeaturedClubSkeleton() {
   return (
-    <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)]">
+    <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)] shadow-lg">
       <div className="px-4 pt-3 pb-2">
-        <div className="h-2 w-20 bg-[var(--surface-2)] rounded animate-pulse" />
+        <Skeleton className="h-2 w-20" />
       </div>
-      <div className="px-4 pb-4 flex gap-4">
-        <div className="w-28 h-28 rounded-full bg-[var(--surface-2)] animate-pulse flex-shrink-0" />
+      <div className="px-4 pb-4 flex gap-4 min-h-[88px]">
+        <SkeletonAvatar size="xl" />
         <div className="flex-1 space-y-2 py-1">
-          <div className="h-5 w-40 bg-[var(--surface-2)] rounded animate-pulse" />
-          <div className="h-3 w-32 bg-[var(--surface-2)] rounded animate-pulse" />
-          <div className="h-3 w-full bg-[var(--surface-2)] rounded animate-pulse mt-2" />
-          <div className="h-3 w-3/4 bg-[var(--surface-2)] rounded animate-pulse" />
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-3 w-full mt-2" />
+          <Skeleton className="h-3 w-3/4" />
         </div>
       </div>
     </div>

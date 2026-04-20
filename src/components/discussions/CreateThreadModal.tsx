@@ -26,14 +26,13 @@ import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
 import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { MovieSearchResultItem } from "@/components/movies/MovieSearchResultItem";
 import type { TMDBMovieSearchResult } from "@/lib/tmdb/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Dynamic import for heavy rich text editor
 const SimpleRichTextEditor = dynamic(
   () => import("@/components/movies/SimpleRichTextEditor").then((mod) => mod.SimpleRichTextEditor),
   {
-    loading: () => (
-      <div className="h-[150px] bg-[var(--surface-1)] rounded-lg border border-[var(--border)] animate-pulse" />
-    ),
+    loading: () => <Skeleton className="h-[150px] rounded-lg border border-[var(--border)]" />,
     ssr: false,
   }
 );

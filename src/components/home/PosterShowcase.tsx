@@ -5,6 +5,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { FilmReel, CaretRight } from "@phosphor-icons/react";
 import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Movie {
   id: number;
@@ -121,10 +122,10 @@ export function PosterShowcase({
 export function PosterShowcaseSkeleton() {
   return (
     <div className="space-y-3">
-      <div className="h-4 w-24 bg-[var(--surface-1)] rounded animate-pulse" />
+      <Skeleton className="h-4 w-24" />
       <div className="grid grid-cols-5 gap-2">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="aspect-[2/3] rounded-md bg-[var(--surface-1)] animate-pulse" />
+          <Skeleton key={i} className="aspect-[2/3] rounded-md" />
         ))}
       </div>
     </div>

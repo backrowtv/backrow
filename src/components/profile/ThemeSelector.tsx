@@ -4,6 +4,7 @@ import { useTheme } from "@/components/ui/theme-toggle";
 import { THEME_PRESETS, isThemeDarkOnly } from "@/lib/themes/presets";
 import { cn } from "@/lib/utils";
 import { Check, Moon } from "@phosphor-icons/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ThemeSelector() {
   const { theme, colorTheme, setColorTheme, mounted } = useTheme();
@@ -12,7 +13,7 @@ export function ThemeSelector() {
     return (
       <div className="grid grid-cols-5 gap-2">
         {THEME_PRESETS.map((preset) => (
-          <div key={preset.id} className="h-12 rounded-lg bg-[var(--surface-2)] animate-pulse" />
+          <Skeleton key={preset.id} className="h-12 rounded-lg" />
         ))}
       </div>
     );
