@@ -20,8 +20,8 @@ export const MOVIE_LINK_CONFIG: Record<MovieLinkType, MovieLinkConfig> = {
   wikipedia: { id: "wikipedia", label: "Wikipedia", description: "Encyclopedia article" },
 };
 
-// Default: all movie links visible
-export const DEFAULT_VISIBLE_MOVIE_LINKS: MovieLinkType[] = [...MOVIE_LINK_TYPES];
+// Default: IMDb, Letterboxd, Wikipedia — Trakt and TMDB hidden by default
+export const DEFAULT_VISIBLE_MOVIE_LINKS: MovieLinkType[] = ["imdb", "letterboxd", "wikipedia"];
 
 export interface MovieLinkPreferences {
   visibleLinks: MovieLinkType[];
