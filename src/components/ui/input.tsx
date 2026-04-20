@@ -71,7 +71,7 @@ const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProp
       // Date inputs use smaller text/padding on mobile so they fit in grid layouts
       isDate ? "px-2 py-2 text-sm" : "px-3 py-2 text-base md:text-sm",
       !isTextarea && "h-9 md:h-9",
-      "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)] focus-visible:border-transparent",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--background)] focus-visible:border-transparent",
       "hover:border-[var(--border-hover)]",
       "transition-colors duration-150",
       "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--surface-2)]",
@@ -81,7 +81,7 @@ const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProp
     );
 
     return (
-      <div className="w-full min-w-0 overflow-hidden">
+      <div className="w-full min-w-0">
         {label && (
           <label
             htmlFor={inputId}
