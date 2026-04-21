@@ -12,6 +12,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
 export async function changeEmail(prevState: unknown, formData: FormData) {
   const supabase = await createClient();
@@ -47,7 +48,7 @@ export async function changeEmail(prevState: unknown, formData: FormData) {
       email: newEmail,
     },
     {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
+      emailRedirectTo: authCallbackUrl(),
     }
   );
 

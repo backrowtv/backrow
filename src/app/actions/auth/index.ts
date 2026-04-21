@@ -8,7 +8,7 @@
 export { signIn, signInTestUser, signInWithMagicLink, signOut, signOutTest } from "./signin";
 
 // Registration
-export { signUp } from "./signup";
+export { signUp, resendSignUpConfirmation } from "./signup";
 
 // Password management
 export { changePassword, resetPassword, sendPasswordResetEmail, updatePassword } from "./password";

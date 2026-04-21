@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { handleActionError } from "@/lib/errors/handler";
 import { ensureUser } from "@/lib/users/ensureUser";
+import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
 /**
  * Combined action for wizard-first auth flow
@@ -59,7 +60,7 @@ export async function createUserAndClub(formData: FormData) {
     email,
     password: authPassword,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
+      emailRedirectTo: authCallbackUrl(),
     },
   });
 

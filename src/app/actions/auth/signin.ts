@@ -12,7 +12,7 @@ import { revalidatePath } from "next/cache";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { resolveRedirect, setRedirectCookie } from "@/lib/auth/redirect";
-import { env } from "@/lib/config/env";
+import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
 export async function signIn(prevState: unknown, formData: FormData) {
   const rateCheck = await actionRateLimit("signIn", { limit: 5, windowMs: 60_000 });
@@ -126,10 +126,9 @@ export async function signInWithMagicLink(prevState: unknown, formData: FormData
     return { error: "Please enter a valid email address" };
   }
 
-  const siteUrl = env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const redirectTo = `${siteUrl}/auth/callback`;
-
-  // Store redirect destination in cookie for when user returns via magic link
+  // Store redirect destination in cookie (cookie survives magic-link click on
+  // the same device) AND pass it through `next=` on the callback URL (survives
+  // cross-device clicks). Callback prefers `next=` when valid.
   const postAuthRedirect = formData.get("redirectTo") as string | null;
   if (postAuthRedirect) {
     await setRedirectCookie(postAuthRedirect);
@@ -138,7 +137,7 @@ export async function signInWithMagicLink(prevState: unknown, formData: FormData
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: redirectTo,
+      emailRedirectTo: authCallbackUrl(postAuthRedirect),
     },
   });
 

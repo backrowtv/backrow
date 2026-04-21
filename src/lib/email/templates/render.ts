@@ -1,4 +1,4 @@
-import { render } from "@react-email/components";
+import { render } from "react-email";
 import { NotificationEmail, type NotificationEmailProps } from "./components/notification-email";
 import {
   ContactNotificationEmail,

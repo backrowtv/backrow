@@ -70,10 +70,22 @@ const envSchema = publicEnvSchema.merge(serverEnvSchema);
 
 export type Env = z.infer<typeof envSchema>;
 
+/**
+ * Coerces NEXT_PUBLIC_SITE_URL (legacy name) into NEXT_PUBLIC_APP_URL when
+ * only the legacy name is set, so downstream code reads a single canonical
+ * value. Callers that hard-coded process.env.NEXT_PUBLIC_SITE_URL have been
+ * migrated to `authCallbackUrl()` / `absoluteUrl()`.
+ */
+function normalizeAppUrl(src: NodeJS.ProcessEnv | Record<string, string | undefined>): void {
+  if (!src.NEXT_PUBLIC_APP_URL && src.NEXT_PUBLIC_SITE_URL) {
+    src.NEXT_PUBLIC_APP_URL = src.NEXT_PUBLIC_SITE_URL;
+  }
+}
+
 function validateEnv(): Env {
   // Browser: only public vars are available. Server-only fields remain undefined.
   if (typeof window !== "undefined") {
-    const result = publicEnvSchema.safeParse({
+    const publicEnv: Record<string, string | undefined> = {
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
@@ -82,7 +94,9 @@ function validateEnv(): Env {
       NEXT_PUBLIC_ENABLE_TEST_AUTH: process.env.NEXT_PUBLIC_ENABLE_TEST_AUTH,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    });
+    };
+    normalizeAppUrl(publicEnv);
+    const result = publicEnvSchema.safeParse(publicEnv);
     if (!result.success) {
       console.error("Invalid public environment variables:", result.error.format());
       throw new Error("Invalid environment variables. Check the console for details.");
@@ -90,11 +104,26 @@ function validateEnv(): Env {
     return result.data as Env;
   }
 
+  normalizeAppUrl(process.env);
+
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
     console.error("Invalid environment variables:", result.error.format());
     throw new Error("Invalid environment variables. Check the console for details.");
   }
+
+  // NEXT_PUBLIC_APP_URL is required in production (Vercel preview + prod both
+  // set NODE_ENV=production). Missing it means the Supabase `emailRedirectTo`
+  // helper falls back to the `https://backrow.tv` default — which is wrong for
+  // preview deploys and was the root cause of the "confirmation email links
+  // point to localhost" bug when the legacy NEXT_PUBLIC_SITE_URL was stale.
+  if (result.data.NODE_ENV === "production" && !result.data.NEXT_PUBLIC_APP_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_APP_URL (or legacy NEXT_PUBLIC_SITE_URL) must be set in production. " +
+        "See docs/development.md#env-schema."
+    );
+  }
+
   return result.data;
 }
 

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Provider } from "@supabase/supabase-js";
 import { setRedirectCookie } from "@/lib/auth/redirect";
+import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
 type OAuthProvider = "google" | "meta" | "twitter" | "apple" | "discord";
 
@@ -18,7 +19,10 @@ interface SignInWithOAuthResult {
  * @param provider - OAuth provider ('google' | 'meta' | 'twitter' | 'apple' | 'discord')
  * @returns Object with error message or redirect URL
  */
-export async function signInWithOAuth(provider: OAuthProvider, postAuthRedirect?: string): Promise<SignInWithOAuthResult> {
+export async function signInWithOAuth(
+  provider: OAuthProvider,
+  postAuthRedirect?: string
+): Promise<SignInWithOAuthResult> {
   const supabase = await createClient();
 
   // Map provider names to Supabase provider identifiers
@@ -37,9 +41,9 @@ export async function signInWithOAuth(provider: OAuthProvider, postAuthRedirect?
     return { error: `Unsupported OAuth provider: ${provider}` };
   }
 
-  // Get the callback URL
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const redirectTo = `${siteUrl}/auth/callback`;
+  // OAuth uses the cookie-based redirect; `next` param isn't needed here since
+  // the provider will bounce back to /auth/callback with its own `code` param.
+  const redirectTo = authCallbackUrl();
 
   // Initiate OAuth flow
   const { data, error } = await supabase.auth.signInWithOAuth({

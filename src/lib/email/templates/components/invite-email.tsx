@@ -1,4 +1,4 @@
-import { Text, Button, Heading } from "@react-email/components";
+import { Text, Button, Heading } from "react-email";
 import * as React from "react";
 import { BackRowEmailLayout } from "./backrow-layout";
 
@@ -32,12 +32,8 @@ export function InviteEmail({
       <Button href={inviteUrl} style={ctaButton}>
         Join {clubName}
       </Button>
-      {isPrivate && (
-        <Text style={expiryStyle}>This invite link expires in 7 days.</Text>
-      )}
-      <Text style={footerNote}>
-        BackRow — Movie clubs, done right.
-      </Text>
+      {isPrivate && <Text style={expiryStyle}>This invite link expires in 7 days.</Text>}
+      <Text style={footerNote}>BackRow — Movie clubs, done right.</Text>
     </BackRowEmailLayout>
   );
 }
