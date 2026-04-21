@@ -1,4 +1,4 @@
-import { Text, Button, Heading } from "@react-email/components";
+import { Text, Button, Heading } from "react-email";
 import * as React from "react";
 import { BackRowEmailLayout } from "./backrow-layout";
 

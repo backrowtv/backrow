@@ -1,4 +1,4 @@
-import { Html, Head, Body, Container, Section, Text, Link, Preview } from "@react-email/components";
+import { Html, Head, Body, Container, Section, Text, Link, Preview } from "react-email";
 import * as React from "react";
 
 interface BackRowEmailLayoutProps {

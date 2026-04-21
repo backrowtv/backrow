@@ -24,6 +24,7 @@ export {
   signOutTest,
   // Registration
   signUp,
+  resendSignUpConfirmation,
   // Password management
   changePassword,
   resetPassword,

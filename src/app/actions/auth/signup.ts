@@ -13,7 +13,38 @@ import { ensureUser } from "@/lib/users/ensureUser";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { sendEmail } from "@/lib/email/resend";
 import { welcomeEmailHtml } from "@/lib/email/templates/render";
-import { resolveRedirect } from "@/lib/auth/redirect";
+import { isValidRedirect } from "@/lib/auth/redirect";
+import { authCallbackUrl } from "@/lib/seo/absolute-url";
+
+/**
+ * Resend the signup confirmation email. Called from the /sign-up/confirm page
+ * when the user didn't receive / can't find the original email. Re-encodes the
+ * `next` destination the same way `signUp` did so the resent link also lands
+ * the user on the invite / original target after verification.
+ */
+export async function resendSignUpConfirmation(prevState: unknown, formData: FormData) {
+  const rateCheck = await actionRateLimit("resendSignUpConfirmation", {
+    limit: 3,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
+  const email = formData.get("email") as string;
+  const nextRaw = formData.get("next") as string | null;
+  const next = nextRaw && isValidRedirect(nextRaw) ? nextRaw : null;
+
+  if (!email) return { error: "Email is required" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: authCallbackUrl(next) },
+  });
+
+  if (error) return { error: error.message };
+  return { success: true, message: "Confirmation email sent. Check your inbox." };
+}
 
 export async function signUp(prevState: unknown, formData: FormData) {
   const rateCheck = await actionRateLimit("signUp", { limit: 5, windowMs: 60_000 });
@@ -24,6 +55,8 @@ export async function signUp(prevState: unknown, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const username = formData.get("username") as string | null;
+  const redirectToRaw = formData.get("redirectTo") as string | null;
+  const redirectTo = redirectToRaw && isValidRedirect(redirectToRaw) ? redirectToRaw : null;
 
   // Validate inputs
   if (!email || !password) {
@@ -60,7 +93,7 @@ export async function signUp(prevState: unknown, formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
+      emailRedirectTo: authCallbackUrl(redirectTo),
       // Allow unverified emails for development
       data: {
         email_verified: false,
@@ -116,11 +149,12 @@ export async function signUp(prevState: unknown, formData: FormData) {
     }
   }
 
-  // Resolve redirect destination from form data
-  const destination = await resolveRedirect(formData);
-
-  // Revalidate and redirect
-  // Note: redirect() throws, so this never returns normally
+  // Signup requires email confirmation: send the user to a "check your email"
+  // screen rather than their original destination. The confirmation link itself
+  // carries `?next=<redirectTo>` (via `emailRedirectTo` above), so clicking it
+  // lands back on the invite / wherever the user was going.
   revalidatePath("/", "layout");
-  redirect(destination);
+  const confirmParams = new URLSearchParams({ email });
+  if (redirectTo) confirmParams.set("next", redirectTo);
+  redirect(`/sign-up/confirm?${confirmParams.toString()}`);
 }

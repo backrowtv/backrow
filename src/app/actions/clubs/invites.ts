@@ -13,6 +13,7 @@ import { sendEmail } from "@/lib/email/resend";
 import { inviteEmailHtml } from "@/lib/email/templates/render";
 import { actionRateLimit, actionRateLimitByUser } from "@/lib/security/action-rate-limit";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
+import { SITE_URL } from "@/lib/seo/absolute-url";
 
 const TOKEN_EXPIRY_DAYS = 7;
 
@@ -242,8 +243,6 @@ export async function sendInviteEmails(
   const inviterName = inviterProfile?.display_name || inviterProfile?.username || undefined;
 
   // Build invite URL
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://backrow.tv";
   const isPrivate = club.privacy === "private";
   let inviteUrl: string;
 
@@ -257,9 +256,9 @@ export async function sendInviteEmails(
       }
       inviteToken = tokenResult.token;
     }
-    inviteUrl = `${siteUrl}/join/${club.slug}?token=${inviteToken}`;
+    inviteUrl = `${SITE_URL}/join/${club.slug}?token=${inviteToken}`;
   } else {
-    inviteUrl = `${siteUrl}/join/${club.slug}`;
+    inviteUrl = `${SITE_URL}/join/${club.slug}`;
   }
 
   // Render the email template
