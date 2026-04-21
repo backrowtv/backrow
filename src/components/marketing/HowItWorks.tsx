@@ -4,17 +4,17 @@ const steps = [
   {
     number: "1",
     title: "Create or join a club",
-    body: "Find a group that shares your taste in film, or start your own and invite your people.",
+    body: "Start your own or find a group that shares your taste.",
   },
   {
     number: "2",
-    title: "Pick a theme, build the lineup",
-    body: "Anyone can nominate a film. The club votes the lineup into order for the season.",
+    title: "Build the lineup",
+    body: "Anyone nominates. The club votes films into the running.",
   },
   {
     number: "3",
-    title: "Watch, rate, crown a winner",
-    body: "Log your ratings, discuss each film, and see the leaderboard once the festival wraps.",
+    title: "Watch, rate, discuss",
+    body: "Log ratings, talk it out, see where the night lands.",
   },
 ];
 
@@ -40,7 +40,7 @@ export function HowItWorks() {
           works
         </Heading>
         <Text size="body" className="mt-3 text-[var(--text-secondary)] max-w-xl mx-auto">
-          Three steps from zero to your first festival.
+          From zero to your first festival in three steps.
         </Text>
       </div>
 

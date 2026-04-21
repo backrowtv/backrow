@@ -1,4 +1,4 @@
-import { Heading, Text } from "@/components/ui/typography";
+import { Heading } from "@/components/ui/typography";
 
 interface FeatureRow {
   title: string;
@@ -9,22 +9,22 @@ interface FeatureRow {
 const features: FeatureRow[] = [
   {
     title: "Nominations & voting",
-    body: "Anyone can put a film in the ring. The club votes the lineup into order so every season reflects what your people actually want to watch.",
+    body: "Anyone can put a film in the ring. The club votes the lineup into order.",
     placeholderLabel: "Nominations",
   },
   {
     title: "Rubric ratings, not just stars",
-    body: "Score each film on the criteria your club cares about — cinematography, script, vibes, whatever. Weighted totals, always on a 0.0–10.0 scale.",
+    body: "Score each film on the criteria your club cares about. Weighted totals on a 0.0–10.0 scale.",
     placeholderLabel: "Rubric ratings",
   },
   {
     title: "Results & leaderboards",
-    body: "See who picked the champ, who called it early, and who's climbing the season standings. Bragging rights, receipts included.",
+    body: "See who picked the champ and who's climbing the standings. Bragging rights, receipts included.",
     placeholderLabel: "Leaderboards",
   },
   {
-    title: "Discussions, polls, and talk tracks",
-    body: "Every film gets its own thread. Polls settle the side debates. Reactions land where the conversation lives.",
+    title: "Discussions & polls",
+    body: "Every film gets its own thread. Polls settle the side debates.",
     placeholderLabel: "Discussions",
   },
 ];
@@ -57,10 +57,6 @@ export function FeatureShowcase() {
         >
           Built for the way film clubs actually watch
         </Heading>
-        <Text size="body" className="mt-3 text-[var(--text-secondary)]">
-          The tools are shaped by real clubs running real festivals. Not a generic watchlist with a
-          social layer bolted on.
-        </Text>
       </div>
 
       <div className="space-y-20 md:space-y-28">

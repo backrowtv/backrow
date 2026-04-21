@@ -27,7 +27,7 @@ export function FinalCTA() {
         .
       </Heading>
       <Text size="body" className="mt-4 max-w-xl mx-auto text-[var(--text-secondary)]">
-        Create a club, invite your people, pick a theme. Thirty seconds to your first nomination.
+        Thirty seconds to your first nomination.
       </Text>
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <Button asChild size="lg">
