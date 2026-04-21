@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +76,9 @@ export function CuratedCollectionsManager({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [collections, setCollections] = useState(initialCollections);
+  useEffect(() => {
+    setCollections(initialCollections);
+  }, [initialCollections]);
   const [editingCollection, setEditingCollection] = useState<CuratedCollection | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
