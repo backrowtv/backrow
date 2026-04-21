@@ -99,7 +99,7 @@ export function LandingHeroClient({ backdropUrl }: LandingHeroClientProps) {
                 Movie Clubs
               </span>
             </Heading>
-            <div className="mt-5 min-h-[3rem] md:min-h-0 md:h-10 flex items-center justify-center overflow-hidden">
+            <div className="mt-5 h-[3.75rem] md:h-10 flex items-center justify-center overflow-hidden">
               <p
                 key={currentTagline}
                 className="text-lg md:text-xl animate-fade-in text-white"

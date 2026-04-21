@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
 import { Container } from "@/components/ui/section";
 import { LandingFAQ } from "@/components/marketing/LandingFAQ";
-import { HowItWorks } from "@/components/marketing/HowItWorks";
-import { FeatureShowcase } from "@/components/marketing/FeatureShowcase";
-import { ModeComparison } from "@/components/marketing/ModeComparison";
+import { FestivalDemo } from "@/components/marketing/FestivalDemo";
 import { FinalCTA } from "@/components/marketing/FinalCTA";
 import { LandingHero } from "@/components/marketing/LandingHero";
 
@@ -54,11 +52,9 @@ export async function LandingPage({ searchParams }: LandingPageProps) {
       <main className="flex-1">
         <Container size="lg" className="pt-16 md:pt-24 pb-20 md:pb-28 px-4 sm:px-6">
           <div className="space-y-24 md:space-y-32">
-            <HowItWorks />
-            <FeatureShowcase />
-            <ModeComparison />
-            <LandingFAQ />
+            <FestivalDemo />
             <FinalCTA />
+            <LandingFAQ />
           </div>
         </Container>
       </main>
