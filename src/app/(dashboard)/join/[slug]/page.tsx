@@ -21,14 +21,27 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
   const { token } = await searchParams;
   const supabase = await createClient();
 
-  // Look up club by slug
-  const { data: club, error: clubError } = await supabase
+  // Look up club by slug. Private clubs are hidden by RLS from non-members, so
+  // a legitimate invitee who clicks /join/<slug>?token=<t> would otherwise see
+  // "Club Not Found" before ever reaching the auto-join path. If the normal
+  // SELECT returns nothing and the caller presented a token, fall back to the
+  // SECURITY DEFINER RPC which returns the preview iff the token is valid.
+  const { data: directClub, error: clubError } = await supabase
     .from("clubs")
     .select(
       "id, name, slug, privacy, archived, picture_url, description, settings, avatar_icon, avatar_color_index, avatar_border_color_index"
     )
     .eq("slug", slug)
     .maybeSingle();
+
+  let club = directClub;
+  if (!club && token) {
+    const { data: previewRows } = await supabase.rpc("fetch_invite_club_preview", {
+      p_slug: slug,
+      p_token: token,
+    });
+    club = previewRows?.[0] ?? null;
+  }
 
   if (clubError || !club) {
     return (
@@ -136,12 +149,16 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
             </div>
 
             <div className="space-y-3">
-              <Link href={`/sign-in?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}>
+              <Link
+                href={`/sign-in?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}
+              >
                 <Button variant="primary" className="w-full">
                   Sign In to Join
                 </Button>
               </Link>
-              <Link href={`/sign-up?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}>
+              <Link
+                href={`/sign-up?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}
+              >
                 <Button variant="secondary" className="w-full">
                   Create Account
                 </Button>
