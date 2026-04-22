@@ -99,17 +99,41 @@ export function CuratedMovies({ title, subtitle, emoji, movies }: CuratedMoviesP
         )}
       </div>
       <div className="relative">
-        {/* Left Arrow */}
+        {/* Left Arrow — inside, filled (mobile) */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 md:hidden">
             <ScrollNavButton direction="left" onClick={() => scroll("left")} size="md" />
           </div>
         )}
 
-        {/* Right Arrow */}
+        {/* Right Arrow — inside, filled (mobile) */}
         {canScrollRight && (
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 md:hidden">
             <ScrollNavButton direction="right" onClick={() => scroll("right")} size="md" />
+          </div>
+        )}
+
+        {/* Left Arrow — outside, bare (desktop) */}
+        {canScrollLeft && (
+          <div className="hidden md:block absolute -left-10 top-1/2 -translate-y-1/2 z-10">
+            <ScrollNavButton
+              direction="left"
+              onClick={() => scroll("left")}
+              size="lg"
+              variant="bare"
+            />
+          </div>
+        )}
+
+        {/* Right Arrow — outside, bare (desktop) */}
+        {canScrollRight && (
+          <div className="hidden md:block absolute -right-10 top-1/2 -translate-y-1/2 z-10">
+            <ScrollNavButton
+              direction="right"
+              onClick={() => scroll("right")}
+              size="lg"
+              variant="bare"
+            />
           </div>
         )}
 
