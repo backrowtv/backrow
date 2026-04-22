@@ -117,27 +117,28 @@ export async function updateNavPreferences(
     }
   }
 
-  // If favorite_club is in items, validate the club exists and user has access
+  // If favorite_club is in items, validate the club exists and user has access.
+  // club_members uses a composite primary key (club_id, user_id) and has no
+  // `id` column — selecting non-existent columns silently nulls the result,
+  // which previously rejected producers even when they owned the club.
   if (preferences.items?.includes("favorite_club") && preferences.favoriteClubId) {
-    // Check if user is a member (any role: member, director, etc.)
     const { data: membership } = await supabase
       .from("club_members")
-      .select("id, role")
+      .select("role")
       .eq("user_id", user.id)
       .eq("club_id", preferences.favoriteClubId)
       .maybeSingle();
 
-    // Check if user is the producer (may not be in club_members)
     const { data: club } = await supabase
       .from("clubs")
       .select("producer_id")
       .eq("id", preferences.favoriteClubId)
-      .single();
+      .maybeSingle();
 
+    const isMember = !!membership;
     const isProducer = club?.producer_id === user.id;
-    const isMemberOrDirector = !!membership;
 
-    if (!isMemberOrDirector && !isProducer) {
+    if (!isMember && !isProducer) {
       return { success: false, error: "You must be a member of the club to add it to navigation" };
     }
   }
