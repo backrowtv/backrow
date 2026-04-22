@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ensureUser } from "@/lib/users/ensureUser";
+import { autoJoinFeaturedClub } from "@/lib/users/autoJoinFeatured";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { sendEmail } from "@/lib/email/resend";
 import { welcomeEmailHtml } from "@/lib/email/templates/render";
@@ -105,6 +106,19 @@ export async function signUp(prevState: unknown, formData: FormData) {
     return { error: error.message };
   }
 
+  // Supabase's anti-enumeration path: when `signUp()` is called with an email
+  // that already exists AND is already confirmed, it returns a success-looking
+  // response with `user.identities = []` and does NOT send a new email. Without
+  // this check the user would be redirected to /sign-up/confirm and wait forever.
+  // Existing unconfirmed accounts still have `identities.length > 0` and Supabase
+  // re-sends the confirmation email, so that path is preserved below.
+  if (signUpData.user && signUpData.user.identities?.length === 0) {
+    return {
+      error: "An account with this email already exists. Please sign in instead.",
+      alreadyExists: true,
+    };
+  }
+
   // Create user in public.users table if signup was successful
   if (signUpData.user) {
     try {
@@ -128,21 +142,7 @@ export async function signUp(prevState: unknown, formData: FormData) {
         }
       }
 
-      // Auto-join BackRow Featured club
-      const { data: featuredClub } = await supabase
-        .from("clubs")
-        .select("id")
-        .eq("slug", "backrow-featured")
-        .single();
-
-      if (featuredClub) {
-        await supabase
-          .from("club_members")
-          .upsert(
-            { club_id: featuredClub.id, user_id: signUpData.user.id, role: "critic" },
-            { onConflict: "club_id,user_id" }
-          );
-      }
+      await autoJoinFeaturedClub(supabase, signUpData.user.id);
     } catch (userError) {
       // Log error but don't fail signup - user can still sign in
       console.error("Failed to create user profile:", userError);

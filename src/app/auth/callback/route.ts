@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ensureUser } from "@/lib/users/ensureUser";
+import { autoJoinFeaturedClub } from "@/lib/users/autoJoinFeatured";
 import { NextRequest } from "next/server";
 import { consumeRedirectCookie, isValidRedirect } from "@/lib/auth/redirect";
 
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
   // Ensure user exists in public.users table
   try {
     await ensureUser(supabase, user.id, email);
+    await autoJoinFeaturedClub(supabase, user.id);
 
     // Optionally update user metadata from OAuth provider
     if (user.user_metadata) {

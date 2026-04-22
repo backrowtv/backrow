@@ -241,6 +241,22 @@ export function SignUpFormFields({ redirectTo }: SignUpFormFieldsProps) {
             </svg>
             <span className="flex-1 text-xs" style={{ color: "var(--error)", fontWeight: 500 }}>
               {state.error}
+              {"alreadyExists" in state && state.alreadyExists && (
+                <>
+                  {" "}
+                  <Link
+                    href={
+                      redirectTo
+                        ? `/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`
+                        : "/sign-in"
+                    }
+                    className="underline font-medium"
+                    style={{ color: "var(--error)" }}
+                  >
+                    Sign in
+                  </Link>
+                </>
+              )}
             </span>
           </div>
         )}

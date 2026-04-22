@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { handleActionError } from "@/lib/errors/handler";
 import { ensureUser } from "@/lib/users/ensureUser";
+import { autoJoinFeaturedClub } from "@/lib/users/autoJoinFeatured";
 import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
 /**
@@ -212,21 +213,7 @@ export async function createUserAndClub(formData: FormData) {
     // For now, continue and let them handle it
   }
 
-  // Auto-join BackRow Featured club
-  const { data: featuredClub } = await supabase
-    .from("clubs")
-    .select("id")
-    .eq("slug", "backrow-featured")
-    .single();
-
-  if (featuredClub) {
-    await supabase
-      .from("club_members")
-      .upsert(
-        { club_id: featuredClub.id, user_id: userId, role: "critic" },
-        { onConflict: "club_id,user_id" }
-      );
-  }
+  await autoJoinFeaturedClub(supabase, userId);
 
   const now = new Date();
   const isEndlessMode = festivalType === "endless";
