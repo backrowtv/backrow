@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { createPublicClient } from "@/lib/supabase/server";
+import { createClient, createPublicClient } from "@/lib/supabase/server";
 
 export const getClubForSeo = cache(async (slug: string) => {
   const supabase = createPublicClient();
@@ -13,6 +13,24 @@ export const getClubForSeo = cache(async (slug: string) => {
     .maybeSingle();
   return data;
 });
+
+// For generateMetadata: falls back to the authenticated client when the public
+// (RLS-anon) query misses, so private clubs show real metadata to their own
+// members instead of "Club not found". Not React.cache'd because it reads cookies.
+export async function getClubForMetadata(slug: string) {
+  const publicResult = await getClubForSeo(slug);
+  if (publicResult) return publicResult;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("clubs")
+    .select(
+      "id, name, slug, description, theme_color, privacy, archived, picture_url, created_at, updated_at"
+    )
+    .eq("slug", slug)
+    .eq("archived", false)
+    .maybeSingle();
+  return data ?? null;
+}
 
 export const getFestivalForSeo = cache(async (clubSlug: string, festivalSlug: string) => {
   const supabase = createPublicClient();

@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { memo } from 'react'
-import { ClubMobileNav } from './ClubMobileNav'
+import { memo } from "react";
+import { ClubMobileNav } from "./ClubMobileNav";
 
 interface ClubMobileNavWrapperProps {
-  clubSlug: string
-  themeColor: string | null
+  clubSlug: string;
+  themeColor: string | null;
 }
 
 /**
@@ -14,13 +14,12 @@ interface ClubMobileNavWrapperProps {
  * - Consistent positioning across all club pages
  * - Proper spacing and container styling
  *
- * Note: CSS variables are handled by ClubThemeProvider in the layout.
  * Placed in layout to persist across page navigations.
  * Memoized to prevent re-renders when props haven't changed.
  */
 export const ClubMobileNavWrapper = memo(function ClubMobileNavWrapper({
   clubSlug,
-  themeColor
+  themeColor,
 }: ClubMobileNavWrapperProps) {
   return (
     <div className="md:hidden sticky top-0 z-40 bg-[var(--background)]/95 backdrop-blur-sm border-b border-[var(--border)] py-2">
@@ -28,5 +27,5 @@ export const ClubMobileNavWrapper = memo(function ClubMobileNavWrapper({
         <ClubMobileNav clubSlug={clubSlug} themeColor={themeColor} />
       </div>
     </div>
-  )
-})
+  );
+});

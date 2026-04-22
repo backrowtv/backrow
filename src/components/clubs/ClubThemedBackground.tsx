@@ -3,11 +3,9 @@
 /**
  * ClubThemedBackground
  *
- * @deprecated This component is deprecated. CSS variables for club theming
- * are now handled by ClubThemeProvider in the club layout, which properly
- * sets and cleans up CSS variables when entering/leaving club pages.
- *
- * This component is kept for backwards compatibility but does nothing.
+ * @deprecated CSS variables for club theming are scoped on `.club-layout`
+ * in the club layout. This component is kept as a no-op for call sites that
+ * still import it.
  */
 interface ClubThemedBackgroundProps {
   /** The theme color ID from ClubThemeColorPicker */
@@ -25,7 +23,5 @@ export function ClubThemedBackground({
 
   backgroundValue: _backgroundValue,
 }: ClubThemedBackgroundProps) {
-  // CSS variables are now handled by ClubThemeProvider in the club layout.
-  // This component is kept for backwards compatibility with existing imports.
   return null;
 }

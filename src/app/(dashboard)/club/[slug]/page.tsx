@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getClubForSeo } from "@/lib/seo/fetchers";
+import { getClubForMetadata } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 import { ClubJsonLd } from "@/components/seo/JsonLd";
 import { PublicClubLanding } from "@/components/clubs/PublicClubLanding";
@@ -56,7 +56,7 @@ interface ClubPageProps {
 
 export async function generateMetadata({ params }: ClubPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const club = await getClubForSeo(slug);
+  const club = await getClubForMetadata(slug);
   if (!club) {
     return { title: "Club not found · BackRow", robots: { index: false, follow: false } };
   }
