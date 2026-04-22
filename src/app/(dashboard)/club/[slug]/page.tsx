@@ -107,7 +107,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
       await Promise.all([
         supabase
           .from("club_members")
-          .select("id", { count: "exact", head: true })
+          .select("user_id", { count: "exact", head: true })
           .eq("club_id", publicClub.id),
         supabase
           .from("festivals")

@@ -92,7 +92,7 @@ export async function createJoinRequest(
   // Check if already a member
   const { data: existingMembership } = await supabase
     .from("club_members")
-    .select("id")
+    .select("user_id")
     .eq("club_id", clubId)
     .eq("user_id", user.id)
     .maybeSingle();

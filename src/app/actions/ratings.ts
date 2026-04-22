@@ -330,10 +330,11 @@ export async function updateGenericRating(
     return { error: "Invalid rating calculation" };
   }
 
-  // Check if rating already exists to determine if it's new or updated
+  // Check if rating already exists to determine if it's new or updated.
+  // generic_ratings has a composite PK (user_id, tmdb_id) — no `id` column.
   const { data: existingRating } = await supabase
     .from("generic_ratings")
-    .select("id")
+    .select("user_id")
     .eq("user_id", user.id)
     .eq("tmdb_id", tmdbId)
     .maybeSingle();

@@ -33,7 +33,7 @@ export default async function ClubOpenGraphImage({
   if (club) {
     const { count } = await supabase
       .from("club_members")
-      .select("id", { count: "exact", head: true })
+      .select("user_id", { count: "exact", head: true })
       .eq("club_id", club.id);
     memberCount = count ?? 0;
   }

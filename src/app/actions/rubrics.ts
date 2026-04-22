@@ -411,7 +411,7 @@ export async function lockFestivalRubric(
 
   const { data: membership, error: membershipError } = await supabase
     .from("club_members")
-    .select("id")
+    .select("user_id")
     .eq("club_id", festival.club_id)
     .eq("user_id", user.id)
     .maybeSingle();

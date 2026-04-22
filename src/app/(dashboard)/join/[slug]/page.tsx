@@ -193,7 +193,7 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
   // Check if already a member
   const { data: existingMembership } = await supabase
     .from("club_members")
-    .select("id")
+    .select("user_id")
     .eq("club_id", club.id)
     .eq("user_id", user.id)
     .maybeSingle();
