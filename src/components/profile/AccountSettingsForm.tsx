@@ -7,12 +7,11 @@ import { updateProfile, changeEmail } from "@/app/actions/auth";
 import { useActionState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { CalendarBlank, EnvelopeSimple, PencilSimple, X, User } from "@phosphor-icons/react";
+import { EnvelopeSimple, PencilSimple, X, User } from "@phosphor-icons/react";
 
 interface AccountSettingsFormProps {
   email: string;
   createdAt: string;
-  dateOfBirth: string | null;
   displayName: string;
   lastDisplayNameChange: string | null;
 }
@@ -20,7 +19,6 @@ interface AccountSettingsFormProps {
 export function AccountSettingsForm({
   email,
   createdAt,
-  dateOfBirth,
   displayName,
   lastDisplayNameChange,
 }: AccountSettingsFormProps) {
@@ -105,28 +103,6 @@ export function AccountSettingsForm({
     formData.append("newEmail", newEmail.trim());
     emailFormAction(formData);
   };
-
-  // Format date of birth for display (use manual formatting to avoid hydration mismatch)
-  const formattedDateOfBirth = dateOfBirth
-    ? (() => {
-        const months = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ];
-        const parts = dateOfBirth.split("-");
-        return `${months[parseInt(parts[1]) - 1]} ${parseInt(parts[2])}, ${parts[0]}`;
-      })()
-    : null;
 
   return (
     <div className="space-y-4">
@@ -255,19 +231,6 @@ export function AccountSettingsForm({
                     </Button>
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-
-          {/* Date of Birth (read-only) */}
-          <div className="py-3">
-            <div className="flex items-start gap-2.5">
-              <CalendarBlank className="h-4 w-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-[var(--text-muted)]">Date of Birth</p>
-                <p className="text-sm text-[var(--text-primary)] font-medium truncate">
-                  {formattedDateOfBirth || "Not set"}
-                </p>
               </div>
             </div>
           </div>

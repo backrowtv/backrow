@@ -82,7 +82,6 @@ erDiagram
         string display_name
         string avatar_url
         string bio
-        date date_of_birth
         boolean email_verified
         int favorite_movie_tmdb_id FK
         int favorite_director_tmdb_id FK

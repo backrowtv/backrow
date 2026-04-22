@@ -26,7 +26,6 @@ interface AccountSettingsAccordionProps {
   // Account settings
   email: string;
   createdAt: string;
-  dateOfBirth: string | null;
   socialLinks: {
     letterboxd?: string;
     letterboxd_visible?: boolean;
@@ -95,7 +94,6 @@ const sections: AccordionSection[] = [
 export function AccountSettingsAccordion({
   email,
   createdAt,
-  dateOfBirth,
   socialLinks,
   displayName,
   lastDisplayNameChange,
@@ -125,7 +123,6 @@ export function AccountSettingsAccordion({
           <AccountSettingsForm
             email={email}
             createdAt={createdAt}
-            dateOfBirth={dateOfBirth}
             displayName={displayName}
             lastDisplayNameChange={lastDisplayNameChange}
           />

@@ -18,7 +18,7 @@ export default async function AccountSettingsPage() {
   const { data: profile } = await supabase
     .from("users")
     .select(
-      "created_at, social_links, display_name, date_of_birth, show_watch_providers, last_display_name_change"
+      "created_at, social_links, display_name, show_watch_providers, last_display_name_change"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -80,7 +80,6 @@ export default async function AccountSettingsPage() {
           // Account props
           email={email}
           createdAt={profile?.created_at || new Date().toISOString()}
-          dateOfBirth={profile?.date_of_birth || null}
           socialLinks={linkedAccounts}
           displayName={profile?.display_name || ""}
           lastDisplayNameChange={profile?.last_display_name_change || null}

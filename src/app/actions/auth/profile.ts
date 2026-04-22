@@ -27,7 +27,6 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   const displayName = formData.get("display_name") as string | null;
   const bio = formData.get("bio") as string | null;
   const avatarFile = formData.get("avatar") as File | null;
-  const dateOfBirthStr = formData.get("date_of_birth") as string | null;
   const defaultAvatarIndexStr = formData.get("default_avatar_index") as string | null;
   // New avatar icon + color fields
   const avatarIcon = formData.get("avatar_icon") as string | null;
@@ -102,20 +101,6 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   // Validate quote/motto
   if (bio && bio.length > 100) {
     return { error: "Quote / motto must be 100 characters or less" };
-  }
-
-  // Validate date of birth if provided
-  if (dateOfBirthStr) {
-    const dateOfBirth = new Date(dateOfBirthStr);
-    const today = new Date();
-    const age = today.getFullYear() - dateOfBirth.getFullYear();
-    const monthDiff = today.getMonth() - dateOfBirth.getMonth();
-    const actualAge =
-      monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate()) ? age - 1 : age;
-
-    if (actualAge < 16) {
-      return { error: "You must be at least 16 years old" };
-    }
   }
 
   // Handle avatar upload if provided
@@ -276,7 +261,6 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   const updateData: {
     display_name?: string;
     bio?: string | null;
-    date_of_birth?: string | null;
     avatar_url?: string | null;
     favorite_movie_tmdb_id?: number | null;
     favorite_director_tmdb_id?: number | null;
@@ -314,11 +298,6 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     if (nameCheckProfile && nameCheckProfile.display_name !== trimmedName) {
       updateData.last_display_name_change = new Date().toISOString();
     }
-  }
-
-  // Add date of birth if provided
-  if (dateOfBirthStr) {
-    updateData.date_of_birth = dateOfBirthStr;
   }
 
   // Add favorite IDs only if explicitly provided in form data
@@ -485,7 +464,7 @@ export async function getUserProfile(userId: string) {
     .select(
       `
       id, email, username, display_name, avatar_url, bio, social_links,
-      email_verified, created_at, updated_at, date_of_birth,
+      email_verified, created_at, updated_at,
       favorite_movie_tmdb_id, favorite_director_tmdb_id, favorite_composer_tmdb_id,
       sidebar_nav_preferences, mobile_nav_preferences, rating_preferences,
       favorite_actor_tmdb_id, accessibility_preferences,

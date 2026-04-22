@@ -10,14 +10,12 @@ import { dismissHint } from "@/app/actions/dismissed-hints";
 interface ProfileCompletionBannerProps {
   initialDismissed?: boolean;
   needsDisplayName: boolean;
-  needsDob: boolean;
   needsBio: boolean;
 }
 
 export function ProfileCompletionBanner({
   initialDismissed = true,
   needsDisplayName,
-  needsDob,
   needsBio,
 }: ProfileCompletionBannerProps) {
   const [isDismissed, setIsDismissed] = useState(initialDismissed);
@@ -27,13 +25,9 @@ export function ProfileCompletionBanner({
     dismissHint("profile-completion");
   };
 
-  if (!needsDisplayName && !needsDob && !needsBio) return null;
+  if (!needsDisplayName && !needsBio) return null;
 
-  const missing = [
-    needsDisplayName && "display name",
-    needsDob && "date of birth",
-    needsBio && "bio",
-  ].filter(Boolean);
+  const missing = [needsDisplayName && "display name", needsBio && "bio"].filter(Boolean);
   const missingText = missing.join(" and ");
 
   return (

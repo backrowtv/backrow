@@ -3613,7 +3613,6 @@ export type Database = {
           bio: string | null;
           clubs_count: number | null;
           created_at: string | null;
-          date_of_birth: string | null;
           discussion_preferences: Json | null;
           dismissed_hints: Json | null;
           display_name: string;
@@ -3650,7 +3649,6 @@ export type Database = {
           bio?: string | null;
           clubs_count?: number | null;
           created_at?: string | null;
-          date_of_birth?: string | null;
           discussion_preferences?: Json | null;
           dismissed_hints?: Json | null;
           display_name: string;
@@ -3687,7 +3685,6 @@ export type Database = {
           bio?: string | null;
           clubs_count?: number | null;
           created_at?: string | null;
-          date_of_birth?: string | null;
           discussion_preferences?: Json | null;
           dismissed_hints?: Json | null;
           display_name?: string;

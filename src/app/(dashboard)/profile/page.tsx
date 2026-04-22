@@ -75,27 +75,25 @@ async function ProfilePageContent() {
     redirect("/sign-in");
   }
 
-  // Check if profile needs completion (display name, DOB, or bio missing)
+  // Check if profile needs completion (display name or bio missing)
   const { data: profile } = await supabase
     .from("users")
-    .select("display_name, date_of_birth, bio, dismissed_hints")
+    .select("display_name, bio, dismissed_hints")
     .eq("id", user.id)
     .maybeSingle();
 
   const needsDisplayName = !profile?.display_name;
-  const needsDob = !profile?.date_of_birth;
   const needsBio = !profile?.bio;
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
       {/* Profile completion prompt */}
-      {(needsDisplayName || needsDob || needsBio) && (
+      {(needsDisplayName || needsBio) && (
         <ProfileCompletionBanner
           initialDismissed={
             !!(profile?.dismissed_hints as Record<string, boolean>)?.["profile-completion"]
           }
           needsDisplayName={needsDisplayName}
-          needsDob={needsDob}
           needsBio={needsBio}
         />
       )}
