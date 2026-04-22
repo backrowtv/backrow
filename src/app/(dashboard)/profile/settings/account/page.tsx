@@ -18,7 +18,7 @@ export default async function AccountSettingsPage() {
   const { data: profile } = await supabase
     .from("users")
     .select(
-      "created_at, social_links, display_name, show_watch_providers, last_display_name_change"
+      "created_at, social_links, display_name, show_watch_providers, last_display_name_change, username, username_last_changed_at"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -83,6 +83,8 @@ export default async function AccountSettingsPage() {
           socialLinks={linkedAccounts}
           displayName={profile?.display_name || ""}
           lastDisplayNameChange={profile?.last_display_name_change || null}
+          username={profile?.username || ""}
+          usernameLastChangedAt={profile?.username_last_changed_at || null}
           // Privacy props
           privacySettings={privacySettings}
           // Watch props

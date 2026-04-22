@@ -4,34 +4,47 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateProfile, changeEmail } from "@/app/actions/auth";
+import { changeUsername } from "@/app/actions/auth/username";
 import { useActionState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { EnvelopeSimple, PencilSimple, X, User } from "@phosphor-icons/react";
+import { At, EnvelopeSimple, PencilSimple, X, User } from "@phosphor-icons/react";
 
 interface AccountSettingsFormProps {
   email: string;
   createdAt: string;
   displayName: string;
   lastDisplayNameChange: string | null;
+  username: string;
+  usernameLastChangedAt: string | null;
 }
+
+const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
 
 export function AccountSettingsForm({
   email,
   createdAt,
   displayName,
   lastDisplayNameChange,
+  username,
+  usernameLastChangedAt,
 }: AccountSettingsFormProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(updateProfile, null);
   const [emailState, emailFormAction, isEmailPending] = useActionState(changeEmail, null);
+  const [usernameState, usernameFormAction, isUsernamePending] = useActionState(
+    changeUsername,
+    null
+  );
   const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [isChangingDisplayName, setIsChangingDisplayName] = useState(false);
+  const [newDisplayName, setNewDisplayName] = useState(displayName);
   const [isChangingUsername, setIsChangingUsername] = useState(false);
-  const [newUsername, setNewUsername] = useState(displayName);
+  const [newUsername, setNewUsername] = useState(username);
 
-  // Calculate username change cooldown
-  const usernameOnCooldown = (() => {
+  // Display name: 6-month cooldown (unchanged from prior behavior)
+  const displayNameOnCooldown = (() => {
     if (!lastDisplayNameChange) return false;
     const lastChange = new Date(lastDisplayNameChange);
     const sixMonthsLater = new Date(lastChange);
@@ -39,7 +52,7 @@ export function AccountSettingsForm({
     return new Date() < sixMonthsLater;
   })();
 
-  const nextUsernameChangeDate = lastDisplayNameChange
+  const nextDisplayNameChangeDate = lastDisplayNameChange
     ? (() => {
         const lastChange = new Date(lastDisplayNameChange);
         const sixMonthsLater = new Date(lastChange);
@@ -52,16 +65,49 @@ export function AccountSettingsForm({
       })()
     : null;
 
-  // Handle success/error messages for username change
+  // Username: 30-day cooldown
+  const usernameOnCooldown = (() => {
+    if (!usernameLastChangedAt) return false;
+    const last = new Date(usernameLastChangedAt);
+    const next = new Date(last);
+    next.setDate(next.getDate() + USERNAME_CHANGE_COOLDOWN_DAYS);
+    return new Date() < next;
+  })();
+
+  const nextUsernameChangeDate = usernameLastChangedAt
+    ? (() => {
+        const last = new Date(usernameLastChangedAt);
+        const next = new Date(last);
+        next.setDate(next.getDate() + USERNAME_CHANGE_COOLDOWN_DAYS);
+        return next.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        });
+      })()
+    : null;
+
+  // Display name change toast
   React.useEffect(() => {
     if (state && "success" in state && state.success) {
-      toast.success("Username updated successfully");
-      setIsChangingUsername(false);
+      toast.success("Display name updated");
+      setIsChangingDisplayName(false);
       router.refresh();
     } else if (state && "error" in state && state.error) {
       toast.error(state.error);
     }
   }, [state, router]);
+
+  // Username change toast
+  React.useEffect(() => {
+    if (usernameState && "success" in usernameState && usernameState.success) {
+      toast.success("Username updated");
+      setIsChangingUsername(false);
+      router.refresh();
+    } else if (usernameState && "error" in usernameState && usernameState.error) {
+      toast.error(usernameState.error);
+    }
+  }, [usernameState, router]);
 
   // Handle success/error messages for email change
   React.useEffect(() => {
@@ -75,23 +121,42 @@ export function AccountSettingsForm({
     }
   }, [emailState, router]);
 
-  const handleUsernameChange = () => {
-    if (!newUsername.trim()) {
-      toast.error("Please enter a username");
+  const handleDisplayNameChange = () => {
+    if (!newDisplayName.trim()) {
+      toast.error("Please enter a display name");
       return;
     }
-    if (newUsername.trim().length < 2) {
-      toast.error("Username must be at least 2 characters");
+    if (newDisplayName.trim().length < 2) {
+      toast.error("Display name must be at least 2 characters");
       return;
     }
-    if (newUsername.length > 50) {
-      toast.error("Username must be less than 50 characters");
+    if (newDisplayName.length > 50) {
+      toast.error("Display name must be less than 50 characters");
       return;
     }
     const formData = new FormData();
-    formData.append("display_name", newUsername.trim());
+    formData.append("display_name", newDisplayName.trim());
     formData.append("bio", "");
     formAction(formData);
+  };
+
+  const handleUsernameChange = () => {
+    const sanitized = newUsername.trim().toLowerCase();
+    if (sanitized.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+    if (sanitized.length > 30) {
+      toast.error("Username must be 30 characters or less");
+      return;
+    }
+    if (!/^[a-z0-9_]+$/.test(sanitized)) {
+      toast.error("Username can only contain lowercase letters, numbers, and underscores");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("username", sanitized);
+    usernameFormAction(formData);
   };
 
   const handleEmailChange = () => {
@@ -112,10 +177,10 @@ export function AccountSettingsForm({
           Account Information
         </h3>
         <div className="divide-y divide-[var(--border)]">
-          {/* Username */}
+          {/* Username (the @handle) */}
           <div className="py-3">
             <div className="flex items-start gap-2.5">
-              <User className="h-4 w-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
+              <At className="h-4 w-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-[var(--text-muted)]">Username</p>
                 {isChangingUsername ? (
@@ -123,16 +188,88 @@ export function AccountSettingsForm({
                     <Input
                       type="text"
                       value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
-                      placeholder="Enter username"
+                      onChange={(e) =>
+                        setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                      }
+                      placeholder="username"
+                      className="h-8 text-sm flex-1"
+                      disabled={isUsernamePending}
+                      minLength={3}
+                      maxLength={30}
+                      autoComplete="username"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleUsernameChange}
+                        disabled={isUsernamePending || newUsername.trim().length < 3}
+                        variant="primary"
+                        size="sm"
+                        className="h-8 px-3 text-xs flex-1 sm:flex-none"
+                      >
+                        {isUsernamePending ? "Saving..." : "Save"}
+                      </Button>
+                      <button
+                        onClick={() => {
+                          setIsChangingUsername(false);
+                          setNewUsername(username);
+                        }}
+                        className="p-1.5 hover:bg-[var(--surface-2)] rounded flex-shrink-0"
+                        disabled={isUsernamePending}
+                      >
+                        <X className="h-4 w-4 text-[var(--text-muted)]" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-[var(--text-primary)] font-medium truncate">
+                        @{username}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs flex-shrink-0"
+                        onClick={() => setIsChangingUsername(true)}
+                        disabled={usernameOnCooldown}
+                      >
+                        <PencilSimple className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    {usernameOnCooldown && nextUsernameChangeDate && (
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                        You can change your username again on {nextUsernameChangeDate}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Display Name */}
+          <div className="py-3">
+            <div className="flex items-start gap-2.5">
+              <User className="h-4 w-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-[var(--text-muted)]">Display name</p>
+                {isChangingDisplayName ? (
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
+                    <Input
+                      type="text"
+                      value={newDisplayName}
+                      onChange={(e) => setNewDisplayName(e.target.value)}
+                      placeholder="Enter display name"
                       className="h-8 text-sm flex-1"
                       disabled={isPending}
                       maxLength={50}
                     />
                     <div className="flex items-center gap-2">
                       <Button
-                        onClick={handleUsernameChange}
-                        disabled={isPending || !newUsername.trim() || newUsername.trim().length < 2}
+                        onClick={handleDisplayNameChange}
+                        disabled={
+                          isPending || !newDisplayName.trim() || newDisplayName.trim().length < 2
+                        }
                         variant="primary"
                         size="sm"
                         className="h-8 px-3 text-xs flex-1 sm:flex-none"
@@ -141,8 +278,8 @@ export function AccountSettingsForm({
                       </Button>
                       <button
                         onClick={() => {
-                          setIsChangingUsername(false);
-                          setNewUsername(displayName);
+                          setIsChangingDisplayName(false);
+                          setNewDisplayName(displayName);
                         }}
                         className="p-1.5 hover:bg-[var(--surface-2)] rounded flex-shrink-0"
                         disabled={isPending}
@@ -161,15 +298,15 @@ export function AccountSettingsForm({
                         variant="ghost"
                         size="sm"
                         className="h-7 px-2 text-xs flex-shrink-0"
-                        onClick={() => setIsChangingUsername(true)}
-                        disabled={usernameOnCooldown}
+                        onClick={() => setIsChangingDisplayName(true)}
+                        disabled={displayNameOnCooldown}
                       >
                         <PencilSimple className="h-3 w-3" />
                       </Button>
                     </div>
-                    {usernameOnCooldown && nextUsernameChangeDate && (
+                    {displayNameOnCooldown && nextDisplayNameChangeDate && (
                       <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                        You can change your username again on {nextUsernameChangeDate}
+                        You can change your display name again on {nextDisplayNameChangeDate}
                       </p>
                     )}
                   </div>

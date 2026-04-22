@@ -56,10 +56,14 @@ export async function updateSession(request: NextRequest) {
   // Block authenticated users whose account has been soft-deleted: sign them
   // out and redirect to the landing page with a banner. The grace window runs
   // until the account-hard-delete job fires (30 days after POST /api/account/delete).
+  //
+  // Also route users whose username was auto-derived (OAuth path) through the
+  // /welcome/username picker so they explicitly claim a handle before using
+  // the app.
   if (user) {
     const { data: profile } = await supabase
       .from("users")
-      .select("deleted_at")
+      .select("deleted_at, username_auto_derived")
       .eq("id", user.id)
       .maybeSingle();
     if (profile?.deleted_at) {
@@ -67,6 +71,19 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       url.search = "?deleted=1";
+      return NextResponse.redirect(url);
+    }
+
+    // Force OAuth users who haven't picked a username through the picker.
+    // Allow the picker route itself, API calls, and the auth callback so
+    // users can still sign out or complete OAuth flows.
+    const isPickerRoute = pathname.startsWith("/welcome/username");
+    const isApiRoute = pathname.startsWith("/api/");
+    const isAuthFlow = pathname.startsWith("/auth/");
+    if (profile?.username_auto_derived && !isPickerRoute && !isApiRoute && !isAuthFlow) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/welcome/username";
+      url.search = "";
       return NextResponse.redirect(url);
     }
   }

@@ -50,6 +50,8 @@ interface AccountSettingsAccordionProps {
   };
   displayName: string;
   lastDisplayNameChange: string | null;
+  username: string;
+  usernameLastChangedAt: string | null;
   // Privacy settings
   privacySettings: {
     showProfilePopup: boolean;
@@ -97,6 +99,8 @@ export function AccountSettingsAccordion({
   socialLinks,
   displayName,
   lastDisplayNameChange,
+  username,
+  usernameLastChangedAt,
   privacySettings,
   showWatchProviders,
 }: AccountSettingsAccordionProps) {
@@ -125,6 +129,8 @@ export function AccountSettingsAccordion({
             createdAt={createdAt}
             displayName={displayName}
             lastDisplayNameChange={lastDisplayNameChange}
+            username={username}
+            usernameLastChangedAt={usernameLastChangedAt}
           />
         );
       case "linked":

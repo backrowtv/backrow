@@ -130,11 +130,13 @@ export async function signUp(prevState: unknown, formData: FormData) {
         .then((html) => sendEmail({ to: email, subject: "Welcome to BackRow!", html }))
         .catch((err) => console.error("Welcome email failed:", err));
 
-      // Update username if provided
+      // Update username if provided. Flip the auto-derived flag off — the
+      // user picked this explicitly, so the middleware won't route them
+      // through the /welcome/username picker.
       if (username && username.length >= 3) {
         const { error: updateError } = await supabase
           .from("users")
-          .update({ username })
+          .update({ username, username_auto_derived: false })
           .eq("id", signUpData.user.id);
 
         if (updateError?.code === "23505" && updateError.message?.includes("username")) {

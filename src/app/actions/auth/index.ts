@@ -18,3 +18,6 @@ export { changeEmail } from "./account";
 
 // Profile management
 export { updateProfile, getUserProfile } from "./profile";
+
+// Username management
+export { claimUsername, changeUsername } from "./username";

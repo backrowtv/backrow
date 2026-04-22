@@ -83,11 +83,12 @@ export async function createUserAndClub(formData: FormData) {
   try {
     await ensureUser(supabase, userId, email);
 
-    // Update username if provided
+    // Update username if provided. Flip the auto-derived flag off — the
+    // user picked this explicitly in the wizard.
     if (username && username.length >= 3) {
       const { error: usernameError } = await supabase
         .from("users")
-        .update({ username })
+        .update({ username, username_auto_derived: false })
         .eq("id", userId);
 
       if (usernameError?.code === "23505" && usernameError.message?.includes("username")) {

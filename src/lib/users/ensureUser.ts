@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js'
+import { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Ensures a user exists in the public.users table.
@@ -6,72 +6,73 @@ import { SupabaseClient } from '@supabase/supabase-js'
  *
  * Uses retry logic to handle race conditions on username uniqueness.
  */
-export async function ensureUser(
-  supabase: SupabaseClient,
-  authUserId: string,
-  email: string
-) {
+export async function ensureUser(supabase: SupabaseClient, authUserId: string, email: string) {
   // Check if user already exists
   const { data: existingUser } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', authUserId)
-    .single()
+    .from("users")
+    .select("id")
+    .eq("id", authUserId)
+    .single();
 
   if (existingUser) {
-    return { user: existingUser, created: false }
+    return { user: existingUser, created: false };
   }
 
   // Generate username from email (before @ symbol)
-  const usernameBase = (email.split('@')[0] || `user_${authUserId.slice(0, 8)}`).toLowerCase().replace(/[^a-z0-9_]/g, '_')
+  const usernameBase = (email.split("@")[0] || `user_${authUserId.slice(0, 8)}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "_");
 
   // Retry loop to handle race conditions on username uniqueness
-  const maxAttempts = 10
-  let lastError: Error | null = null
+  const maxAttempts = 10;
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     // Generate username with counter (first attempt uses base, subsequent add counter)
-    const username = attempt === 0 ? usernameBase : `${usernameBase}${attempt}`
+    const username = attempt === 0 ? usernameBase : `${usernameBase}${attempt}`;
 
-    // Try to insert with this username
+    // Try to insert with this username. Mark as auto-derived so the
+    // middleware can force OAuth users through the /welcome/username picker.
+    // Callers that collect an explicit username (signup form, wizard) flip
+    // this back to false after their own update.
     const { data: newUser, error } = await supabase
-      .from('users')
+      .from("users")
       .insert({
         id: authUserId,
         email: email,
         username: username,
-        display_name: email.split('@')[0] || 'User',
+        display_name: email.split("@")[0] || "User",
+        username_auto_derived: true,
       })
       .select()
-      .single()
+      .single();
 
     if (!error) {
-      return { user: newUser, created: true }
+      return { user: newUser, created: true };
     }
 
     // If error is duplicate key on username, try next username
-    if (error.code === '23505' && error.message?.includes('username')) {
-      lastError = new Error(`Username ${username} already taken`)
-      continue
+    if (error.code === "23505" && error.message?.includes("username")) {
+      lastError = new Error(`Username ${username} already taken`);
+      continue;
     }
 
     // If error is duplicate key on id, user was created by another process
-    if (error.code === '23505' && error.message?.includes('users_pkey')) {
+    if (error.code === "23505" && error.message?.includes("users_pkey")) {
       const { data: user } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', authUserId)
-        .single()
+        .from("users")
+        .select("id")
+        .eq("id", authUserId)
+        .single();
       if (user) {
-        return { user, created: false }
+        return { user, created: false };
       }
     }
 
     // For other errors, throw immediately
-    throw error
+    throw error;
   }
 
   // If we exhausted all attempts, throw the last error
-  throw lastError || new Error('Failed to create user after maximum attempts')
+  throw lastError || new Error("Failed to create user after maximum attempts");
 }
-

@@ -3637,6 +3637,8 @@ export type Database = {
           social_links: Json | null;
           updated_at: string | null;
           username: string;
+          username_auto_derived: boolean;
+          username_last_changed_at: string | null;
           watch_history_private: boolean | null;
           watch_provider_region: string | null;
         };
@@ -3673,6 +3675,8 @@ export type Database = {
           social_links?: Json | null;
           updated_at?: string | null;
           username: string;
+          username_auto_derived?: boolean;
+          username_last_changed_at?: string | null;
           watch_history_private?: boolean | null;
           watch_provider_region?: string | null;
         };
@@ -3709,6 +3713,8 @@ export type Database = {
           social_links?: Json | null;
           updated_at?: string | null;
           username?: string;
+          username_auto_derived?: boolean;
+          username_last_changed_at?: string | null;
           watch_history_private?: boolean | null;
           watch_provider_region?: string | null;
         };
