@@ -38,6 +38,7 @@ const serverEnvSchema = z.object({
   TMDB_API_KEY: z.string().min(1).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   RESEND_FROM_EMAIL: z.string().email().optional(),
+  RESEND_AUDIENCE_ID: z.string().min(1).optional(),
   CONTACT_NOTIFY_EMAIL: z.string().email().optional(),
 
   // Web push

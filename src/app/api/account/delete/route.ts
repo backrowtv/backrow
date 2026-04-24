@@ -18,6 +18,7 @@ import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { createClient } from "@/lib/supabase/server";
 import { enqueueAccountHardDelete } from "@/lib/jobs/producers";
+import { removeContactByEmail } from "@/lib/email/resend";
 
 const THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60;
 
@@ -80,6 +81,14 @@ export async function POST() {
       { success: false, error: "Could not process deletion. Try again shortly." },
       { status: 500 }
     );
+  }
+
+  // Remove the user's email from Resend before anonymization — once the
+  // row is anonymized we no longer have the original email to pass to
+  // Resend. Safe to fire-and-forget: the helper swallows errors so a Resend
+  // outage can't block account deletion.
+  if (user.email) {
+    await removeContactByEmail(user.email);
   }
 
   const anonymizedEmail = `deleted+${user.id}@backrow.tv`;

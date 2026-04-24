@@ -7,9 +7,6 @@ import { loadRighteous } from "@/lib/seo/og-fonts";
 // aggressive caching so email client image proxies don't hit the function
 // repeatedly.
 
-export const runtime = "nodejs";
-export const dynamic = "force-static";
-
 const WIDTH = 600;
 const HEIGHT = 160;
 const PRIMARY = "#6B9B6B";
