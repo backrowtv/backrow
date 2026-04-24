@@ -18,6 +18,7 @@ these contracts changes, both files change in the same PR.
 | `job_dedup` rows                            | 7 days                                              |
 | Archived notifications                      | 30 days (see `cleanup-archived-notifications` cron) |
 | Soft-deleted accounts (`users.deleted_at`)  | 30 days until hard-delete queue job fires           |
+| Soft-deleted discussion comments            | 30 days, then hard-deleted by `orphan-sweep` cron   |
 
 ---
 
@@ -70,10 +71,14 @@ Authenticated user types `DELETE` and clicks **Delete Account**.
    the job **before** touching user data, so an enqueue failure leaves the
    account intact and retryable. The Phase 3 worker re-checks `deleted_at`
    and is a safe no-op if anonymize later fails or never runs.
-3. `UPDATE public.users` to set `deleted_at = now()` and anonymize `email`,
+3. `removeContactByEmail(user.email)` — remove the user's email from the
+   Resend audience (if `RESEND_AUDIENCE_ID` is set) **before** the email is
+   anonymized. The helper swallows errors so a Resend outage can't block
+   deletion.
+4. `UPDATE public.users` to set `deleted_at = now()` and anonymize `email`,
    `username`, `display_name`, `avatar_url`, `bio`, `social_links`. The row
    persists; the auth row persists.
-4. `supabase.auth.signOut()`.
+5. `supabase.auth.signOut()`.
 
 ### Phase 2 — sign-in block (middleware)
 
@@ -187,19 +192,39 @@ Legend:
 
 ## Cookie consent
 
-Component: `src/components/compliance/CookieConsent.tsx` (pre-existing).
+Shared state: `src/hooks/useCookiePreferences.ts` is the single source of
+truth — both the banner (`src/components/compliance/CookieConsent.tsx`) and
+the settings page (`src/app/(marketing)/cookie-settings/page.tsx`) read and
+write through the hook. Non-React code gates on `hasAnalyticsConsent()`
+from the same module (e.g. `src/lib/security/sentry.ts` and
+`instrumentation-client.ts`).
 
 Behavior:
 
 - Client-only, writes to `localStorage` under key `backrow-cookie-consent`.
 - Dispatches `window.dispatchEvent(new CustomEvent("cookie-consent-updated"))`
-  so downstream analytics hooks can react.
+  on every change so downstream consumers (Sentry init, analytics hooks)
+  can react.
 - Banner distinguishes "essential" (always on) from "analytics" (opt-in).
+- Reversible at any time via `/cookie-settings` (linked from the footer and
+  from the banner itself).
 
-Mounted in `src/app/layout.tsx` immediately after the WCAG skip-to-main link
-so screen-reader users encounter it before the page chrome. No server-side
-persistence; if users clear localStorage the banner reappears — acceptable
-for our current analytics posture.
+CCPA Global Privacy Control (`Sec-GPC: 1`):
+
+- `src/proxy.ts` forwards the request header as an `x-gpc-signal: 1`
+  response header.
+- The root layout reads the request header via `next/headers` and renders
+  `<meta name="x-gpc-signal" content="1">` when present.
+- `CookieConsent` reads that meta tag on first paint. When GPC is signaled
+  and no prior preferences exist, it persists `{ analytics: false, gpc: true }`
+  automatically and suppresses the banner.
+
+Consent persistence is still client-only (localStorage); a backend audit
+log is deferred until we ship an ad/marketing tool that requires provable
+consent (see `docs/plans/` for the bundled gap list).
+
+Footer includes CCPA-required links: "Cookie Settings" and "Do Not Sell
+or Share My Personal Information" (→ `/do-not-sell-or-share`).
 
 ---
 
@@ -212,4 +237,5 @@ for our current analytics posture.
   `application/zip` only. RLS: service role full access; users can SELECT
   objects only when `(storage.foldername(name))[1] = auth.uid()::text`.
 - The weekly orphan-sweep cron at `/api/cron/orphan-sweep` deletes expired
-  export archives (older than 7 days).
+  export archives (older than 7 days) and hard-deletes `discussion_comments`
+  rows with `deleted_at < now() - interval '30 days'`.
