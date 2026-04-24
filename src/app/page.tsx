@@ -44,12 +44,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootPage({
+export default function RootPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // Wrap the entire dynamic page body in <Suspense> so cacheComponents
+  // accepts it: the outer (sync) function is the "static shell" it sees
+  // during prerender, the async inner component carries all dynamic data
+  // access (cookies, searchParams) under the Suspense boundary.
+  return (
+    <Suspense fallback={null}>
+      <RootPageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function RootPageContent({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  // Opt out of caching - this page needs fresh data on each request
   await connection();
 
   const supabase = await createClient();

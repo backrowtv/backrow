@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -75,7 +76,15 @@ function ClubAvatarLarge({ pictureUrl, name }: { pictureUrl: string | null; name
   );
 }
 
-export default async function JoinPage({ params, searchParams }: JoinPageProps) {
+export default function JoinPage(props: JoinPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <JoinPageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function JoinPageContent({ params, searchParams }: JoinPageProps) {
   await connection();
   const { slug } = await params;
   const { token } = await searchParams;

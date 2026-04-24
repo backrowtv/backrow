@@ -222,16 +222,21 @@ async function AuthFetcher({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gpc = (await headers()).get("sec-gpc") === "1";
+  // Root layout stays SYNC so cacheComponents can prerender every page
+  // as a static shell. The header read for GPC detection lives inside
+  // a Suspense boundary (see GpcMetaTag below) so the dynamic data
+  // access is properly isolated.
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
-        {gpc && <meta name="x-gpc-signal" content="1" />}
+        <Suspense fallback={null}>
+          <GpcMetaTag />
+        </Suspense>
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -304,4 +309,10 @@ export default async function RootLayout({
       </body>
     </html>
   );
+}
+
+async function GpcMetaTag() {
+  const gpc = (await headers()).get("sec-gpc") === "1";
+  if (!gpc) return null;
+  return <meta name="x-gpc-signal" content="1" />;
 }

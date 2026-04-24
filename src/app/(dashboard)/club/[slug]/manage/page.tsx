@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
@@ -21,7 +22,15 @@ interface ManagePageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function ManagePage({ params }: ManagePageProps) {
+export default function ManagePage(props: ManagePageProps) {
+  return (
+    <Suspense fallback={null}>
+      <ManagePageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function ManagePageContent({ params }: ManagePageProps) {
   const identifier = (await params).slug;
   const supabase = await createClient();
 

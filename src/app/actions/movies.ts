@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient, createPublicClient } from "@/lib/supabase/server";
+import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { getMovieDetails, getPosterUrl, extractUSCertification } from "@/lib/tmdb/client";
 
@@ -236,6 +238,10 @@ export async function refreshMovie(tmdbId: number) {
  * No side effects, safe for 'use cache'
  */
 async function getCachedMovieData(tmdbId: number) {
+  "use cache";
+  cacheLife("days");
+  cacheTag(CacheTags.movie(tmdbId));
+
   const supabase = createPublicClient();
 
   const { data: movie, error: movieError } = await supabase
@@ -288,6 +294,9 @@ export async function getMovie(tmdbId: number) {
  * No side effects, safe for 'use cache'
  */
 export async function getMovieBySlug(slug: string) {
+  "use cache";
+  cacheLife("days");
+
   const supabase = createPublicClient();
 
   const { data: movie, error: movieError } = await supabase
@@ -303,6 +312,8 @@ export async function getMovieBySlug(slug: string) {
   if (!movie) {
     return { error: "Movie not found" };
   }
+
+  if (movie.tmdb_id) cacheTag(CacheTags.movie(movie.tmdb_id as number));
 
   return { movie };
 }

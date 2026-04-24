@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 
 // Helper function to format month label (e.g., "2024-01" -> "Jan 2024")
@@ -79,6 +81,11 @@ async function _getFestivalParticipationData(
 export async function getFestivalParticipationData(
   clubId: string
 ): Promise<{ data: FestivalParticipationData[] } | { error: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.clubStats(clubId, "participation"));
+  cacheTag(CacheTags.club(clubId));
+
   return _getFestivalParticipationData(clubId);
 }
 
@@ -157,6 +164,11 @@ async function _getRatingDistributionData(
 export async function getRatingDistributionData(
   clubId: string
 ): Promise<{ data: RatingDistributionData[] } | { error: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.clubStats(clubId, "distribution"));
+  cacheTag(CacheTags.club(clubId));
+
   return _getRatingDistributionData(clubId);
 }
 
@@ -297,6 +309,11 @@ async function _getTopRatedMoviesData(
 export async function getTopRatedMoviesData(
   clubId: string
 ): Promise<{ data: TopRatedMovieData[] } | { error: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.clubStats(clubId, "top-movies"));
+  cacheTag(CacheTags.club(clubId));
+
   return _getTopRatedMoviesData(clubId);
 }
 
@@ -394,6 +411,11 @@ async function _getMemberActivityData(
 export async function getMemberActivityData(
   clubId: string
 ): Promise<{ data: MemberActivityData[] } | { error: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.clubStats(clubId, "activity"));
+  cacheTag(CacheTags.club(clubId));
+
   return _getMemberActivityData(clubId);
 }
 
@@ -442,6 +464,11 @@ async function _getFestivalCompletionData(
 export async function getFestivalCompletionData(
   clubId: string
 ): Promise<{ data: FestivalCompletionData[] } | { error: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.clubStats(clubId, "completion"));
+  cacheTag(CacheTags.club(clubId));
+
   return _getFestivalCompletionData(clubId);
 }
 
@@ -516,5 +543,10 @@ async function _getRatingTrendsData(
 export async function getRatingTrendsData(
   clubId: string
 ): Promise<{ data: RatingTrendsData[] } | { error: string }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.clubStats(clubId, "trends"));
+  cacheTag(CacheTags.club(clubId));
+
   return _getRatingTrendsData(clubId);
 }

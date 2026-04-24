@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Heading, Text } from "@/components/ui/typography";
@@ -10,7 +11,15 @@ interface PageProps {
   searchParams: Promise<{ email?: string; next?: string }>;
 }
 
-export default async function SignUpConfirmPage({ searchParams }: PageProps) {
+export default function SignUpConfirmPage(props: PageProps) {
+  return (
+    <Suspense fallback={null}>
+      <SignUpConfirmPageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function SignUpConfirmPageContent({ searchParams }: PageProps) {
   await connection();
   const params = await searchParams;
   const email = params.email || "";

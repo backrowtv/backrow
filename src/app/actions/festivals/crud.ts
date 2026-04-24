@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { invalidateFestival } from "@/lib/cache/invalidate";
+import { cacheLife, cacheTag } from "next/cache";
+import { CacheTags, invalidateFestival } from "@/lib/cache/invalidate";
 import { getSharp } from "@/lib/image/sharp-loader";
 import { logClubActivity } from "@/lib/activity/logger";
 import { validateKeywords } from "@/types/club-creation";
@@ -540,6 +541,10 @@ export async function createFestival(prevState: unknown, formData: FormData) {
  * Get festival by slug (cached for 1 hour)
  */
 export async function getFestivalBySlug(clubId: string, slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.club(clubId));
+
   const supabase = await createClient();
 
   const { data: festival, error } = await supabase
@@ -555,6 +560,9 @@ export async function getFestivalBySlug(clubId: string, slug: string) {
     return null;
   }
 
+  if (festival?.id) cacheTag(CacheTags.festival(festival.id as string));
+  if (festival?.season_id) cacheTag(CacheTags.season(festival.season_id as string));
+
   return festival;
 }
 
@@ -562,6 +570,10 @@ export async function getFestivalBySlug(clubId: string, slug: string) {
  * Get festivals by club (cached for 1 hour)
  */
 export async function getFestivalsByClub(clubId: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CacheTags.club(clubId));
+
   const supabase = await createClient();
 
   const { data: festivals, error } = await supabase

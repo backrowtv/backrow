@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -10,7 +11,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function WelcomeUsernamePage() {
+export default function WelcomeUsernamePage() {
+  return (
+    <Suspense fallback={null}>
+      <WelcomeUsernamePageContent />
+    </Suspense>
+  );
+}
+
+async function WelcomeUsernamePageContent() {
   await connection();
   const supabase = await createClient();
   const {

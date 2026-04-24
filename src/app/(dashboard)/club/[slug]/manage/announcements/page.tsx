@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { resolveClub } from "@/lib/clubs/resolveClub";
@@ -10,9 +11,15 @@ interface DirectorAnnouncementsPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function DirectorAnnouncementsPage({
-  params,
-}: DirectorAnnouncementsPageProps) {
+export default function DirectorAnnouncementsPage(props: DirectorAnnouncementsPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <DirectorAnnouncementsPageContent {...props} />
+    </Suspense>
+  );
+}
+
+async function DirectorAnnouncementsPageContent({ params }: DirectorAnnouncementsPageProps) {
   const identifier = (await params).slug;
   const supabase = await createClient();
 
