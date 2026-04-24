@@ -38,9 +38,21 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const isAuthenticated = !!user;
 
-  // Scroll to top on page load/navigation - runs before paint for instant reset
+  // Opt out of browser scroll restoration so direct/external hits land at y=0
+  // instead of a stale restored position before hydration.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("scrollRestoration" in window.history)) return;
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  // Scroll to top on page load/navigation - runs before paint for instant reset.
+  // behavior: "instant" bypasses html { scroll-behavior: smooth } so nav resets jump rather than animate.
   useIsomorphicLayoutEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
   }, [pathname]);
 
   // Mark as initialized after first render to enable transitions

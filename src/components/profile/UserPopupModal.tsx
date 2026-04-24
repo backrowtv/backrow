@@ -307,6 +307,7 @@ export function UserPopupModal({ userId, open, onOpenChange }: UserPopupModalPro
                   stats={idCardData.stats}
                   featuredBadges={idCardData.featuredBadges}
                   variant="full"
+                  className="shadow-[var(--shadow-xl)] border border-[var(--border)]"
                 />
                 <button
                   type="button"

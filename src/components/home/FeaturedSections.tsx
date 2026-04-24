@@ -215,7 +215,7 @@ function MovieCard({
   const backgroundImageUrl = movie.backdrop_url || movie.poster_url;
 
   return (
-    <div className="relative rounded-xl overflow-hidden group flex-1 border border-[var(--border)] bg-[var(--card)] shadow-lg">
+    <div className="relative rounded-xl overflow-hidden group flex-1 border border-[var(--border)] bg-[var(--surface-2)] shadow-lg">
       {/* Scenic backdrop/poster background - Faded art effect */}
       {backgroundImageUrl && (
         <div className="absolute inset-0 z-0">
@@ -232,7 +232,7 @@ function MovieCard({
             placeholder="blur"
             blurDataURL={getBackdropBlurDataURL()}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--card)]/80 via-[var(--card)]/60 to-[var(--card)]/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface-2)]/80 via-[var(--surface-2)]/60 to-[var(--surface-2)]/40" />
         </div>
       )}
 
@@ -447,7 +447,7 @@ export async function FeaturedClubSection() {
         Featured Club
       </span>
       <Link href={`/club/${club.slug}`}>
-        <div className="relative rounded-xl overflow-hidden group border border-[var(--border)] hover:border-[var(--primary)]/30 bg-[var(--card)] shadow-lg transition-all">
+        <div className="relative rounded-xl overflow-hidden group border border-[var(--border)] hover:border-[var(--primary)]/30 bg-[var(--surface-2)] shadow-lg transition-all">
           {/* Movie backdrop background */}
           {backgroundUrl && (
             <div className="absolute inset-0 z-0">
@@ -460,12 +460,12 @@ export async function FeaturedClubSection() {
                 placeholder="blur"
                 blurDataURL={getBackdropBlurDataURL()}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--card)]/90 via-[var(--card)]/70 to-[var(--card)]/50" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface-2)]/90 via-[var(--surface-2)]/70 to-[var(--surface-2)]/50" />
             </div>
           )}
 
           {/* Member count badge - top right corner */}
-          <div className="absolute top-2 right-2 z-20 flex items-center gap-1 text-[10px] text-[var(--text-muted)] bg-[var(--card)]/80 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+          <div className="absolute top-2 right-2 z-20 flex items-center gap-1 text-[10px] text-[var(--text-muted)] bg-[var(--surface-2)]/80 backdrop-blur-sm rounded-full px-1.5 py-0.5">
             <UsersThree className="w-3 h-3" weight="fill" />
             <span>{club.member_count}</span>
           </div>
