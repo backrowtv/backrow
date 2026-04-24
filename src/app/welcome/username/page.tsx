@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import type { Metadata } from "next";
 import { ChooseUsernameForm } from "./ChooseUsernameForm";
 import { BrandText } from "@/components/ui/brand-text";
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WelcomeUsernamePage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

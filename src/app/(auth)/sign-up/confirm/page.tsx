@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Heading, Text } from "@/components/ui/typography";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Envelope } from "@phosphor-icons/react/dist/ssr";
@@ -10,6 +11,7 @@ interface PageProps {
 }
 
 export default async function SignUpConfirmPage({ searchParams }: PageProps) {
+  await connection();
   const params = await searchParams;
   const email = params.email || "";
   const next = params.next && isValidRedirect(params.next) ? params.next : null;

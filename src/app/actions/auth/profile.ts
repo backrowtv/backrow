@@ -8,8 +8,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { cacheLife, cacheTag } from "next/cache";
-import { CacheTags } from "@/lib/cache/invalidate";
 import { getSharp } from "@/lib/image/sharp-loader";
 import { handleActionError } from "@/lib/errors/handler";
 import { enqueueImageProcessing } from "@/lib/jobs/producers";
@@ -414,10 +412,6 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
  * Get user profile (cached for 5 minutes)
  */
 export async function getUserProfile(userId: string) {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag(CacheTags.user(userId));
-
   const supabase = await createClient();
 
   const { data: profile, error } = await supabase

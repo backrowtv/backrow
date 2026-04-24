@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
@@ -75,6 +76,7 @@ function ClubAvatarLarge({ pictureUrl, name }: { pictureUrl: string | null; name
 }
 
 export default async function JoinPage({ params, searchParams }: JoinPageProps) {
+  await connection();
   const { slug } = await params;
   const { token } = await searchParams;
   const supabase = await createClient();

@@ -9,8 +9,16 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig: NextConfig = {
   // Allow CodeSandbox dev origins for Onlook integration + local network for mobile testing
   allowedDevOrigins: ["*.csb.app", "192.168.1.110"],
-  // Enable Cache Components (Next.js 16+) for 'use cache' directive
-  cacheComponents: true,
+  // Cache Components temporarily disabled. Re-enabling requires wrapping
+  // every dynamic data access (cookies, headers, searchParams, supabase
+  // auth) in <Suspense> boundaries across ~50 server pages. Multiple
+  // deploys failed prerender with "Uncached data accessed outside
+  // <Suspense>"; `await connection()` at layout level doesn't propagate,
+  // and patching each page individually is a larger migration than a
+  // prod-unblock commit can carry. Revisit once the PPR migration is
+  // scoped as a dedicated project. All `"use cache"` directives were
+  // stripped alongside this flip — restore them together.
+  cacheComponents: false,
   // Native binary; must stay external. sharp is imported via a lazy
   // `await import("sharp")` in src/lib/image/sharp-loader.ts so @vercel/nft
   // traces it into the lambda via the dynamic-import chain without the

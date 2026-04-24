@@ -1,7 +1,5 @@
 "use server";
 
-import { cacheLife, cacheTag } from "next/cache";
-import { CacheTags } from "@/lib/cache/invalidate";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getUpcomingMovies } from "@/lib/tmdb/upcoming";
 import { parseRSSFeed } from "@/lib/rss/parser";
@@ -20,10 +18,6 @@ import type {
  * Cached for 24 hours to reduce API calls
  */
 export async function getUpcomingMoviesData(): Promise<UpcomingMovie[]> {
-  "use cache";
-  cacheLife("days");
-  cacheTag(CacheTags.upcomingMovies());
-
   try {
     return await getUpcomingMovies(20);
   } catch (error) {
@@ -37,10 +31,6 @@ export async function getUpcomingMoviesData(): Promise<UpcomingMovie[]> {
  * Cached for 1 hour to reduce server load
  */
 export async function getFilmNewsData(): Promise<FilmNewsData> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag(CacheTags.filmNews());
-
   try {
     // Fetch all feeds in parallel
     const allFeeds = [primaryFilmNewsFeed, ...movieHeadlinesFeeds.map((feed) => feed.rssUrl)];
@@ -277,10 +267,6 @@ export async function getFilmNewsData(): Promise<FilmNewsData> {
  * Cached for 1 hour
  */
 export async function getCurrentCuratedPick(): Promise<CuratedPick | null> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("curated:current");
-
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
 
@@ -377,11 +363,6 @@ export async function getCurrentCuratedPick(): Promise<CuratedPick | null> {
  * Cached for 1 hour
  */
 export async function getFeaturedClub(): Promise<FeaturedClub | null> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag(CacheTags.featuredClub());
-  cacheTag(CacheTags.clubsIndex());
-
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
 
@@ -541,10 +522,6 @@ export async function getFeaturedClub(): Promise<FeaturedClub | null> {
  * Cached for 1 hour
  */
 export async function getPopularMovies(limit: number = 12): Promise<PopularMovie[]> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag(CacheTags.popularMovies());
-
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
 

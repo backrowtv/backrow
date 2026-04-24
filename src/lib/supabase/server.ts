@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { env } from "@/lib/config/env";
 
 /**
@@ -13,6 +14,11 @@ export function createPublicClient() {
 }
 
 export async function createClient() {
+  // Opt the entire render scope out of cacheComponents prerender. Every
+  // caller of this function reads cookies (for the Supabase session), which
+  // is inherently dynamic. Without this, pages that call createClient()
+  // fail prerender with "Uncached data accessed outside <Suspense>".
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
