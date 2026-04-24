@@ -58,15 +58,14 @@ export const getFestivalForSeo = cache(async (clubSlug: string, festivalSlug: st
 
 export const getMovieForSeo = cache(async (idOrSlug: string) => {
   const supabase = createPublicClient();
-  const asNum = Number(idOrSlug);
-  const isNumeric = Number.isFinite(asNum) && asNum > 0;
+  const isNumeric = /^\d+$/.test(idOrSlug);
   const query = supabase
     .from("movies")
     .select(
       'tmdb_id, title, year, slug, overview, poster_url, backdrop_url, director, genres, "cast", tagline, certification, runtime'
     );
   const { data } = isNumeric
-    ? await query.eq("tmdb_id", asNum).maybeSingle()
+    ? await query.eq("tmdb_id", Number(idOrSlug)).maybeSingle()
     : await query.eq("slug", idOrSlug).maybeSingle();
   return data;
 });

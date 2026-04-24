@@ -20,9 +20,10 @@ interface PersonPageProps {
 export default async function PersonPage({ params }: PersonPageProps) {
   const { id } = await params;
 
-  // Check if it's a numeric ID (TMDB ID) or a slug
-  const tmdbId = parseInt(id);
-  const isNumericId = !isNaN(tmdbId) && tmdbId > 0;
+  // Check if it's a numeric ID (TMDB ID) or a slug.
+  // Must be pure digits — otherwise slugs like "50-cent-1975" misclassify as TMDB id 50.
+  const isNumericId = /^\d+$/.test(id);
+  const tmdbId = isNumericId ? Number(id) : NaN;
 
   let person: TMDBPerson | null = null;
   type DbPerson = {

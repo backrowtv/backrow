@@ -71,9 +71,10 @@ export default async function MoviePage({ params }: MoviePageProps) {
   let dbMovie: { tmdb_id: number; title: string; slug: string | null } | null = null;
   let tmdbMovie: TMDBMovie | null = null;
 
-  // Check if it's a numeric ID (TMDB ID) or a slug
-  const movieId = parseInt(id);
-  const isNumericId = !isNaN(movieId) && movieId > 0;
+  // Check if it's a numeric ID (TMDB ID) or a slug.
+  // Must be pure digits — otherwise slugs like "10-things-..." misclassify as TMDB id 10.
+  const isNumericId = /^\d+$/.test(id);
+  const movieId = isNumericId ? Number(id) : NaN;
 
   if (isNumericId) {
     // It's a TMDB ID - check if we have it cached, if so redirect to slug
@@ -402,10 +403,22 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 </div>
               )}
               <div className="flex-1 min-w-0 flex flex-col justify-between gap-1">
-                <h1 className="text-base lg:text-lg font-bold text-[var(--text-primary)] leading-tight min-w-0 line-clamp-3">
+                <h1
+                  className="text-base lg:text-lg font-bold text-[var(--text-primary)] leading-tight min-w-0 line-clamp-3"
+                  style={{
+                    textShadow:
+                      "0 0 6px var(--background), 0 0 12px var(--background), 0 1px 2px rgba(0,0,0,0.35)",
+                  }}
+                >
                   {movie.title}
                 </h1>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
+                <div
+                  className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]"
+                  style={{
+                    textShadow:
+                      "0 0 6px var(--background), 0 0 12px var(--background), 0 1px 2px rgba(0,0,0,0.35)",
+                  }}
+                >
                   {movie.release_date && <span>{new Date(movie.release_date).getFullYear()}</span>}
                   {certification && (
                     <Badge variant="outline" className="text-xs px-1.5 py-0">

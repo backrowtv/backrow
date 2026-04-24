@@ -25,13 +25,12 @@ export default async function MovieOpenGraphImage({ params }: { params: Promise<
   const { id } = await params;
   const supabase = createPublicClient();
 
-  const asNum = Number(id);
-  const isNumeric = Number.isFinite(asNum) && asNum > 0;
+  const isNumeric = /^\d+$/.test(id);
   const query = supabase
     .from("movies")
     .select("title, year, director, poster_url, genres, tagline");
   const { data: movie } = isNumeric
-    ? await query.eq("tmdb_id", asNum).maybeSingle()
+    ? await query.eq("tmdb_id", Number(id)).maybeSingle()
     : await query.eq("slug", id).maybeSingle();
 
   const title = movie?.title ?? "Movie";
