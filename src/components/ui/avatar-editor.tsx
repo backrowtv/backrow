@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useTransition, type ChangeEvent } from "react";
-import { X, PencilSimple, Upload, Camera, SpinnerGap } from "@phosphor-icons/react";
+import { useState, useRef, useCallback, useTransition, type ChangeEvent } from "react";
+import { PencilSimple, Upload, Camera, SpinnerGap } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/avatar";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import Image from "next/image";
 import {
   USER_ICONS,
@@ -112,7 +118,6 @@ export function AvatarEditor({
   >(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, startSaveTransition] = useTransition();
-  const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-save helper: builds FormData and calls the appropriate server action
@@ -202,35 +207,6 @@ export function AvatarEditor({
   const currentColor = isPhotoMode ? undefined : getAvatarColor(selectedColorIndex);
   const currentBorderColor = getAvatarBorderColor(selectedBorderColorIndex);
 
-  // Close when clicking outside
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    const timeoutId = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-    }, 0);
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
-
-  // Handle escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen]);
-
   const handleIconSelect = (iconId: string) => {
     if (disabled || isSaving) return;
     if (controlledSelectedIcon === undefined) {
@@ -308,7 +284,7 @@ export function AvatarEditor({
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       {/* Trigger button */}
       <div className="flex items-center gap-4">
         <button
@@ -348,11 +324,7 @@ export function AvatarEditor({
             <PencilSimple
               weight="bold"
               className={`${
-                triggerSize === "xxl"
-                  ? "w-5 h-5"
-                  : triggerSize === "xl"
-                    ? "w-4 h-4"
-                    : "w-2.5 h-2.5"
+                triggerSize === "xxl" ? "w-5 h-5" : triggerSize === "xl" ? "w-4 h-4" : "w-2.5 h-2.5"
               } text-[var(--text-muted)] ${disabled ? "" : "group-hover:text-white"}`}
             />
           </span>
@@ -377,26 +349,13 @@ export function AvatarEditor({
       />
 
       {/* Editor Modal */}
-      {isOpen && (
-        <div
-          className="absolute left-0 top-[calc(100%+8px)] z-50 w-80 max-h-[400px] overflow-y-auto rounded-xl border bg-[var(--surface-1)] shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
-          style={{ borderColor: "var(--border)" }}
-        >
-          {/* Header */}
-          <div
-            className="sticky top-0 flex items-center justify-between px-4 py-3 border-b bg-[var(--surface-1)] z-10"
-            style={{ borderColor: "var(--border)" }}
-          >
-            <span className="text-sm font-medium text-[var(--text-primary)]">{headerLabel}</span>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="p-1 rounded-md hover:bg-[var(--surface-2)] transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4 text-[var(--text-muted)]" />
-            </button>
-          </div>
+      <ResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
+        <ResponsiveDialogContent className="sm:max-w-md p-0 gap-0">
+          <ResponsiveDialogHeader className="px-4 py-3 border-b border-[var(--border)] sm:px-4 sm:pt-3 text-left">
+            <ResponsiveDialogTitle className="text-sm font-medium">
+              {headerLabel}
+            </ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
 
           <div className="p-4 space-y-4">
             {/* Upload Photo Section */}
@@ -732,8 +691,8 @@ export function AvatarEditor({
               </span>
             </div>
           </div>
-        </div>
-      )}
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </div>
   );
 }

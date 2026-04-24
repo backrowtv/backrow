@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent } from "@/components/ui/responsive-dialog";
 import { EntityAvatar } from "@/components/ui/entity-avatar";
 import { userToAvatarData } from "@/lib/avatar-helpers";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { DotsThree, Flag, Prohibit, EyeSlash, CircleNotch } from "@phosphor-icons/react";
+import { DotsThree, Flag, Prohibit, EyeSlash, CircleNotch, X } from "@phosphor-icons/react";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect, useTransition } from "react";
 import { getTargetUserPrivacySettings, checkUserBlocked, blockUser } from "@/app/actions/profile";
@@ -286,25 +287,39 @@ export function UserPopupModal({ userId, open, onOpenChange }: UserPopupModalPro
   // Full profile view — renders the UserIDCard
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg p-0 overflow-hidden bg-transparent border-none shadow-none">
+      <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+        <ResponsiveDialogContent
+          className="w-full sm:max-w-[340px] p-0 bg-transparent border-none shadow-none gap-0"
+          hideClose
+          showHandle={false}
+        >
           {loading ? (
-            <div className="py-12 text-center bg-[var(--card)] rounded-2xl">
+            <div className="py-12 text-center bg-[var(--card)] rounded-2xl mx-auto w-full max-w-[340px]">
               <CircleNotch className="h-6 w-6 animate-spin mx-auto text-[var(--text-muted)]" />
             </div>
           ) : idCardData ? (
-            <div className="space-y-3">
-              {/* The ID Card */}
-              <UserIDCard
-                user={idCardData.user}
-                favorites={idCardData.favorites}
-                stats={idCardData.stats}
-                featuredBadges={idCardData.featuredBadges}
-                variant="full"
-              />
+            <div className="space-y-3 mx-auto w-full max-w-[340px] p-3 sm:p-0">
+              {/* The ID Card with close X inside */}
+              <div className="relative">
+                <UserIDCard
+                  user={idCardData.user}
+                  favorites={idCardData.favorites}
+                  stats={idCardData.stats}
+                  featuredBadges={idCardData.featuredBadges}
+                  variant="full"
+                />
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="absolute top-2 right-2 z-20 rounded-full bg-black/50 backdrop-blur-sm p-1.5 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+                  aria-label="Close"
+                >
+                  <X className="h-3.5 w-3.5" weight="bold" />
+                </button>
+              </div>
 
               {/* Action bar below the card */}
-              <div className="flex items-center justify-end px-2">
+              <div className="flex items-center justify-end px-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -334,8 +349,8 @@ export function UserPopupModal({ userId, open, onOpenChange }: UserPopupModalPro
               </div>
             </div>
           ) : null}
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
       <ReportUserModal
         userId={userId}
         userName={displayName}
