@@ -219,6 +219,38 @@ export async function markAllAsRead(): Promise<{ error?: string }> {
 }
 
 /**
+ * Archive all non-archived notifications for the current user.
+ * Powers the bell popout's "Clear all" button — archived rows are excluded
+ * from the read query, so the popout flips to its empty state.
+ */
+export async function archiveAllNotifications(): Promise<{ error?: string }> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Not authenticated" };
+  }
+
+  try {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ archived: true, archived_at: new Date().toISOString() })
+      .eq("user_id", user.id)
+      .eq("archived", false);
+
+    if (error) {
+      return handleActionError(error, "archiveAllNotifications");
+    }
+
+    return {};
+  } catch (error) {
+    return handleActionError(error, "archiveAllNotifications");
+  }
+}
+
+/**
  * Get count of unread notifications for the current user
  */
 export async function getUnreadCount(): Promise<{ error?: string; data?: number }> {

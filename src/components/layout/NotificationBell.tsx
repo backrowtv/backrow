@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Check, Checks } from "@phosphor-icons/react";
+import { Bell, Check, Checks, Trash } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import NumberFlow, { timingPresets } from "@/components/ui/number-flow";
@@ -14,7 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getGroupedNotifications, markAsRead, markAllAsRead } from "@/app/actions/notifications";
+import {
+  getGroupedNotifications,
+  markAsRead,
+  markAllAsRead,
+  archiveAllNotifications,
+} from "@/app/actions/notifications";
 import type { Notification, GroupedNotifications } from "@/app/actions/notifications.types";
 import { DateDisplay } from "@/components/ui/date-display";
 import { useRouter } from "next/navigation";
@@ -158,6 +163,14 @@ export function NotificationBell() {
     }
   };
 
+  const handleClearAll = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const result = await archiveAllNotifications();
+    if (!result.error) {
+      setGroupedNotifications({ today: [], yesterday: [], thisWeek: [], older: [] });
+    }
+  };
+
   const handleNotificationClick = (notification: Notification) => {
     if (notification.link) {
       router.push(notification.link);
@@ -211,17 +224,30 @@ export function NotificationBell() {
         <div className="p-2">
           <div className="flex items-center justify-between px-2 py-1.5">
             <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
-            {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                onClick={handleMarkAllAsRead}
-              >
-                <Checks className="h-3 w-3 mr-1" />
-                Mark all read
-              </Button>
-            )}
+            <div className="flex items-center gap-1">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  onClick={handleMarkAllAsRead}
+                >
+                  <Checks className="h-3 w-3 mr-1" />
+                  Mark all read
+                </Button>
+              )}
+              {allNotifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  onClick={handleClearAll}
+                >
+                  <Trash className="h-3 w-3 mr-1" />
+                  Clear all
+                </Button>
+              )}
+            </div>
           </div>
           <DropdownMenuSeparator />
           {loading ? (
@@ -294,7 +320,7 @@ export function NotificationBell() {
                   <DropdownMenuLabel className="text-xs font-semibold text-[var(--text-muted)] px-2 py-1">
                     Older
                   </DropdownMenuLabel>
-                  {groupedNotifications.older.slice(0, 5).map((notification) => (
+                  {groupedNotifications.older.map((notification) => (
                     <NotificationItem
                       key={notification.id}
                       notification={notification}
@@ -302,18 +328,6 @@ export function NotificationBell() {
                       onClick={handleNotificationClick}
                     />
                   ))}
-                  {groupedNotifications.older.length > 5 && (
-                    <div className="px-2 py-2 text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs"
-                        onClick={() => router.push("/notifications")}
-                      >
-                        View all ({groupedNotifications.older.length} more)
-                      </Button>
-                    </div>
-                  )}
                 </>
               )}
             </div>
