@@ -66,8 +66,8 @@ const ResponsiveDialogContent = React.forwardRef<
       children,
       hideClose,
       showHandle = true,
-      sheetMaxHeight = "92dvh",
-      sheetMinHeight = "60dvh",
+      sheetMaxHeight = "92svh",
+      sheetMinHeight = "60svh",
       variant = "auto",
       contentAreaCentered,
       ...props
@@ -154,7 +154,16 @@ const SheetContent = React.forwardRef<
   SheetContentProps
 >(
   (
-    { className, children, hideClose, showHandle = true, sheetMaxHeight, sheetMinHeight, ...props },
+    {
+      className,
+      children,
+      hideClose,
+      showHandle = true,
+      sheetMaxHeight,
+      sheetMinHeight,
+      style: propStyle,
+      ...props
+    },
     ref
   ) => {
     const [dragY, setDragY] = React.useState(0);
@@ -214,6 +223,12 @@ const SheetContent = React.forwardRef<
             className
           )}
           style={{
+            // Merge caller-provided style first so sheet-critical values
+            // (maxHeight/minHeight/transform) always win — a caller's
+            // plain style={} would otherwise clobber them and uncap the
+            // sheet, letting tall content push the handle above the
+            // viewport.
+            ...propStyle,
             maxHeight: sheetMaxHeight,
             minHeight: sheetMinHeight,
             transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
