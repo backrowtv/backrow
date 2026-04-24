@@ -132,6 +132,70 @@ Test-factory scripts under `scripts/test-factory/*` are the only exemption: they
 
 Validation runs at module load — missing required vars throw on first import, not at request time.
 
+## Forms and auto-save
+
+Settings pages use `useAutoSaveForm` + `AutoSaveButton` (introduced in
+`9cdc6d8`) so users never have to press "Save" — form state debounces to
+the server and surfaces success / error inline.
+
+- **Hook:** `src/hooks/useAutoSaveForm.ts`. Input: `{ values, save,
+  debounceMs?, enabled?, onError?, onSuccess? }`. Returns `{ state: 'idle'
+  | 'dirty' | 'saving' | 'saved' | 'error', isDirty, lastSavedAt, error,
+  flush }`. Debounces `save(values)` by default **800ms** after the last
+  change, no-ops when values are unchanged, and coalesces concurrent calls
+  behind an in-flight flag so the caller never double-saves.
+- **Button:** `src/components/ui/AutoSaveButton.tsx` renders the state
+  machine (spinner while saving, check pulse for 1.2s after saved, error
+  badge otherwise). Includes a "flush now" affordance for users who want
+  the save to happen immediately on blur.
+- **Consumers (today):** `NotificationSettingsForm`, `PrivacySettingsForm`,
+  `WatchSettingsForm` under `src/components/profile/`. Each imports a
+  `save*` server action that returns `{ success, error? }` — the hook reads
+  `.error` from that shape directly.
+- **Unit tests:** `src/__tests__/hooks/useAutoSaveForm.test.ts` covers the
+  state machine (idle → dirty → saving → saved, error rollback, double-save
+  coalescing, unmount safety). Run with `bun run test`.
+
+When adding a new settings surface, **wire it through `useAutoSaveForm`**
+instead of a manual submit button — the hook handles the subtle cases
+(double-save, unmount during save, error rollback) that would otherwise
+ship as bugs.
+
+## Username lifecycle
+
+Usernames are tracked across three columns on `public.users`:
+
+| Column                       | Set by                                            | Purpose                                                                                            |
+| ---------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `username`                   | signup / username picker / admin                  | Canonical handle (unique, case-insensitive index).                                                 |
+| `username_auto_derived`      | signup (true for OAuth), welcome picker (→ false) | Distinguishes "we auto-generated this" (OAuth shim) from "the user chose this" (first commitment). |
+| `username_last_changed_at`   | every explicit change                             | Base for the cooldown calculation.                                                                 |
+
+### Flow
+
+1. **Email signup** — username is set atomically with the auth row
+   (`1631284`). `username_auto_derived = false`, `username_last_changed_at =
+   now()`. The `/welcome/username` interstitial does **not** re-fire.
+2. **OAuth signup** — username is derived from the OAuth identity email /
+   name. `username_auto_derived = true`. On first sign-in the middleware
+   routes the user to `/welcome/username` so they pick a real one; picking
+   sets `username_auto_derived = false` and stamps `username_last_changed_at`
+   (`4c8c9a6`).
+3. **Post-signup changes** (Account Settings) — allowed at most once every
+   **180 days** (`USERNAME_CHANGE_COOLDOWN_DAYS` in
+   `src/app/actions/auth/username-validation.ts`, raised from 30d in
+   `a7556f9`). Auto-derived usernames are **always changeable** — the
+   cooldown only kicks in once the user has made a deliberate pick.
+4. **Display name** is **not** rate-limited. Change as often as you want.
+
+Migration: `supabase/migrations/0011_username_auto_derived_and_change_tracking.sql`
+adds the two tracking columns.
+
+Server actions: `src/app/actions/auth/username.ts` (`claimUsername` for the
+welcome-picker path, `changeUsername` for the settings path),
+`src/app/actions/auth/username-validation.ts` (format rules +
+`USERNAME_CHANGE_COOLDOWN_DAYS`).
+
 ## A11y backlog
 
 `jsx-a11y` rules are at error level. The rough surface (clickable divs, unassociated labels, composable shadcn slots) was cleared during W6. New violations will fail `bun run lint`. If you need to intentionally suppress a check on a shadcn primitive or a legit `autoFocus` in a modal, use `// eslint-disable-next-line jsx-a11y/<rule>` with a one-line comment explaining why — audits key off the comment.

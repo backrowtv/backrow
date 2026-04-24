@@ -16,6 +16,22 @@ Every dynamic page exports `generateMetadata`; every static page exports a top-l
   - Movies without a `slug` (unstable URL) → `noindex, follow`.
   - All `/profile/*` pages → `noindex, nofollow` (admin-only page today; decision locked in W4).
 
+### Slug vs UUID: don't interpolate both into one filter
+
+The `/club/[slug]` route accepts either a slug or a UUID. Early versions
+tried to match both in one `.or(slug.eq.${x},id.eq.${x})` clause, but
+PostgREST casts the RHS of `id.eq` to `uuid` and errors the whole query
+when the input is a slug string. Supabase returned `{ data: null, error }`
+and the page silently fell through to `notFound()` — which Next.js
+serializes with `<meta name="robots" content="noindex">`. Every anon hit
+to a public club was being marked uncrawlable, tanking Lighthouse SEO
+scores and breaking every shared club link.
+
+Fix (`5d5672b`): branch on UUID shape the same way `resolveClub` does, then
+issue a single-column equality query. Single route affected:
+`src/app/(dashboard)/club/[slug]/page.tsx`. Apply the same pattern to any
+new route that accepts both slug and UUID identifiers.
+
 ### No double-fetch pattern
 
 `generateMetadata` and the page body share data via **React `cache()`**, not `unstable_cache`. Helpers live in `src/lib/seo/fetchers.ts`:

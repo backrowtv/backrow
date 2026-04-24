@@ -53,6 +53,12 @@ retained seed). All other test data is rebuilt on demand by the factories.
 - Test festival themes
 - Placeholder image URLs
 
+### Hook regression tests
+
+- `src/__tests__/hooks/useAutoSaveForm.test.ts` — state machine for the
+  settings auto-save hook (idle → dirty → saving → saved / error, unmount
+  safety, double-save coalescing). Run with `bun run test`.
+
 ### Test Factory Scripts
 
 Located in `scripts/test-factory/`:
