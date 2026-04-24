@@ -122,27 +122,34 @@ export async function signUp(prevState: unknown, formData: FormData) {
   // Create user in public.users table if signup was successful
   if (signUpData.user) {
     try {
-      // First ensure user exists (creates basic profile)
-      await ensureUser(supabase, signUpData.user.id, email);
+      // Pass the explicit username (if provided and valid) into ensureUser so
+      // it's written atomically with `username_auto_derived: false`. Previously
+      // we did this as a two-step insert + update, but the update ran before
+      // the auth session was fully established and was silently no-op'd by
+      // RLS for some users, leaving them flagged as auto-derived and forcing
+      // them through /welcome/username even though they had picked a handle.
+      const desiredUsername =
+        username && username.length >= 3 && /^[a-z0-9_]+$/.test(username) ? username : undefined;
+
+      // Pre-check: if the desired username is already taken, surface that
+      // immediately instead of silently falling back to an auto-derived one.
+      if (desiredUsername) {
+        const { data: taken } = await supabase
+          .from("users")
+          .select("id")
+          .eq("username", desiredUsername)
+          .maybeSingle();
+        if (taken) {
+          return { error: "That username is already taken. Please choose another." };
+        }
+      }
+
+      await ensureUser(supabase, signUpData.user.id, email, { desiredUsername });
 
       // Send welcome email (fire-and-forget)
       welcomeEmailHtml({ userName: username || undefined })
         .then((html) => sendEmail({ to: email, subject: "Welcome to BackRow!", html }))
         .catch((err) => console.error("Welcome email failed:", err));
-
-      // Update username if provided. Flip the auto-derived flag off — the
-      // user picked this explicitly, so the middleware won't route them
-      // through the /welcome/username picker.
-      if (username && username.length >= 3) {
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({ username, username_auto_derived: false })
-          .eq("id", signUpData.user.id);
-
-        if (updateError?.code === "23505" && updateError.message?.includes("username")) {
-          return { error: "That username is already taken. Please choose another." };
-        }
-      }
 
       await autoJoinFeaturedClub(supabase, signUpData.user.id);
     } catch (userError) {
