@@ -50,8 +50,8 @@ if (!verified.ok) return { error: verified.error };
 | `voteOnFeedback`                | 30/min          | —                 | ✅                                 |
 | `deleteFeedbackItem`            | 10/min          | —                 | ✅                                 |
 | `createComment`                 | 10/min          | —                 | ✅                                 |
-| `updateComment`                 | —               | —                 | ✅                                 |
-| `deleteComment`                 | —               | —                 | ✅                                 |
+| `updateComment`                 | 20/min          | —                 | ✅                                 |
+| `deleteComment`                 | 20/min          | —                 | ✅                                 |
 | `toggleVote` (discussions)      | 30/min          | —                 | ✅                                 |
 | `unlockThread`                  | 20/min          | —                 | ✅                                 |
 | `revealThreadSpoilers`          | 20/min          | —                 | ✅                                 |

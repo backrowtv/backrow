@@ -389,6 +389,9 @@ export async function updateComment(
   commentId: string,
   content: string
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("updateComment", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
     const {
@@ -455,6 +458,9 @@ export async function updateComment(
 export async function deleteComment(
   commentId: string
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("deleteComment", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
     const {

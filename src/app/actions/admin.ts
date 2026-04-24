@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { invalidateMarketing } from "@/lib/cache/invalidate";
+import { escapeLike } from "@/lib/security/postgrest-escape";
 
 // Helper to check if user is a site admin
 // Uses the site_admins table for role-based access control
@@ -500,7 +501,7 @@ export async function searchUsers(params: {
     );
 
   if (params.query && params.query.trim()) {
-    const q = `%${params.query.trim()}%`;
+    const q = `%${escapeLike(params.query.trim())}%`;
     query = query.or(`email.ilike.${q},username.ilike.${q},display_name.ilike.${q}`);
   }
 

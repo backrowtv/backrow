@@ -5,6 +5,7 @@
  * Provides typed, reusable methods for accessing festival data.
  */
 
+import { escapeLike } from "@/lib/security/postgrest-escape";
 import {
   handleQueryError,
   handleListError,
@@ -254,7 +255,7 @@ export async function searchFestivals(
       )
     `
     )
-    .ilike("theme", `%${query}%`)
+    .ilike("theme", `%${escapeLike(query)}%`)
     .is("deleted_at", null)
     .order("start_date", { ascending: false })
     .limit(limit);

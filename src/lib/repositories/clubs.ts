@@ -5,6 +5,7 @@
  * Provides typed, reusable methods for accessing club data.
  */
 
+import { escapeLike } from "@/lib/security/postgrest-escape";
 import {
   handleQueryError,
   handleListError,
@@ -178,7 +179,7 @@ export async function searchClubs(
   let queryBuilder = db
     .from("clubs")
     .select("*")
-    .ilike("name", `%${query}%`)
+    .ilike("name", `%${escapeLike(query)}%`)
     .order("name")
     .limit(limit);
 

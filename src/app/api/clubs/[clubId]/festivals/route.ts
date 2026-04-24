@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { escapeLike } from "@/lib/security/postgrest-escape";
 
 export async function GET(
   request: NextRequest,
@@ -41,7 +42,7 @@ export async function GET(
 
     // Filter by search term if provided
     if (search.trim()) {
-      query = query.ilike("theme", `%${search}%`);
+      query = query.ilike("theme", `%${escapeLike(search)}%`);
     }
 
     const { data: festivals, error } = await query;

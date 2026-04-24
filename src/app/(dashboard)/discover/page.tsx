@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
+import { escapeLike } from "@/lib/security/postgrest-escape";
 
 export const metadata: Metadata = {
   title: "Discover Clubs · BackRow",
@@ -61,7 +62,8 @@ async function getPublicClubs(
 
   // Apply search query
   if (searchQuery) {
-    query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+    const q = escapeLike(searchQuery);
+    query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
   }
 
   const { data: clubs } = await query.order("created_at", { ascending: false }).limit(50);

@@ -5,6 +5,7 @@
  * Provides typed, reusable methods for accessing movie and rating data.
  */
 
+import { escapeLike } from "@/lib/security/postgrest-escape";
 import {
   handleQueryError,
   handleListError,
@@ -53,7 +54,7 @@ export async function searchMovies(
   let queryBuilder = db
     .from("movies")
     .select("*")
-    .ilike("title", `%${query}%`)
+    .ilike("title", `%${escapeLike(query)}%`)
     .order("popularity_score", { ascending: false })
     .limit(limit);
 

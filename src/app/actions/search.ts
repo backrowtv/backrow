@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { searchPeople, searchMovies, getPosterUrl } from "@/lib/tmdb/client";
 import type { SearchFilterType } from "@/components/search/SearchInterface";
 import type { SearchResults } from "./search.types";
+import { escapeLike } from "@/lib/security/postgrest-escape";
 
 // Helper to process person results for full search
 // OPTIMIZED: Takes pre-loaded movies map to avoid N+1 queries
@@ -97,7 +98,9 @@ async function batchLoadMoviesForPeople(
       (async () => {
         const directorNames = directors.map((d) => d.name);
         // Use OR condition for all director names
-        const orCondition = directorNames.map((name) => `director.ilike.%${name}%`).join(",");
+        const orCondition = directorNames
+          .map((name) => `director.ilike.%${escapeLike(name)}%`)
+          .join(",");
         const { data } = await supabase
           .from("movies")
           .select("title, director")
@@ -127,7 +130,9 @@ async function batchLoadMoviesForPeople(
     queries.push(
       (async () => {
         const composerNames = composers.map((c) => c.name);
-        const orCondition = composerNames.map((name) => `composer.ilike.%${name}%`).join(",");
+        const orCondition = composerNames
+          .map((name) => `composer.ilike.%${escapeLike(name)}%`)
+          .join(",");
         const { data } = await supabase
           .from("movies")
           .select("title, composer")

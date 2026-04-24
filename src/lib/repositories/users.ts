@@ -13,6 +13,7 @@ import {
   type QueryResult,
   type ListResult,
 } from "./types";
+import { escapeLike } from "@/lib/security/postgrest-escape";
 
 /**
  * Get a user by their ID
@@ -62,7 +63,7 @@ export async function searchUsers(
   }
 ): Promise<ListResult<User>> {
   const { limit = 10, excludeIds } = options || {};
-  const searchPattern = `%${query}%`;
+  const searchPattern = `%${escapeLike(query)}%`;
 
   let queryBuilder = db
     .from("users")
