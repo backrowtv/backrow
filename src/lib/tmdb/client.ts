@@ -2,9 +2,11 @@
 // Note: User must provide TMDB_API_KEY in environment variables
 
 import { env } from "@/lib/config/env";
+import { retryWithBackoff } from "@/lib/retry";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+const TMDB_REQUEST_TIMEOUT_MS = 3000;
 
 function getTmdbApiKey(): string {
   const apiKey = env.TMDB_API_KEY;
@@ -14,11 +16,30 @@ function getTmdbApiKey(): string {
   return apiKey;
 }
 
-/** Fetch from TMDB with API key auth via query parameter */
+// Wraps 5xx so retry kicks in; .catch below unwraps so callers still get a Response.
+class TmdbTransientError extends Error {
+  constructor(public response: Response) {
+    super(`TMDB ${response.status}`);
+    this.name = "TmdbTransientError";
+  }
+}
+
+/** Fetch from TMDB with API key auth, 3s timeout, and 2 retries on network/5xx. */
 function tmdbFetch(url: string, options?: { revalidate?: number }): Promise<Response> {
   const separator = url.includes("?") ? "&" : "?";
-  return fetch(`${url}${separator}api_key=${getTmdbApiKey()}`, {
-    next: options?.revalidate ? { revalidate: options.revalidate } : undefined,
+  const fullUrl = `${url}${separator}api_key=${getTmdbApiKey()}`;
+  const next = options?.revalidate ? { revalidate: options.revalidate } : undefined;
+
+  return retryWithBackoff(async () => {
+    const response = await fetch(fullUrl, {
+      next,
+      signal: AbortSignal.timeout(TMDB_REQUEST_TIMEOUT_MS),
+    });
+    if (response.status >= 500) throw new TmdbTransientError(response);
+    return response;
+  }).catch((err: unknown) => {
+    if (err instanceof TmdbTransientError) return err.response;
+    throw err;
   });
 }
 

@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { env } from "@/lib/config/env";
+import { retryWithBackoff } from "@/lib/retry";
 
 // Lazy singleton — only created when first used
 let resendClient: Resend | null = null;
@@ -28,21 +29,23 @@ interface SendEmailOptions {
 export async function sendEmail(options: SendEmailOptions) {
   const resend = getResend();
 
-  const { data, error } = await resend.emails.send({
-    from: options.from || DEFAULT_FROM,
-    to: Array.isArray(options.to) ? options.to : [options.to],
-    subject: options.subject,
-    html: options.html,
-    replyTo: options.replyTo,
-    headers: options.headers,
-  });
-
-  if (error) {
-    console.error("Failed to send email:", error);
-    throw new Error(`Email send failed: ${error.message}`);
+  try {
+    return await retryWithBackoff(async () => {
+      const { data, error } = await resend.emails.send({
+        from: options.from || DEFAULT_FROM,
+        to: Array.isArray(options.to) ? options.to : [options.to],
+        subject: options.subject,
+        html: options.html,
+        replyTo: options.replyTo,
+        headers: options.headers,
+      });
+      if (error) throw new Error(`Email send failed: ${error.message}`);
+      return data;
+    });
+  } catch (err) {
+    console.error("Failed to send email:", err);
+    throw err;
   }
-
-  return data;
 }
 
 /**
