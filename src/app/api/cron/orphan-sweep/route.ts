@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 
 const ROUTE = "/api/cron/orphan-sweep";
 const EXPORT_TTL_DAYS = 7;
+const SOFT_DELETE_TTL_DAYS = 30;
 
 /**
  * Weekly orphan sweep — cleans up stale signed-URL artifacts the hard-delete
@@ -63,10 +64,32 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Hard-delete soft-deleted discussion comments past the retention window.
+  // Comments are soft-deleted to preserve thread integrity in real time; they
+  // age out permanently after 30 days so retention matches the account
+  // grace-window.
+  const commentCutoff = new Date(
+    Date.now() - SOFT_DELETE_TTL_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+  let removedComments = 0;
+  const { data: purgedComments, error: commentErr } = await supabase
+    .from("discussion_comments")
+    .delete()
+    .not("deleted_at", "is", null)
+    .lt("deleted_at", commentCutoff)
+    .select("id");
+
+  if (commentErr) {
+    errors.push(`discussion_comments: ${commentErr.message}`);
+  } else {
+    removedComments = purgedComments?.length ?? 0;
+  }
+
   const ms = Date.now() - start;
   logger.info("cron:done", {
     route: ROUTE,
     removedExports,
+    removedComments,
     errorCount: errors.length,
     ms,
   });
@@ -74,8 +97,10 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     removedExports,
+    removedComments,
     errors,
     cutoff: cutoff.toISOString(),
+    commentCutoff,
     ms,
   });
 }
