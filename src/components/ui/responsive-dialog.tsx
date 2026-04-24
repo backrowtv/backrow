@@ -241,7 +241,7 @@ const SheetContent = React.forwardRef<
             </div>
           )}
           <div
-            className="overflow-y-auto flex-1"
+            className="overflow-y-auto flex-1 px-4"
             style={{
               paddingBottom: "env(safe-area-inset-bottom, 0px)",
             }}
@@ -266,10 +266,7 @@ SheetContent.displayName = "SheetContent";
 
 const ResponsiveDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left px-4 sm:px-0 pt-2 sm:pt-0",
-      className
-    )}
+    className={cn("flex flex-col space-y-1.5 text-center sm:text-left pt-2 sm:pt-0", className)}
     {...props}
   />
 );
@@ -278,7 +275,7 @@ ResponsiveDialogHeader.displayName = "ResponsiveDialogHeader";
 const ResponsiveDialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2 px-4 sm:px-0 pb-4 sm:pb-0",
+      "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2 pb-4 sm:pb-0",
       className
     )}
     {...props}
