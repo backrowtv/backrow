@@ -6,6 +6,12 @@ import { X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 
+// iOS-style bottom-sheet drag behavior: swipe down on the handle region
+// to dismiss. Threshold calibrated so a deliberate swipe closes but a
+// gentle scroll-bounce does not.
+const DRAG_DISMISS_DISTANCE_PX = 110;
+const DRAG_DISMISS_VELOCITY_PX_PER_MS = 0.5;
+
 const ResponsiveDialog = ({
   modal = false,
   ...props
@@ -73,50 +79,17 @@ const ResponsiveDialogContent = React.forwardRef<
 
     if (resolvedVariant === "sheet") {
       return (
-        <ResponsiveDialogPortal>
-          <ResponsiveDialogOverlay />
-          <DialogPrimitive.Content
-            ref={ref}
-            className={cn(
-              "fixed inset-x-0 bottom-0 z-[100]",
-              "bg-[var(--card)]",
-              "rounded-t-3xl",
-              "border-t border-[var(--border)]",
-              "shadow-2xl",
-              "flex flex-col",
-              "data-[state=open]:animate-in data-[state=closed]:animate-out",
-              "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-              "data-[state=closed]:duration-200 data-[state=open]:duration-300",
-              "motion-reduce:animate-none",
-              className
-            )}
-            style={{ maxHeight: sheetMaxHeight, minHeight: sheetMinHeight }}
-            {...props}
-          >
-            {showHandle && (
-              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-                <div className="w-10 h-1 rounded-full bg-[var(--border)]" />
-              </div>
-            )}
-            <div
-              className="overflow-y-auto flex-1"
-              style={{
-                paddingBottom: "env(safe-area-inset-bottom, 0px)",
-              }}
-            >
-              {children}
-            </div>
-            {!hideClose && (
-              <DialogPrimitive.Close
-                className="absolute right-3 top-3 rounded-full bg-black/40 backdrop-blur-sm p-1.5 text-white hover:bg-black/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" weight="bold" />
-                <span className="sr-only">Close</span>
-              </DialogPrimitive.Close>
-            )}
-          </DialogPrimitive.Content>
-        </ResponsiveDialogPortal>
+        <SheetContent
+          ref={ref}
+          className={className}
+          hideClose={hideClose}
+          showHandle={showHandle}
+          sheetMaxHeight={sheetMaxHeight}
+          sheetMinHeight={sheetMinHeight}
+          {...props}
+        >
+          {children}
+        </SheetContent>
       );
     }
 
@@ -163,6 +136,133 @@ const ResponsiveDialogContent = React.forwardRef<
   }
 );
 ResponsiveDialogContent.displayName = "ResponsiveDialogContent";
+
+/**
+ * Mobile sheet body with drag-to-dismiss support on the handle region.
+ * Split out of ResponsiveDialogContent so hooks only run on the sheet
+ * path — the dialog variant (desktop) stays hook-free.
+ */
+interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  hideClose?: boolean;
+  showHandle?: boolean;
+  sheetMaxHeight: string;
+  sheetMinHeight: string;
+}
+
+const SheetContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  SheetContentProps
+>(
+  (
+    { className, children, hideClose, showHandle = true, sheetMaxHeight, sheetMinHeight, ...props },
+    ref
+  ) => {
+    const [dragY, setDragY] = React.useState(0);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const dragStart = React.useRef<{ y: number; time: number } | null>(null);
+    const closeRef = React.useRef<HTMLButtonElement>(null);
+
+    const onHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+      dragStart.current = { y: e.clientY, time: performance.now() };
+      setIsDragging(true);
+      e.currentTarget.setPointerCapture(e.pointerId);
+    };
+
+    const onHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!dragStart.current) return;
+      const delta = e.clientY - dragStart.current.y;
+      setDragY(Math.max(0, delta));
+    };
+
+    const onHandlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!dragStart.current) {
+        setIsDragging(false);
+        return;
+      }
+      const delta = e.clientY - dragStart.current.y;
+      const elapsed = performance.now() - dragStart.current.time;
+      const velocity = delta / Math.max(elapsed, 1);
+      const shouldDismiss =
+        delta > DRAG_DISMISS_DISTANCE_PX ||
+        (delta > 40 && velocity > DRAG_DISMISS_VELOCITY_PX_PER_MS);
+
+      dragStart.current = null;
+      setIsDragging(false);
+      if (shouldDismiss) {
+        closeRef.current?.click();
+      }
+      setDragY(0);
+    };
+
+    return (
+      <ResponsiveDialogPortal>
+        <ResponsiveDialogOverlay />
+        <DialogPrimitive.Content
+          ref={ref}
+          className={cn(
+            "fixed left-0 right-0 bottom-0 mx-auto z-[100]",
+            "w-full sm:max-w-lg",
+            "bg-[var(--card)]",
+            "rounded-t-3xl",
+            "border-t border-[var(--border)]",
+            "shadow-2xl",
+            "flex flex-col",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+            "data-[state=closed]:duration-200 data-[state=open]:duration-300",
+            "motion-reduce:animate-none",
+            className
+          )}
+          style={{
+            maxHeight: sheetMaxHeight,
+            minHeight: sheetMinHeight,
+            transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+            transition: isDragging ? "none" : "transform 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          {...props}
+        >
+          {/* Hidden close button used to programmatically dismiss on drag */}
+          <DialogPrimitive.Close
+            ref={closeRef}
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+          {showHandle && (
+            <div
+              onPointerDown={onHandlePointerDown}
+              onPointerMove={onHandlePointerMove}
+              onPointerUp={onHandlePointerUp}
+              onPointerCancel={onHandlePointerUp}
+              className="flex justify-center pt-3 pb-2 flex-shrink-0 touch-none cursor-grab active:cursor-grabbing"
+              role="presentation"
+            >
+              <div className="w-10 h-1 rounded-full bg-[var(--border)]" />
+            </div>
+          )}
+          <div
+            className="overflow-y-auto flex-1"
+            style={{
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
+          >
+            {children}
+          </div>
+          {!hideClose && (
+            <DialogPrimitive.Close
+              className="absolute right-3 top-3 rounded-full bg-black/40 backdrop-blur-sm p-1.5 text-white hover:bg-black/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" weight="bold" />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Content>
+      </ResponsiveDialogPortal>
+    );
+  }
+);
+SheetContent.displayName = "SheetContent";
 
 const ResponsiveDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
