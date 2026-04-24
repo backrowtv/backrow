@@ -743,7 +743,7 @@ export function FestivalWizard({
                   }}
                 >
                   <div className="overflow-hidden">
-                    <div className="pt-4">
+                    <div className="px-1 pt-5 pb-1">
                       <Input
                         label="Theme"
                         placeholder="Enter a theme name"

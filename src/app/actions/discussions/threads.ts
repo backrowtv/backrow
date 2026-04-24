@@ -502,8 +502,34 @@ export async function updateThread(
       updated_at: new Date().toISOString(),
     };
 
-    if (updates.title !== undefined) updateData.title = updates.title.trim();
-    if (updates.content !== undefined) updateData.content = updates.content.trim();
+    // Non-admin authors cannot change the title. Admins can moderate it.
+    if (updates.title !== undefined && isAdmin) {
+      updateData.title = updates.title.trim();
+    }
+
+    // Body edits: snapshot prior content into edit_history.
+    if (updates.content !== undefined) {
+      const newContent = updates.content.trim();
+
+      const { data: current } = await supabase
+        .from("discussion_threads")
+        .select("content, edited_at, created_at, edit_history")
+        .eq("id", threadId)
+        .single();
+
+      if (current && current.content !== newContent) {
+        const history = Array.isArray(current.edit_history) ? current.edit_history : [];
+        const snapshot = {
+          content: current.content,
+          edited_at: current.edited_at ?? current.created_at,
+        };
+        updateData.content = newContent;
+        updateData.edit_history = [snapshot, ...history];
+        updateData.is_edited = true;
+        updateData.edited_at = new Date().toISOString();
+      }
+    }
+
     if (updates.is_pinned !== undefined) updateData.is_pinned = updates.is_pinned;
     if (updates.is_locked !== undefined) updateData.is_locked = updates.is_locked;
     if (updates.is_spoiler !== undefined) updateData.is_spoiler = updates.is_spoiler;

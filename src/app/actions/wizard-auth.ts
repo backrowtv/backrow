@@ -133,6 +133,8 @@ export async function createUserAndClub(formData: FormData) {
   const seasonStandingsEnabled = formData.get("season_standings_enabled") === "true";
   const timingMode = (formData.get("timing_mode") as string) || "manual";
   const autoStartNextFestival = formData.get("auto_start_next_festival") === "true";
+  const moviePoolGovernance = (formData.get("movie_pool_governance") as string) || "democracy";
+  const allowNonAdminMoviePool = formData.get("allow_non_admin_movie_pool") !== "false";
   const rubricsMode = (formData.get("rubrics_mode") as string) || "off";
   const rubricName = formData.get("rubric_name") as string | null;
   const ratingRubricsJson = formData.get("rating_rubrics") as string | null;
@@ -171,6 +173,9 @@ export async function createUserAndClub(formData: FormData) {
     nomination_timing: { type: timingMode },
     watch_rate_timing: { type: timingMode },
     auto_start_next_festival: autoStartNextFestival,
+    // Movie pool (endless festivals)
+    movie_pool_governance: moviePoolGovernance,
+    allow_non_admin_movie_pool: allowNonAdminMoviePool,
     // Results settings
     results_reveal_type: "manual",
     results_reveal_direction: "forward",

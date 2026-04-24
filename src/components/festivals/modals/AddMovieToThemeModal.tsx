@@ -107,120 +107,123 @@ export function AddMovieToThemeModal({
       description={`Find a movie to nominate when "${themeName}" comes up`}
       size="lg"
     >
-      <div className="space-y-6">
-        {/* Theme Badge */}
-        <div
-          className="flex items-center gap-3 p-3 rounded-lg"
-          style={{ backgroundColor: "var(--primary)/10", border: "1px solid var(--primary)/20" }}
-        >
-          <Ticket className="w-5 h-5 text-[var(--primary)]" />
-          <div>
-            <p className="text-xs text-[var(--text-muted)]">Linking to theme</p>
-            <p className="font-medium text-[var(--text-primary)]">{themeName}</p>
+      <div className="flex flex-col min-h-0">
+        {/* Scrollable content */}
+        <div className="space-y-6 flex-1 min-h-0">
+          {/* Theme Badge */}
+          <div
+            className="flex items-center gap-3 p-3 rounded-lg"
+            style={{ backgroundColor: "var(--primary)/10", border: "1px solid var(--primary)/20" }}
+          >
+            <Ticket className="w-5 h-5 text-[var(--primary)]" />
+            <div>
+              <p className="text-xs text-[var(--text-muted)]">Linking to theme</p>
+              <p className="font-medium text-[var(--text-primary)]">{themeName}</p>
+            </div>
           </div>
-        </div>
 
-        {/* Movie Search */}
-        <div className="space-y-2">
-          <Label htmlFor="movie-search">Search for a movie</Label>
-          <MovieSearchInput
-            id="movie-search"
-            value={query}
-            onChange={(value) => {
-              setQuery(value);
-              setSelectedMovie(null);
-            }}
-            isSearching={isSearching}
-            placeholder="Enter movie title..."
-          />
-        </div>
-
-        {/* Search Results */}
-        {results.length > 0 && !selectedMovie && (
-          <div className="space-y-1 max-h-64 overflow-y-auto">
-            <Label>Select a movie</Label>
-            {results.map((movie) => (
-              <MovieSearchResultItem key={movie.id} movie={movie} onSelect={handleSelect} />
-            ))}
+          {/* Movie Search */}
+          <div className="space-y-2">
+            <Label htmlFor="movie-search">Search for a movie</Label>
+            <MovieSearchInput
+              id="movie-search"
+              value={query}
+              onChange={(value) => {
+                setQuery(value);
+                setSelectedMovie(null);
+              }}
+              isSearching={isSearching}
+              placeholder="Enter movie title..."
+            />
           </div>
-        )}
 
-        {/* Selected Movie */}
-        {selectedMovie && (
-          <Card variant="default">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-4">
-                <div className="relative w-16 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--surface-2)]">
-                  {selectedMovie.poster_url ? (
-                    <Image
-                      src={selectedMovie.poster_url}
-                      alt={selectedMovie.title}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                      placeholder="blur"
-                      blurDataURL={getTMDBBlurDataURL()}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <FilmReel className="w-6 h-6 text-[var(--text-muted)]" />
+          {/* Search Results */}
+          {results.length > 0 && !selectedMovie && (
+            <div className="space-y-1 max-h-64 overflow-y-auto">
+              <Label>Select a movie</Label>
+              {results.map((movie) => (
+                <MovieSearchResultItem key={movie.id} movie={movie} onSelect={handleSelect} />
+              ))}
+            </div>
+          )}
+
+          {/* Selected Movie */}
+          {selectedMovie && (
+            <Card variant="default">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  <div className="relative w-16 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--surface-2)]">
+                    {selectedMovie.poster_url ? (
+                      <Image
+                        src={selectedMovie.poster_url}
+                        alt={selectedMovie.title}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                        placeholder="blur"
+                        blurDataURL={getTMDBBlurDataURL()}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FilmReel className="w-6 h-6 text-[var(--text-muted)]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold text-[var(--text-primary)]">
+                          {selectedMovie.title}
+                        </h3>
+                        {selectedMovie.year && (
+                          <p className="text-sm text-[var(--text-muted)]">{selectedMovie.year}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedMovie(null)}
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                      >
+                        Change
+                      </Button>
                     </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold text-[var(--text-primary)]">
-                        {selectedMovie.title}
-                      </h3>
-                      {selectedMovie.year && (
-                        <p className="text-sm text-[var(--text-muted)]">{selectedMovie.year}</p>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedMovie(null)}
-                      className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    >
-                      Change
-                    </Button>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Note */}
-        {selectedMovie && (
-          <div className="space-y-2">
-            <Label htmlFor="note">Additional note (optional)</Label>
-            <Textarea
-              id="note"
-              placeholder="Why does this movie fit the theme?"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-            />
-            <p className="text-xs text-[var(--text-muted)]">
-              This will be saved with your future nomination
-            </p>
-          </div>
-        )}
+          {/* Note */}
+          {selectedMovie && (
+            <div className="space-y-2">
+              <Label htmlFor="note">Additional note (optional)</Label>
+              <Textarea
+                id="note"
+                placeholder="Why does this movie fit the theme?"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={2}
+              />
+              <p className="text-xs text-[var(--text-muted)]">
+                This will be saved with your future nomination
+              </p>
+            </div>
+          )}
 
-        {/* Empty State */}
-        {!isSearching && query.length >= 2 && results.length === 0 && !selectedMovie && (
-          <div className="text-center py-6">
-            <FilmReel className="w-10 h-10 mx-auto mb-2 text-[var(--text-muted)] opacity-50" />
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              No movies found for &quot;{query}&quot;
-            </p>
-          </div>
-        )}
+          {/* Empty State */}
+          {!isSearching && query.length >= 2 && results.length === 0 && !selectedMovie && (
+            <div className="text-center py-6">
+              <FilmReel className="w-10 h-10 mx-auto mb-2 text-[var(--text-muted)] opacity-50" />
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                No movies found for &quot;{query}&quot;
+              </p>
+            </div>
+          )}
+        </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end gap-2">
+        {/* Actions - pinned */}
+        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-[var(--border)] flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancel
           </Button>

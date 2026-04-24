@@ -15,10 +15,11 @@ export type {
   RubricEnforcement,
   TimingType,
   RatingRubric,
+  MoviePoolGovernance,
 } from "./club-settings";
 
 // Import types we need to use in this file
-import type { ThemeGovernance, FestivalType } from "./club-settings";
+import type { ThemeGovernance, FestivalType, MoviePoolGovernance } from "./club-settings";
 
 /**
  * Background selector types (used by festival/club appearance settings).
@@ -56,6 +57,8 @@ export interface FestivalDefaultSettings {
   seasonStandingsEnabled: boolean;
   timingMode: TimingMode;
   autoStartNextFestival: boolean;
+  moviePoolGovernance: MoviePoolGovernance;
+  allowNonAdminMoviePool: boolean;
 }
 
 /**
@@ -73,6 +76,8 @@ export const DEFAULT_STANDARD_SETTINGS: FestivalDefaultSettings = {
   seasonStandingsEnabled: true,
   timingMode: "manual",
   autoStartNextFestival: false,
+  moviePoolGovernance: "democracy",
+  allowNonAdminMoviePool: true,
 };
 
 /**
@@ -90,6 +95,8 @@ export const DEFAULT_ENDLESS_SETTINGS: FestivalDefaultSettings = {
   seasonStandingsEnabled: false,
   timingMode: "manual",
   autoStartNextFestival: false,
+  moviePoolGovernance: "democracy",
+  allowNonAdminMoviePool: true,
 };
 
 /**
@@ -114,6 +121,8 @@ export function applyFestivalChoiceToState(
     seasonStandingsEnabled: defaults.seasonStandingsEnabled,
     timingMode: defaults.timingMode,
     autoStartNextFestival: defaults.autoStartNextFestival,
+    moviePoolGovernance: defaults.moviePoolGovernance,
+    allowNonAdminMoviePool: defaults.allowNonAdminMoviePool,
   };
 }
 
@@ -151,6 +160,8 @@ export interface ClubWizardState {
   scoringEnabled: boolean;
   nominationGuessing: boolean;
   seasonStandingsEnabled: boolean;
+  moviePoolGovernance: MoviePoolGovernance;
+  allowNonAdminMoviePool: boolean;
 
   // Step 4: Review & Launch
   privacy: PrivacyLevel;
@@ -186,6 +197,8 @@ export const INITIAL_WIZARD_STATE: ClubWizardState = {
   scoringEnabled: true,
   nominationGuessing: true,
   seasonStandingsEnabled: true,
+  moviePoolGovernance: "democracy",
+  allowNonAdminMoviePool: true,
   privacy: "private",
   email: "",
   username: "",

@@ -406,8 +406,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 <h1
                   className="text-base lg:text-lg font-bold text-[var(--text-primary)] leading-tight min-w-0 line-clamp-3"
                   style={{
-                    textShadow:
-                      "0 0 6px var(--background), 0 0 12px var(--background), 0 1px 2px rgba(0,0,0,0.35)",
+                    textShadow: "0 1px 3px rgba(0, 0, 0, 0.7), 0 0 4px rgba(0, 0, 0, 0.4)",
                   }}
                 >
                   {movie.title}
@@ -415,8 +414,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 <div
                   className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]"
                   style={{
-                    textShadow:
-                      "0 0 6px var(--background), 0 0 12px var(--background), 0 1px 2px rgba(0,0,0,0.35)",
+                    textShadow: "0 1px 3px rgba(0, 0, 0, 0.7), 0 0 4px rgba(0, 0, 0, 0.4)",
                   }}
                 >
                   {movie.release_date && <span>{new Date(movie.release_date).getFullYear()}</span>}

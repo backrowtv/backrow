@@ -102,16 +102,16 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
 
     // Determine the style to apply
     const getAvatarStyle = () => {
-      // Uploaded photos: custom border if provided, branded for founder, gray default
+      // Uploaded photos: custom border if provided, branded for founder, otherwise no border
       if (hasUploadedPhoto) {
         const borderColor = defaultAvatarBorderColor
           ? defaultAvatarBorderColor
           : useBrandedBorder
             ? "var(--primary)"
-            : "hsl(0, 0%, 50%)";
+            : null;
         return {
           backgroundColor: "var(--surface-2)",
-          border: `${borderWidths[size]} solid ${borderColor}`,
+          border: borderColor ? `${borderWidths[size]} solid ${borderColor}` : "none",
           boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
         };
       }
@@ -123,20 +123,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
           color: "white",
           border: defaultAvatarBorderColor
             ? `${borderWidths[size]} solid ${defaultAvatarBorderColor}`
-            : `${borderWidths[size]} solid transparent`,
-          backgroundImage: defaultAvatarBorderColor
-            ? undefined
-            : `
-              linear-gradient(${defaultAvatarColor}, ${defaultAvatarColor}),
-              linear-gradient(
-                145deg,
-                rgba(255, 255, 255, 0.6) 0%,
-                rgba(180, 175, 170, 0.4) 50%,
-                rgba(100, 95, 90, 0.5) 100%
-              )
-            `,
-          backgroundOrigin: defaultAvatarBorderColor ? undefined : "border-box",
-          backgroundClip: defaultAvatarBorderColor ? undefined : "padding-box, border-box",
+            : "none",
           boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
         };
       }

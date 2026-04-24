@@ -2,7 +2,7 @@
 
 import { UsersThree, Shuffle, Crown, Users, Clock } from "@phosphor-icons/react";
 
-import type { ThemeGovernance } from "@/types/club-creation";
+import type { ThemeGovernance, MoviePoolGovernance } from "@/types/club-creation";
 import type { WizardStepProps } from "./types";
 import { WizardChoiceCard, WizardSegment, WizardToggleRow } from "./WizardChoiceCard";
 
@@ -32,6 +32,32 @@ const GOVERNANCE_OPTIONS: Array<{
   },
 ];
 
+const POOL_GOVERNANCE_OPTIONS: Array<{
+  value: MoviePoolGovernance;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+}> = [
+  {
+    value: "democracy",
+    label: "Democracy",
+    description: "Top-voted movie auto-plays next",
+    icon: <UsersThree className="w-5 h-5" weight="duotone" />,
+  },
+  {
+    value: "random",
+    label: "Random",
+    description: "A random movie from the pool plays next",
+    icon: <Shuffle className="w-5 h-5" weight="duotone" />,
+  },
+  {
+    value: "autocracy",
+    label: "Autocracy",
+    description: "Admins pick what plays next",
+    icon: <Crown className="w-5 h-5" weight="duotone" />,
+  },
+];
+
 const NOMINATION_OPTIONS = [
   { value: 1, label: "1" },
   { value: 2, label: "2" },
@@ -56,10 +82,7 @@ export function StepHowItRuns({ state, updateState }: WizardStepProps) {
       <div className="grid gap-8 md:grid-cols-2">
         <section className="space-y-3">
           <div className="space-y-0.5">
-            <p
-              className="text-sm font-semibold"
-              style={{ color: "var(--text-primary)" }}
-            >
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
               Theme selection
             </p>
             <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -83,10 +106,7 @@ export function StepHowItRuns({ state, updateState }: WizardStepProps) {
         <section className="space-y-5">
           <div className="space-y-3">
             <div className="space-y-0.5">
-              <p
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
+              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 Nominations per member
               </p>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -100,40 +120,39 @@ export function StepHowItRuns({ state, updateState }: WizardStepProps) {
             />
           </div>
 
-          <div className="space-y-3">
-            <div className="space-y-0.5">
-              <p
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Blind nominations
-              </p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Hide who nominated each movie until the reveal
-              </p>
+          {isStandard && (
+            <div className="space-y-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  Blind nominations
+                </p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Hide who nominated each movie until the reveal
+                </p>
+              </div>
+              <WizardToggleRow
+                title={state.blindNominations ? "On" : "Off"}
+                description={
+                  state.blindNominations
+                    ? "Nominators are hidden until results"
+                    : "Nominators are visible"
+                }
+                checked={state.blindNominations}
+                onChange={(checked) => updateState({ blindNominations: checked })}
+              />
             </div>
-            <WizardToggleRow
-              title={state.blindNominations ? "On" : "Off"}
-              description={
-                state.blindNominations
-                  ? "Nominators are hidden until results"
-                  : "Nominators are visible"
-              }
-              checked={state.blindNominations}
-              onChange={(checked) => updateState({ blindNominations: checked })}
-            />
-          </div>
+          )}
         </section>
       </div>
 
-      {isStandard && (
-        <div className="grid gap-8 md:grid-cols-2 pt-2 border-t" style={{ borderColor: "var(--border)" }}>
+      {isStandard ? (
+        <div
+          className="grid gap-8 md:grid-cols-2 pt-2 border-t"
+          style={{ borderColor: "var(--border)" }}
+        >
           <section className="space-y-3 pt-5">
             <div className="space-y-0.5">
-              <p
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
+              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 Timing
               </p>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -166,10 +185,7 @@ export function StepHowItRuns({ state, updateState }: WizardStepProps) {
 
           <section className="space-y-3 pt-5">
             <div className="space-y-0.5">
-              <p
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
+              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 Competition
               </p>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -185,6 +201,55 @@ export function StepHowItRuns({ state, updateState }: WizardStepProps) {
               }
               checked={competitiveEnabled}
               onChange={handleCompetitiveChange}
+            />
+          </section>
+        </div>
+      ) : (
+        <div
+          className="grid gap-8 md:grid-cols-2 pt-2 border-t"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <section className="space-y-3 pt-5">
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                Movie pool
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                How the next movie to watch is chosen from the pool
+              </p>
+            </div>
+            <div className="space-y-2">
+              {POOL_GOVERNANCE_OPTIONS.map((opt) => (
+                <WizardChoiceCard
+                  key={opt.value}
+                  icon={opt.icon}
+                  title={opt.label}
+                  description={opt.description}
+                  selected={state.moviePoolGovernance === opt.value}
+                  onClick={() => updateState({ moviePoolGovernance: opt.value })}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-3 pt-5">
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                Member contributions
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Whether members can add movies to the pool
+              </p>
+            </div>
+            <WizardToggleRow
+              title={state.allowNonAdminMoviePool ? "Open to members" : "Admins only"}
+              description={
+                state.allowNonAdminMoviePool
+                  ? "Any member can add a movie to the pool"
+                  : "Only admins can add movies to the pool"
+              }
+              checked={state.allowNonAdminMoviePool}
+              onChange={(checked) => updateState({ allowNonAdminMoviePool: checked })}
             />
           </section>
         </div>

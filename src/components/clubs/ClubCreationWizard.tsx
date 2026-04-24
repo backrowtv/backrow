@@ -134,6 +134,9 @@ export function ClubCreationWizard() {
         formData.append("timing_mode", state.timingMode);
         formData.append("auto_start_next_festival", state.autoStartNextFestival.toString());
 
+        formData.append("movie_pool_governance", state.moviePoolGovernance);
+        formData.append("allow_non_admin_movie_pool", state.allowNonAdminMoviePool.toString());
+
         let result;
 
         if (isAuthenticated) {
@@ -278,10 +281,8 @@ export function ClubCreationWizard() {
                 aria-label={`Go to step ${stepNum}: ${STEP_TITLES[index]}`}
                 className="flex items-center justify-center w-8 h-8 rounded-full border transition-colors duration-200 disabled:cursor-not-allowed flex-shrink-0"
                 style={{
-                  backgroundColor:
-                    isActive || isComplete ? "var(--primary)" : "var(--surface-1)",
-                  borderColor:
-                    isActive || isComplete ? "var(--primary)" : "var(--border)",
+                  backgroundColor: isActive || isComplete ? "var(--primary)" : "var(--surface-1)",
+                  borderColor: isActive || isComplete ? "var(--primary)" : "var(--border)",
                 }}
               >
                 {isComplete ? (
@@ -311,10 +312,7 @@ export function ClubCreationWizard() {
       </div>
 
       <div className="text-center space-y-0.5">
-        <p
-          className="text-lg font-semibold"
-          style={{ color: "var(--text-primary)" }}
-        >
+        <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
           {currentStepTitle}
         </p>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>

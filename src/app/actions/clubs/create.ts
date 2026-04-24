@@ -75,6 +75,8 @@ export async function createClub(prevState: unknown, formData: FormData) {
   const seasonStandingsEnabled = formData.get("season_standings_enabled") as string | null;
   const timingMode = formData.get("timing_mode") as string | null;
   const autoStartNextFestival = formData.get("auto_start_next_festival") as string | null;
+  const moviePoolGovernance = formData.get("movie_pool_governance") as string | null;
+  const allowNonAdminMoviePool = formData.get("allow_non_admin_movie_pool") as string | null;
 
   // Validate inputs
   if (!name || name.trim().length < 3) {
@@ -281,6 +283,14 @@ export async function createClub(prevState: unknown, formData: FormData) {
     settings.auto_start_next_festival = autoStartNextFestival === "true";
   }
 
+  // Movie pool settings (endless festivals)
+  if (moviePoolGovernance) {
+    settings.movie_pool_governance = moviePoolGovernance;
+  }
+  if (allowNonAdminMoviePool !== null) {
+    settings.allow_non_admin_movie_pool = allowNonAdminMoviePool === "true";
+  }
+
   // Sync dedicated columns that mirror settings JSON keys.
   //
   // clubs has both a `settings` JSON blob AND dedicated columns for the same
@@ -311,6 +321,7 @@ export async function createClub(prevState: unknown, formData: FormData) {
     "results_reveal_type",
     "results_reveal_direction",
     "rubric_enforcement",
+    "movie_pool_governance",
   ] as const;
   const columnSync: Record<string, unknown> = {};
   for (const key of dedicatedColumnKeys) {

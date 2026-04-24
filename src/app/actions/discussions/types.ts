@@ -34,6 +34,11 @@ export interface DiscussionThreadTag {
   };
 }
 
+export interface ThreadEditHistoryEntry {
+  content: string;
+  edited_at: string;
+}
+
 export interface DiscussionThread {
   id: string;
   club_id: string;
@@ -57,6 +62,9 @@ export interface DiscussionThread {
   comment_count: number;
   created_at: string;
   updated_at: string;
+  is_edited: boolean;
+  edited_at: string | null;
+  edit_history: ThreadEditHistoryEntry[];
   author?: {
     id: string;
     display_name: string;

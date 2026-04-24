@@ -21,6 +21,9 @@ import {
   CheckCircle,
   Warning,
   Eye,
+  PencilSimple,
+  CaretDown,
+  CaretUp,
 } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -126,6 +129,10 @@ export function DiscussionThread({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [spoilerDismissed, setSpoilerDismissed] = useState(false);
   const [spoilerAction, setSpoilerAction] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(thread.content);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [showEdits, setShowEdits] = useState(false);
   const isAuthor = thread.author_id === currentUserId;
   const canModerate = isAdmin || isAuthor;
 
@@ -189,6 +196,17 @@ export function DiscussionThread({
     const result = await deleteThread(thread.id);
     if ("success" in result && result.success && clubSlug) {
       router.push(`/club/${clubSlug}/discuss`);
+      router.refresh();
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (isContentEmpty(editContent) || isSavingEdit) return;
+    setIsSavingEdit(true);
+    const result = await updateThread(thread.id, { content: editContent });
+    setIsSavingEdit(false);
+    if ("success" in result && result.success) {
+      setIsEditing(false);
       router.refresh();
     }
   };
@@ -417,6 +435,17 @@ export function DiscussionThread({
                         <DropdownMenuSeparator />
                       </>
                     )}
+                    {isAuthor && !thread.is_locked && (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setEditContent(thread.content);
+                          setIsEditing(true);
+                        }}
+                      >
+                        <PencilSimple className="w-4 h-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleDelete} className="text-[var(--error)]">
                       <Trash className="w-4 h-4 mr-2" />
                       Delete
@@ -429,7 +458,74 @@ export function DiscussionThread({
             {/* Content */}
             {showFullContent && (
               <div className={cn("text-sm text-[var(--text-primary)] break-words flex-1 mt-1")}>
-                <SimpleRichTextPreview content={thread.content} />
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <SimpleRichTextEditor
+                      content={editContent}
+                      onChange={setEditContent}
+                      placeholder="Edit your post..."
+                      maxLength={TEXT_LIMITS.THREAD_CONTENT}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="club-accent"
+                        onClick={handleSaveEdit}
+                        isLoading={isSavingEdit}
+                        disabled={isContentEmpty(editContent)}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditContent(thread.content);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <SimpleRichTextPreview content={thread.content} />
+                    {thread.is_edited && thread.edit_history && thread.edit_history.length > 0 && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowEdits((v) => !v)}
+                          className="flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                        >
+                          {showEdits ? (
+                            <CaretUp className="w-3 h-3" />
+                          ) : (
+                            <CaretDown className="w-3 h-3" />
+                          )}
+                          {showEdits ? "Hide edits" : `Show edits (${thread.edit_history.length})`}
+                        </button>
+                        {showEdits && (
+                          <div className="mt-2 space-y-2 border-l-2 border-[var(--border)] pl-3">
+                            {thread.edit_history.map((entry, idx) => (
+                              <div key={idx} className="text-xs">
+                                <div
+                                  className="text-[10px] text-[var(--text-muted)] mb-1"
+                                  suppressHydrationWarning
+                                >
+                                  {new Date(entry.edited_at).toLocaleString()}
+                                </div>
+                                <div className="text-[var(--text-secondary)] break-words">
+                                  <SimpleRichTextPreview content={entry.content} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
@@ -453,6 +549,9 @@ export function DiscussionThread({
               <span className="text-xs text-[var(--text-secondary)]" suppressHydrationWarning>
                 {timeAgo}
               </span>
+              {thread.is_edited && (
+                <span className="text-[10px] text-[var(--text-muted)] italic">edited</span>
+              )}
             </div>
           </div>
         </div>

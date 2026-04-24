@@ -50,12 +50,22 @@ export function StepIdentity({ state, updateState }: WizardStepProps) {
             placeholder="The Midnight Society"
             maxLength={30}
           />
-          <p
-            className="text-[11px] text-right"
-            style={{ color: "var(--text-muted)" }}
-          >
-            {state.name.length}/30
-          </p>
+          {(() => {
+            const trimmed = state.name.trim().length;
+            const tooShort = state.name.length > 0 && trimmed < 3;
+            return (
+              <div className="flex items-center justify-between text-[11px]">
+                <span
+                  style={{
+                    color: tooShort ? "var(--error)" : "var(--text-muted)",
+                  }}
+                >
+                  {trimmed >= 3 ? " " : "At least 3 characters"}
+                </span>
+                <span style={{ color: "var(--text-muted)" }}>{state.name.length}/30</span>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="space-y-1.5">
@@ -74,10 +84,7 @@ export function StepIdentity({ state, updateState }: WizardStepProps) {
             maxLength={300}
             className="resize-none"
           />
-          <p
-            className="text-[11px] text-right"
-            style={{ color: "var(--text-muted)" }}
-          >
+          <p className="text-[11px] text-right" style={{ color: "var(--text-muted)" }}>
             {state.description.length}/300
           </p>
         </div>
@@ -90,10 +97,7 @@ export function StepIdentity({ state, updateState }: WizardStepProps) {
           />
         </div>
 
-        <GenreSelector
-          value={state.genres}
-          onChange={(genres) => updateState({ genres })}
-        />
+        <GenreSelector value={state.genres} onChange={(genres) => updateState({ genres })} />
       </div>
     </div>
   );
