@@ -167,6 +167,11 @@ const nextConfig: NextConfig = {
         destination: "/profile/settings/display",
         permanent: true,
       },
+      {
+        source: "/clubs/new",
+        destination: "/create-club",
+        permanent: true,
+      },
     ];
   },
 };

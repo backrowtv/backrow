@@ -33,7 +33,31 @@ export default function FAQPage() {
             Short answers. Jump to a section or scroll.
           </p>
           <nav aria-label="FAQ sections" className="mt-6">
-            <ol className="list-decimal list-inside text-sm text-[var(--text-secondary)] marker:text-[var(--text-muted)] columns-1 sm:columns-2 lg:columns-3 gap-x-8">
+            {/* Mobile: collapsed <details> disclosure. Avoids a 14-row wall of text. */}
+            <details className="sm:hidden group rounded-md border border-[var(--border)] bg-[var(--surface-1)]">
+              <summary className="flex items-center justify-between gap-2 cursor-pointer list-none px-3 py-2 text-sm font-medium text-[var(--text-primary)]">
+                <span>Jump to a section</span>
+                <CaretDown
+                  className="h-4 w-4 flex-shrink-0 text-[var(--text-muted)] transition-transform duration-200 group-open:rotate-180"
+                  aria-hidden="true"
+                />
+              </summary>
+              <ol className="list-decimal list-inside text-sm text-[var(--text-secondary)] marker:text-[var(--text-muted)] px-3 pb-3 pt-1 space-y-1">
+                {categories.map((category) => (
+                  <li key={category.id}>
+                    <a
+                      href={`#${category.id}`}
+                      className="text-[var(--text-primary)] hover:text-[var(--primary)] transition-colors"
+                    >
+                      {category.title}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+
+            {/* Tablet & desktop: flat multi-column list. */}
+            <ol className="hidden sm:block list-decimal list-inside text-sm text-[var(--text-secondary)] marker:text-[var(--text-muted)] sm:columns-2 lg:columns-3 gap-x-8">
               {categories.map((category) => (
                 <li key={category.id} className="break-inside-avoid py-1">
                   <a
