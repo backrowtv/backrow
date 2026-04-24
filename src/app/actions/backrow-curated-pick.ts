@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { invalidateMarketing } from "@/lib/cache/invalidate";
 import { addEndlessMovie, advanceEndlessFestival } from "./endless-festival";
 import { refreshMovie, cacheMovie } from "./movies";
 import { createPlayingMovieThread } from "./discussions/auto";
@@ -180,7 +181,7 @@ export async function setFeaturedMovie(
     },
   });
 
-  revalidatePath("/");
+  invalidateMarketing("curated-pick");
   revalidatePath("/club/backrow");
 
   return { success: true, threadId: result.threadId };
@@ -225,7 +226,7 @@ export async function advanceFeaturedMovie() {
     .eq("club_id", clubId)
     .gt("expires_at", new Date().toISOString());
 
-  revalidatePath("/");
+  invalidateMarketing("curated-pick");
   revalidatePath("/club/backrow");
 
   return { success: true, message: "Festival completed. Ready to set new featured movie." };
@@ -290,7 +291,7 @@ export async function refreshCurrentFeaturedMovie() {
     return { error: result.error };
   }
 
-  revalidatePath("/");
+  invalidateMarketing("curated-pick");
   revalidatePath("/club/backrow");
 
   return { success: true, movie: result.movie };
@@ -456,7 +457,7 @@ export async function setMovieInSlot(slot: MovieSlot, tmdbId: number, curatorNot
     isPinned: true,
   });
 
-  revalidatePath("/");
+  invalidateMarketing("curated-pick");
   revalidatePath(`/club/${club.slug}`);
   revalidatePath(`/club/${BACKROW_FEATURED_SLUG}`);
 
@@ -532,7 +533,7 @@ export async function fixBackRowFeaturedSlug() {
     return { error: error.message };
   }
 
-  revalidatePath("/");
+  invalidateMarketing("curated-pick");
   revalidatePath(`/club/${correctSlug}`);
 
   return { success: true, oldSlug: club.slug, newSlug: correctSlug };
@@ -600,7 +601,7 @@ export async function initializeBackRowFeatured() {
 
   results.slug = slugResult;
 
-  revalidatePath("/");
+  invalidateMarketing("curated-pick");
 
   return { success: true, ...results };
 }

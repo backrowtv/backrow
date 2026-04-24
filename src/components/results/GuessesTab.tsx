@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { MotionProvider, m, AnimatePresence } from "@/lib/motion";
 import { Select } from "@/components/ui/select";
-import { Avatar } from "@/components/ui/avatar";
+import { ClickableUserAvatar } from "@/components/ui/clickable-user-avatar";
 import { Check, X, FilmReel, User, Target, Question } from "@phosphor-icons/react";
 import { ScrollFade } from "./ScrollFade";
 import type {
@@ -107,7 +107,12 @@ function GuesserSummaryCard({
       onClick={onClick}
       className="w-full flex items-center gap-3 py-3 px-2 transition-all hover:bg-[var(--surface-2)] text-left"
     >
-      <Avatar alt={summary.userName} size="sm" />
+      <ClickableUserAvatar
+        entity={{ name: summary.userName }}
+        userId={summary.userId}
+        alt={summary.userName}
+        size="sm"
+      />
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate" style={{ color: "var(--text-primary)" }}>
           {summary.userName}
@@ -218,7 +223,12 @@ function MemberGuessesView({
         style={{ borderColor: "var(--border)" }}
       >
         <div className="flex items-center gap-3">
-          <Avatar alt={userName} size="md" />
+          <ClickableUserAvatar
+            entity={{ name: userName }}
+            userId={selectedUserId}
+            alt={userName}
+            size="md"
+          />
           <div>
             <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
               {userName}

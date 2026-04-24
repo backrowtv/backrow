@@ -58,6 +58,7 @@ export const CacheTags = {
   clubsIndex: () => "clubs:index" as const,
   discoverIndex: () => "discover:index" as const,
   featuredClub: () => "featured:club" as const,
+  curatedPick: () => "curated:current" as const,
   upcomingMovies: () => "movies:upcoming" as const,
   popularMovies: () => "movies:popular" as const,
   filmNews: () => "news:film" as const,
@@ -190,12 +191,15 @@ export function invalidateDiscover(): void {
  * Invalidate a global marketing slot.
  */
 export function invalidateMarketing(
-  slot: "featured-club" | "upcoming-movies" | "popular-movies" | "film-news"
+  slot: "featured-club" | "curated-pick" | "upcoming-movies" | "popular-movies" | "film-news"
 ): void {
   switch (slot) {
     case "featured-club":
       bust(CacheTags.featuredClub());
       bust(CacheTags.clubsIndex());
+      break;
+    case "curated-pick":
+      bust(CacheTags.curatedPick());
       break;
     case "upcoming-movies":
       bust(CacheTags.upcomingMovies());

@@ -5,6 +5,40 @@ Living reference for the non-obvious parts of the stack. See
 tag-based invalidation strategy, and `docs/database-baseline.md` for schema
 history.
 
+## Resilience helpers for external APIs
+
+Every outbound call to a third-party service (TMDB, Resend, RSS feeds) must
+survive transient failures without propagating user-facing errors. Two
+small primitives in `src/lib/retry.ts` + `AbortSignal.timeout` cover the
+cases we care about:
+
+- **`retryWithBackoff(fn, { maxAttempts, backoffMs, shouldRetry })`** —
+  default 3 attempts with linear backoff (200ms, 400ms). Pass `shouldRetry`
+  to skip retries on 4xx / permanent errors where retrying just wastes
+  latency. Introduced in `b99efca`.
+- **`AbortSignal.timeout(ms)`** — the TMDB client uses a 3-second per-attempt
+  budget (`TMDB_REQUEST_TIMEOUT_MS = 3000` in `src/lib/tmdb/client.ts`) so a
+  hung upstream fails fast instead of holding a Fluid Compute instance open.
+
+Current call sites:
+
+| Consumer              | Pattern                                                              |
+| --------------------- | -------------------------------------------------------------------- |
+| `src/lib/tmdb/client.ts` | `retryWithBackoff` + `AbortSignal.timeout(3000)` on every `fetch`.   |
+| `src/lib/email/resend.ts` | `retryWithBackoff` around Resend SDK calls (bulk-email worker + transactional sends). |
+
+### When to wrap a new external call
+
+- **Always** if it's in a user-facing request path — pair `retryWithBackoff`
+  with a short `AbortSignal.timeout` so the first attempt doesn't eat the
+  whole Fluid Compute budget.
+- **Optional** inside a Vercel Queues worker that already gets at-least-once
+  retries from the queue — there `retryWithBackoff` is a latency knob
+  (recover before the queue's minute-scale backoff), not a reliability
+  requirement.
+- **Never** inline in a cold Server Component render without a budget —
+  prefer moving the call into a `"use cache"` fetcher or a queue producer.
+
 ## Background jobs (Vercel Queues)
 
 Bulk fanouts (notification emails, image resize) run in **Vercel Queues**

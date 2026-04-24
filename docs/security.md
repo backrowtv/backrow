@@ -9,10 +9,13 @@ This document is the authoritative map of BackRow's write-path abuse-prevention 
 | `actionRateLimit(name, opts)`               | `src/lib/security/action-rate-limit.ts`      | Per-IP sliding window (Upstash Redis; in-memory fallback in dev).                  |
 | `actionRateLimitByUser(name, userId, opts)` | `src/lib/security/action-rate-limit.ts`      | Per-user sliding window. Use for caps that should follow the user across networks. |
 | `requireVerifiedEmail(user)`                | `src/lib/security/require-verified-email.ts` | Returns `{ ok: false, error }` when `user.email_confirmed_at == null`.             |
+| `escapeLike(input)`                         | `src/lib/security/postgrest-escape.ts`       | Backslash-escapes PostgREST-structural chars (`\`, `%`, `_`, `,`, `.`, `(`, `)`, `*`) in user-supplied strings destined for `.ilike()` patterns or `.or()` DSL strings. |
 
 > Vercel BotID / `requireHuman()` was removed — it classified real iOS Safari sessions as bots and blocked legitimate users. Don't re-add a third-party bot-detection layer without first validating the client runtime end-to-end across iOS Safari, Chrome, Firefox, and the PWA.
 
 All primitives return `{ ok, error }` / `{ success, error }` — they never throw. Call sites bubble the error into the existing server-action return shape.
+
+`escapeLike` is the exception — it's a pure string transform, not a gate. Wrap **every** user-controlled string before interpolating it into a `.or()` or `.ilike()` clause, even when RLS is in place: classic SQL injection isn't reachable through PostgREST's parameterized filter values, but wildcard expansion (`%` / `_` matching every row) and OR-clause grafting (`foo,col.eq.x`) both are. Current call sites: admin / discover / search routes, the club / festival / movie / user repositories, and the TMDB-sourced director/composer search (9 sites, from `f062dfc`). Unit coverage: `src/__tests__/lib/security/postgrest-escape.test.ts`.
 
 ## Call sequence
 

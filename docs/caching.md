@@ -4,6 +4,17 @@ BackRow runs on Next.js 16 with `cacheComponents: true` (the successor to PPR).
 Each Server Component renders independently and can be cached, dynamic, or
 static. This doc is the single source of truth for how we cache and invalidate.
 
+> **Flag history.** `cacheComponents` was briefly disabled in `cbd5f3f` to
+> unblock a prod deploy when several pages were reading dynamic data at the
+> top level (auth, `searchParams`, `headers()`), which forced the whole subtree
+> dynamic and broke prerendering. `8c91651` re-enabled it by wrapping each
+> dynamic body in `<Suspense>` so the outer shell stays static-prerenderable
+> (Partial Prerender). Two layouts (`src/app/layout.tsx`,
+> `src/app/(marketing)/layout.tsx`) were made sync — their dynamic reads
+> (`headers()` for GPC, `supabase.auth.getUser()` for dark-mode gating) now
+> live inside Suspense boundaries via small async children. Follow the same
+> pattern when adding a new route that needs auth/cookies at top level.
+
 ---
 
 ## Two cache layers — don't confuse them
@@ -112,6 +123,24 @@ async function getPublicPollResults(pollId: string) {
 Auth-gated cacheable queries (thread list, poll results with user vote state)
 still need this split. That's a planned expansion — not every hot read is
 cached today.
+
+### Catalog of `"use cache"` server actions
+
+Restored in `8c91651` after the temporary disable. All six files declare
+both `cacheLife(...)` and `cacheTag(...)` on every cached function. Before
+adding another hot read, check this catalog first — the scope you want may
+already be covered.
+
+| File                                     | Cached function(s)                                                                                                                                                                         | Tag helpers used                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `src/app/actions/marketing.ts`           | `getUpcomingMoviesData`, `getFilmNewsData`, `getCurrentCuratedPick`, `getFeaturedClub`, `getPopularMovies` (5)                                                                              | `CacheTags.upcomingMovies()`, `CacheTags.filmNews()`, `CacheTags.featuredClub()`, etc. |
+| `src/app/actions/clubs/queries.ts`       | `getClubBySlug`, `getClubMembers`, `getClubById` (3)                                                                                                                                       | `CacheTags.club(id)`, `CacheTags.clubsIndex()`                               |
+| `src/app/actions/festivals/crud.ts`      | `getFestivalBySlug`, `getFestivalsByClub` (2)                                                                                                                                              | `CacheTags.festival(id)`, `CacheTags.club(clubId)`                           |
+| `src/app/actions/stats.ts`               | `getFestivalParticipationData`, `getRatingDistributionData`, `getTopRatedMoviesData`, `getMemberActivityData`, `getFestivalCompletionData`, `getRatingTrendsData` (6)                      | `CacheTags.clubStats(clubId, kind)`, `CacheTags.club(clubId)`                |
+| `src/app/actions/movies.ts`              | `getCachedMovieData` (internal), `getMovieBySlug` (2)                                                                                                                                      | `CacheTags.movie(tmdbId)`                                                    |
+| `src/app/actions/auth/profile.ts`        | `getUserProfile` (1)                                                                                                                                                                       | `CacheTags.member(userId)`                                                    |
+
+Total: **19** `"use cache"` entry points across 6 files.
 
 ---
 

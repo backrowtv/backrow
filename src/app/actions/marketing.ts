@@ -279,7 +279,7 @@ export async function getFilmNewsData(): Promise<FilmNewsData> {
 export async function getCurrentCuratedPick(): Promise<CuratedPick | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag("curated:current");
+  cacheTag(CacheTags.curatedPick());
 
   // Use anonymous client for public data (no cookies needed)
   const supabase = createPublicClient();
