@@ -384,6 +384,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
 
   // Breadcrumb visibility settings
   const themesEnabled = clubSettings.themes_enabled !== false; // Default true
+  const moviePoolEnabled = clubSettings.movie_pool_enabled !== false; // Default true
   const scoringEnabled = clubSettings.club_ratings_enabled !== false; // Default true
   const guessingEnabled = clubSettings.nomination_guessing_enabled === true; // Default false
 
@@ -593,42 +594,48 @@ export default async function ClubPage({ params }: ClubPageProps) {
                   />
                 )}
 
-                {/* Theme Pool - Always visible */}
-                <CollapsibleThemePool
-                  themes={themes || []}
-                  clubId={clubId}
-                  canManage={isAdmin}
-                  themeSubmissionsLocked={club.theme_submissions_locked || false}
-                  themeVotingEnabled={themeVotingEnabled}
-                  defaultExpanded={false}
-                  currentUserId={user.id}
-                  initialVotes={initialThemeVotes}
-                />
+                {/* Theme Pool */}
+                {themesEnabled && (
+                  <CollapsibleThemePool
+                    themes={themes || []}
+                    clubId={clubId}
+                    canManage={isAdmin}
+                    themeSubmissionsLocked={club.theme_submissions_locked || false}
+                    themeVotingEnabled={themeVotingEnabled}
+                    defaultExpanded={false}
+                    currentUserId={user.id}
+                    initialVotes={initialThemeVotes}
+                  />
+                )}
 
-                {/* Movie Pool - Available for all clubs */}
-                <CollapsibleMoviePool
-                  clubId={clubId}
-                  canManage={isAdmin}
-                  votingEnabled={
-                    (club.settings as Record<string, unknown>)?.movie_pool_voting_enabled !== false
-                  }
-                  governance={
-                    ((club.settings as Record<string, unknown>)?.movie_pool_governance as
-                      | "democracy"
-                      | "random"
-                      | "autocracy") || "autocracy"
-                  }
-                  autoPromoteThreshold={
-                    ((club.settings as Record<string, unknown>)
-                      ?.movie_pool_auto_promote_threshold as number) || 5
-                  }
-                  allowNonAdminAdd={
-                    (club.settings as Record<string, unknown>)?.allow_non_admin_movie_pool !== false
-                  }
-                  defaultExpanded={false}
-                  currentUserId={user.id}
-                  instanceId="desktop"
-                />
+                {/* Movie Pool */}
+                {moviePoolEnabled && (
+                  <CollapsibleMoviePool
+                    clubId={clubId}
+                    canManage={isAdmin}
+                    votingEnabled={
+                      (club.settings as Record<string, unknown>)?.movie_pool_voting_enabled !==
+                      false
+                    }
+                    governance={
+                      ((club.settings as Record<string, unknown>)?.movie_pool_governance as
+                        | "democracy"
+                        | "random"
+                        | "autocracy") || "autocracy"
+                    }
+                    autoPromoteThreshold={
+                      ((club.settings as Record<string, unknown>)
+                        ?.movie_pool_auto_promote_threshold as number) || 5
+                    }
+                    allowNonAdminAdd={
+                      (club.settings as Record<string, unknown>)?.allow_non_admin_movie_pool !==
+                      false
+                    }
+                    defaultExpanded={false}
+                    currentUserId={user.id}
+                    instanceId="desktop"
+                  />
+                )}
               </aside>
 
               {/* Main Column - Deadlines & Content */}
@@ -911,48 +918,52 @@ export default async function ClubPage({ params }: ClubPageProps) {
                   </CollapsibleUpcomingDates>
                 </section>
 
-                {/* Mobile Only: Theme Pool - Always visible */}
-                <section className="lg:hidden">
-                  <CollapsibleThemePool
-                    themes={themes || []}
-                    clubId={clubId}
-                    canManage={isAdmin}
-                    themeSubmissionsLocked={club.theme_submissions_locked || false}
-                    themeVotingEnabled={themeVotingEnabled}
-                    defaultExpanded={false}
-                    currentUserId={user.id}
-                    initialVotes={initialThemeVotes}
-                  />
-                </section>
+                {/* Mobile Only: Theme Pool */}
+                {themesEnabled && (
+                  <section className="lg:hidden">
+                    <CollapsibleThemePool
+                      themes={themes || []}
+                      clubId={clubId}
+                      canManage={isAdmin}
+                      themeSubmissionsLocked={club.theme_submissions_locked || false}
+                      themeVotingEnabled={themeVotingEnabled}
+                      defaultExpanded={false}
+                      currentUserId={user.id}
+                      initialVotes={initialThemeVotes}
+                    />
+                  </section>
+                )}
 
-                {/* Mobile Only: Movie Pool - Available for all clubs */}
-                <section className="lg:hidden">
-                  <CollapsibleMoviePool
-                    clubId={clubId}
-                    canManage={isAdmin}
-                    votingEnabled={
-                      (club.settings as Record<string, unknown>)?.movie_pool_voting_enabled !==
-                      false
-                    }
-                    governance={
-                      ((club.settings as Record<string, unknown>)?.movie_pool_governance as
-                        | "democracy"
-                        | "random"
-                        | "autocracy") || "autocracy"
-                    }
-                    autoPromoteThreshold={
-                      ((club.settings as Record<string, unknown>)
-                        ?.movie_pool_auto_promote_threshold as number) || 5
-                    }
-                    allowNonAdminAdd={
-                      (club.settings as Record<string, unknown>)?.allow_non_admin_movie_pool !==
-                      false
-                    }
-                    defaultExpanded={false}
-                    currentUserId={user.id}
-                    instanceId="mobile"
-                  />
-                </section>
+                {/* Mobile Only: Movie Pool */}
+                {moviePoolEnabled && (
+                  <section className="lg:hidden">
+                    <CollapsibleMoviePool
+                      clubId={clubId}
+                      canManage={isAdmin}
+                      votingEnabled={
+                        (club.settings as Record<string, unknown>)?.movie_pool_voting_enabled !==
+                        false
+                      }
+                      governance={
+                        ((club.settings as Record<string, unknown>)?.movie_pool_governance as
+                          | "democracy"
+                          | "random"
+                          | "autocracy") || "autocracy"
+                      }
+                      autoPromoteThreshold={
+                        ((club.settings as Record<string, unknown>)
+                          ?.movie_pool_auto_promote_threshold as number) || 5
+                      }
+                      allowNonAdminAdd={
+                        (club.settings as Record<string, unknown>)?.allow_non_admin_movie_pool !==
+                        false
+                      }
+                      defaultExpanded={false}
+                      currentUserId={user.id}
+                      instanceId="mobile"
+                    />
+                  </section>
+                )}
 
                 {/* Mobile Only: Recent Activity */}
                 <section className="lg:hidden">

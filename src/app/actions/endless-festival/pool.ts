@@ -39,6 +39,14 @@ export async function addMovieToPool(
     return { error: "You must be a club member to add movies" };
   }
 
+  // Check that the movie pool is enabled — admins toggle it from club settings.
+  const { data: club } = await supabase.from("clubs").select("settings").eq("id", clubId).single();
+
+  const clubSettings = (club?.settings as Record<string, unknown>) || {};
+  if (clubSettings.movie_pool_enabled === false) {
+    return { error: "The movie pool is currently disabled for this club" };
+  }
+
   try {
     // Cache the movie first
     const cacheResult = await cacheMovie(tmdbId);

@@ -245,6 +245,19 @@ export async function voteOnThemePool(themeId: string) {
     return { error: "You must be a member of this club" };
   }
 
+  // Block votes while the theme pool is disabled — preserves existing votes
+  // (we don't delete them) but freezes new ones until admins re-enable.
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("settings")
+    .eq("id", theme.club_id)
+    .single();
+
+  const clubSettings = (club?.settings as Record<string, unknown>) || {};
+  if (clubSettings.themes_enabled === false) {
+    return { error: "The theme pool is currently disabled for this club" };
+  }
+
   // Note: Votes persist even when voting is disabled
   // We don't check voting enabled status here - votes are always allowed
   // The UI will hide voting buttons when voting is disabled, but existing votes remain

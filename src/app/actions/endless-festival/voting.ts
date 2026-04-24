@@ -74,9 +74,14 @@ export async function togglePoolMovieVote(
     .single();
 
   const settings = (club?.settings as Record<string, unknown>) || {};
+  const moviePoolEnabled = settings.movie_pool_enabled !== false;
   const votingEnabled = settings.movie_pool_voting_enabled !== false;
   const governance = (settings.movie_pool_governance as string) || "autocracy";
   const autoPromoteThreshold = (settings.movie_pool_auto_promote_threshold as number) || 5;
+
+  if (!moviePoolEnabled) {
+    return { error: "The movie pool is currently disabled for this club" };
+  }
 
   if (!votingEnabled) {
     return { error: "Voting is not enabled for this club" };

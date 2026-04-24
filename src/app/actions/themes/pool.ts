@@ -61,7 +61,7 @@ export async function addTheme(prevState: unknown, formData: FormData) {
   // Check if theme submissions are locked
   const { data: club, error: clubError } = await supabase
     .from("clubs")
-    .select("theme_submissions_locked")
+    .select("theme_submissions_locked, settings")
     .eq("id", clubId)
     .maybeSingle();
 
@@ -72,6 +72,11 @@ export async function addTheme(prevState: unknown, formData: FormData) {
   if (!club) {
     console.error("Club not found for clubId:", clubId);
     return { error: "Club not found" };
+  }
+
+  const clubSettings = (club.settings as Record<string, unknown>) || {};
+  if (clubSettings.themes_enabled === false) {
+    return { error: "The theme pool is currently disabled for this club" };
   }
 
   if (club.theme_submissions_locked) {

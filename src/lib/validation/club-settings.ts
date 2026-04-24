@@ -75,6 +75,13 @@ export const ClubSettingsSchema = z
     theme_voting_enabled: z.boolean().default(true),
     max_themes_per_user: z.number().min(1).max(20).default(5),
 
+    // Movie Pool Settings
+    movie_pool_enabled: z.boolean().default(true),
+    movie_pool_voting_enabled: z.boolean().default(true),
+    movie_pool_auto_promote_threshold: z.number().min(1).max(50).optional(),
+    movie_pool_max_per_user: z.number().min(1).max(20).optional(),
+    allow_non_admin_movie_pool: z.boolean().optional(),
+
     // Nomination Settings
     max_nominations_per_user: z.number().min(1).max(10).default(1),
     max_nominations_per_festival: z.number().min(1).max(50).nullable().default(null),
