@@ -42,6 +42,13 @@ export async function proxy(request: NextRequest) {
   // Add security headers to all responses
   addSecurityHeaders(response);
 
+  // Forward the Global Privacy Control signal (CCPA §1798.135) so
+  // non-layout consumers (API routes, edge probes, devtools) can see
+  // that the request opted out of sharing/sale.
+  if (request.headers.get("sec-gpc") === "1") {
+    response.headers.set("x-gpc-signal", "1");
+  }
+
   return response;
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Onest, JetBrains_Mono, Righteous } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Suspense } from "react";
 import { TopNav } from "@/components/layout/TopNav";
@@ -23,6 +24,8 @@ import {
 } from "@/lib/display-preferences-constants";
 import { ThemeSyncProvider } from "@/components/ThemeSyncProvider";
 import { CookieConsent } from "@/components/compliance/CookieConsent";
+import { VercelAnalytics } from "@/components/analytics/VercelAnalytics";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Layout skeleton rendered while AuthFetcher resolves.
 // MUST contain visible content — an empty fallback causes Lighthouse to
@@ -219,14 +222,16 @@ async function AuthFetcher({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gpc = (await headers()).get("sec-gpc") === "1";
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
+        {gpc && <meta name="x-gpc-signal" content="1" />}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -294,6 +299,8 @@ export default function RootLayout({
           </AuthFetcher>
         </Suspense>
         <Toaster />
+        <VercelAnalytics />
+        <SpeedInsights />
       </body>
     </html>
   );
