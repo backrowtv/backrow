@@ -154,8 +154,12 @@ export default async function PrivacyPolicyPage() {
               </li>
             </ul>
             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-              You can manage your cookie preferences at any time through your browser settings or
-              our cookie consent banner.
+              You can change your cookie preferences at any time on our{" "}
+              <Link href="/cookie-settings" className="underline">
+                cookie settings page
+              </Link>
+              . If your browser sends a Global Privacy Control (<code>Sec-GPC: 1</code>) signal, we
+              honor it automatically and leave analytics off without showing the banner.
             </p>
           </section>
 
@@ -180,14 +184,19 @@ export default async function PrivacyPolicyPage() {
             </p>
             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
               Deletion is a two-step process: when you confirm, we immediately sign you out,
-              anonymize your profile (email, username, display name, avatar, bio, social links), and
-              set your account to the deleted state. Your account is then held for{" "}
-              <strong>30 days</strong> in case you want to restore it — contact support during that
-              window to reverse the deletion. After 30 days your account is permanently removed,
-              including ratings, nominations, private notes, notifications, watch history, and club
-              memberships. Content posted on other users&rsquo; threads (comments, shared club
-              announcements) is kept with your authorship cleared so the surrounding conversation
-              stays coherent.
+              anonymize your profile (email, username, display name, avatar, bio, social links),
+              remove your email from our transactional-email provider (Resend) so you stop receiving
+              system messages, and set your account to the deleted state. Your account is then held
+              for <strong>30 days</strong> in case you want to restore it — contact support during
+              that window to reverse the deletion. After 30 days your account is permanently
+              removed, including ratings, nominations, private notes, notifications, watch history,
+              and club memberships. Content posted on other users&rsquo; threads (comments, shared
+              club announcements) is kept with your authorship cleared so the surrounding
+              conversation stays coherent.
+            </p>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+              Discussion comments you delete from a thread are hidden immediately to preserve the
+              conversation structure, then permanently removed after 30 days.
             </p>
             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
               You can also request a copy of your data at any time — we generate a ZIP containing
