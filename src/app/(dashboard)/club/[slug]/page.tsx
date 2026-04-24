@@ -208,6 +208,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
   const isAdmin = membership?.role === "producer" || membership?.role === "director";
   const memberPrefs = (membership?.preferences as Record<string, unknown>) || {};
   const cardCollapsed = memberPrefs.card_collapsed === true;
+  const hideClubCard = memberPrefs.hide_club_card === true;
 
   // Fetch additional data (including favorite check) in parallel
   const now = new Date().toISOString();
@@ -565,30 +566,32 @@ export default async function ClubPage({ params }: ClubPageProps) {
               {/* Left Sidebar - Desktop Only */}
               <aside className="hidden lg:block lg:col-span-3 space-y-4">
                 {/* Club Card */}
-                <UnifiedClubCard
-                  club={{
-                    id: club.id,
-                    name: club.name,
-                    slug: clubSlug,
-                    description: club.description,
-                    picture_url: club.picture_url,
-                    privacy: club.privacy,
-                    settings: club.settings,
-                    avatar_icon: club.avatar_icon,
-                    avatar_color_index: club.avatar_color_index,
-                    avatar_border_color_index: club.avatar_border_color_index,
-                    theme_color: club.theme_color,
-                    is_member: isMember,
-                    is_favorite: isFavorite,
-                    user_role: membership?.role,
-                    member_count: members?.length || 0,
-                    movies_watched: moviesWatchedCount,
-                    festival_count: completedFestivalsCount || 0,
-                  }}
-                  showFavorite={true}
-                  disableLink
-                  initialCollapsed={cardCollapsed}
-                />
+                {!hideClubCard && (
+                  <UnifiedClubCard
+                    club={{
+                      id: club.id,
+                      name: club.name,
+                      slug: clubSlug,
+                      description: club.description,
+                      picture_url: club.picture_url,
+                      privacy: club.privacy,
+                      settings: club.settings,
+                      avatar_icon: club.avatar_icon,
+                      avatar_color_index: club.avatar_color_index,
+                      avatar_border_color_index: club.avatar_border_color_index,
+                      theme_color: club.theme_color,
+                      is_member: isMember,
+                      is_favorite: isFavorite,
+                      user_role: membership?.role,
+                      member_count: members?.length || 0,
+                      movies_watched: moviesWatchedCount,
+                      festival_count: completedFestivalsCount || 0,
+                    }}
+                    showFavorite={true}
+                    disableLink
+                    initialCollapsed={cardCollapsed}
+                  />
+                )}
 
                 {/* Theme Pool - Always visible */}
                 <CollapsibleThemePool
@@ -631,32 +634,34 @@ export default async function ClubPage({ params }: ClubPageProps) {
               {/* Main Column - Deadlines & Content */}
               <div className="lg:col-span-6 space-y-4 lg:space-y-6 min-w-0">
                 {/* Mobile Club Header */}
-                <div className="lg:hidden">
-                  <UnifiedClubCard
-                    club={{
-                      id: club.id,
-                      name: club.name,
-                      slug: clubSlug,
-                      description: club.description,
-                      picture_url: club.picture_url,
-                      privacy: club.privacy,
-                      settings: club.settings,
-                      avatar_icon: club.avatar_icon,
-                      avatar_color_index: club.avatar_color_index,
-                      avatar_border_color_index: club.avatar_border_color_index,
-                      theme_color: club.theme_color,
-                      is_member: isMember,
-                      is_favorite: isFavorite,
-                      user_role: membership?.role,
-                      member_count: members?.length || 0,
-                      movies_watched: moviesWatchedCount,
-                      festival_count: completedFestivalsCount || 0,
-                    }}
-                    showFavorite={true}
-                    disableLink
-                    initialCollapsed={cardCollapsed}
-                  />
-                </div>
+                {!hideClubCard && (
+                  <div className="lg:hidden">
+                    <UnifiedClubCard
+                      club={{
+                        id: club.id,
+                        name: club.name,
+                        slug: clubSlug,
+                        description: club.description,
+                        picture_url: club.picture_url,
+                        privacy: club.privacy,
+                        settings: club.settings,
+                        avatar_icon: club.avatar_icon,
+                        avatar_color_index: club.avatar_color_index,
+                        avatar_border_color_index: club.avatar_border_color_index,
+                        theme_color: club.theme_color,
+                        is_member: isMember,
+                        is_favorite: isFavorite,
+                        user_role: membership?.role,
+                        member_count: members?.length || 0,
+                        movies_watched: moviesWatchedCount,
+                        festival_count: completedFestivalsCount || 0,
+                      }}
+                      showFavorite={true}
+                      disableLink
+                      initialCollapsed={cardCollapsed}
+                    />
+                  </div>
+                )}
 
                 {/* Announcements - Above Festival Hero (only if there are any) */}
                 {announcements && announcements.length > 0 && (

@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { ClubForm } from "@/components/clubs/ClubForm";
 import { ClubPersonalizationForm } from "@/components/clubs/ClubPersonalizationForm";
 import { ClubRubricSelector } from "@/components/clubs/ClubRubricSelector";
+import { ClubDashboardPreferences } from "@/components/clubs/ClubDashboardPreferences";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { resolveClub } from "@/lib/clubs/resolveClub";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
-import { Gear, User } from "@phosphor-icons/react/dist/ssr";
+import { Gear, User, SlidersHorizontal } from "@phosphor-icons/react/dist/ssr";
 import type { RatingRubric } from "@/types/club-settings";
 import type { UserRubric } from "@/app/actions/rubrics.types";
 
@@ -88,11 +89,15 @@ export default async function GeneralSettingsPage({ params }: GeneralSettingsPag
 
     const preferences = (membership.preferences as Record<string, unknown>) || {};
     const defaultRubricId = (preferences.default_rubric_id as string | null) || null;
+    const hideClubCard = preferences.hide_club_card === true;
+    const disableSpoilerWarnings = preferences.disable_spoiler_warnings === true;
 
     personalizationData = {
       profile,
       rubrics,
       defaultRubricId,
+      hideClubCard,
+      disableSpoilerWarnings,
       membership,
     };
   }
@@ -155,6 +160,18 @@ export default async function GeneralSettingsPage({ params }: GeneralSettingsPag
                   clubId={clubId}
                   userRubrics={personalizationData.rubrics}
                   defaultRubricId={personalizationData.defaultRubricId}
+                />
+              </SettingsSection>
+
+              <SettingsSection
+                title="Dashboard & Discussions"
+                description="Control what shows up on the club dashboard and in discussions"
+                icon={<SlidersHorizontal />}
+              >
+                <ClubDashboardPreferences
+                  clubId={clubId}
+                  initialShowClubCard={!personalizationData.hideClubCard}
+                  initialShowSpoilerWarnings={!personalizationData.disableSpoilerWarnings}
                 />
               </SettingsSection>
             </>

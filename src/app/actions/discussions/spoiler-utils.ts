@@ -167,10 +167,27 @@ export async function batchCheckSpoilerData(
  */
 export async function getSpoilerStatesForThreads(
   threads: DiscussionThread[],
-  userId: string
+  userId: string,
+  options?: { disableGate?: boolean }
 ): Promise<Record<string, SpoilerState>> {
   if (threads.length === 0) {
     return {};
+  }
+
+  // Club-level opt-out: return always-open state without querying
+  if (options?.disableGate) {
+    const result: Record<string, SpoilerState> = {};
+    for (const thread of threads) {
+      result[thread.id] = {
+        isSpoilered: false,
+        reason: "none",
+        movieTmdbId: null,
+        movieTitle: null,
+        isUnlocked: false,
+        hasWatched: false,
+      };
+    }
+    return result;
   }
 
   // Collect all thread IDs and movie TMDB IDs
@@ -207,8 +224,20 @@ export async function getSpoilerStatesForThreads(
  */
 export async function getThreadSpoilerState(
   thread: DiscussionThread,
-  userId: string
+  userId: string,
+  options?: { disableGate?: boolean }
 ): Promise<SpoilerState> {
+  if (options?.disableGate) {
+    return {
+      isSpoilered: false,
+      reason: "none",
+      movieTmdbId: null,
+      movieTitle: null,
+      isUnlocked: false,
+      hasWatched: false,
+    };
+  }
+
   const movieIds = getMovieTmdbIdsFromThread(thread);
 
   const { watchedMovies, unlockedThreads } = await batchCheckSpoilerData(

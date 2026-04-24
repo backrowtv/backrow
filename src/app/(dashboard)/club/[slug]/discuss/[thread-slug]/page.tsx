@@ -38,7 +38,7 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
   // Check if user is a member
   const { data: membership } = await supabase
     .from("club_members")
-    .select("role")
+    .select("role, preferences")
     .eq("club_id", clubId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -46,6 +46,9 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
   if (!membership) {
     redirect("/clubs");
   }
+
+  const memberPrefs = (membership.preferences as Record<string, unknown>) || {};
+  const disableSpoilerGate = memberPrefs.disable_spoiler_warnings === true;
 
   // Get club name
   const { data: club } = await supabase.from("clubs").select("name").eq("id", clubId).single();
@@ -72,7 +75,7 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
 
   const [discussionPreferences, spoilerStates] = await Promise.all([
     getDiscussionPreferences(),
-    getSpoilerStatesForThreads([thread], user.id),
+    getSpoilerStatesForThreads([thread], user.id, { disableGate: disableSpoilerGate }),
   ]);
   const spoilerState = spoilerStates[thread.id];
 
