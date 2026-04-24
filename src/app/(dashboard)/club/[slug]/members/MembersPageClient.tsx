@@ -236,14 +236,25 @@ export function MembersPageClient({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* Join Requests button - only for admins on public_moderated clubs */}
-              {isAdmin && clubPrivacy === "public_moderated" && requestsCount > 0 && (
-                <Button variant="secondary" onClick={() => setShowJoinRequestsModal(true)}>
+              {/* Join Requests queue — always visible to admins on moderated
+                  clubs so the section is discoverable; pulsing badge alerts
+                  when there are pending requests to review. */}
+              {isAdmin && clubPrivacy === "public_moderated" && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowJoinRequestsModal(true)}
+                  className="relative"
+                >
                   <Queue className="mr-2 h-4 w-4" />
                   Join Requests
-                  <Badge variant="primary" size="sm" className="ml-2">
-                    {requestsCount}
-                  </Badge>
+                  {requestsCount > 0 && (
+                    <span className="relative ml-2 inline-flex">
+                      <span className="absolute inset-0 rounded-full bg-[var(--primary)] opacity-60 animate-ping motion-reduce:animate-none" />
+                      <Badge variant="primary" size="sm" className="relative">
+                        {requestsCount}
+                      </Badge>
+                    </span>
+                  )}
                 </Button>
               )}
               {/* Invite button */}
@@ -334,19 +345,24 @@ export function MembersPageClient({
 
             {/* Mobile buttons */}
             <div className="flex items-center gap-2 ml-auto md:hidden">
-              {/* Mobile Join Requests button */}
-              {isAdmin && clubPrivacy === "public_moderated" && requestsCount > 0 && (
+              {/* Mobile Join Requests button — same visibility rules as desktop */}
+              {isAdmin && clubPrivacy === "public_moderated" && (
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="h-8 text-xs"
+                  className="relative h-8 text-xs"
                   onClick={() => setShowJoinRequestsModal(true)}
                 >
                   <Queue className="mr-1.5 h-3.5 w-3.5" />
                   Requests
-                  <Badge variant="primary" size="sm" className="ml-1.5">
-                    {requestsCount}
-                  </Badge>
+                  {requestsCount > 0 && (
+                    <span className="relative ml-1.5 inline-flex">
+                      <span className="absolute inset-0 rounded-full bg-[var(--primary)] opacity-60 animate-ping motion-reduce:animate-none" />
+                      <Badge variant="primary" size="sm" className="relative">
+                        {requestsCount}
+                      </Badge>
+                    </span>
+                  )}
                 </Button>
               )}
               {/* Mobile invite button */}
