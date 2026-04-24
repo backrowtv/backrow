@@ -114,6 +114,24 @@ export function Footer() {
                   Feedback
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/cookie-settings"
+                  className="transition-colors"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Cookie Settings
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/do-not-sell-or-share"
+                  className="transition-colors"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Do Not Sell or Share My Personal Information
+                </Link>
+              </li>
             </ul>
           </div>
 
