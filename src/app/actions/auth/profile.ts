@@ -68,34 +68,8 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       return { error: "Display name must be less than 50 characters" };
     }
 
-    // Check 6-month cooldown on display name changes
-    const { data: currentUserProfile } = await supabase
-      .from("users")
-      .select("display_name, last_display_name_change")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const trimmedName = displayName.trim();
-    if (
-      currentUserProfile &&
-      currentUserProfile.display_name !== trimmedName &&
-      currentUserProfile.last_display_name_change
-    ) {
-      const lastChange = new Date(currentUserProfile.last_display_name_change);
-      const sixMonthsLater = new Date(lastChange);
-      sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-
-      if (new Date() < sixMonthsLater) {
-        const nextChangeDate = sixMonthsLater.toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
-        return {
-          error: `You can only change your username once every 6 months. You can change it again on ${nextChangeDate}.`,
-        };
-      }
-    }
+    // Display name is always editable — no cooldown. The 6-month cooldown
+    // applies to username only (see src/app/actions/auth/username.ts).
   }
 
   // Validate quote/motto
@@ -279,25 +253,12 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     show_profile_popup?: boolean;
     // social_links now only for ACTUAL social links (Twitter, Letterboxd, etc.)
     social_links?: Record<string, unknown>;
-    last_display_name_change?: string;
   } = {};
 
   // Only include display_name and bio if not a watch-settings-only update
   if (!isPartialUpdate) {
-    const trimmedName = displayName!.trim();
-    updateData.display_name = trimmedName;
+    updateData.display_name = displayName!.trim();
     updateData.bio = bio?.trim() || null;
-
-    // Track display name change timestamp for 6-month cooldown
-    // currentUserProfile was fetched during validation above
-    const { data: nameCheckProfile } = await supabase
-      .from("users")
-      .select("display_name")
-      .eq("id", user.id)
-      .maybeSingle();
-    if (nameCheckProfile && nameCheckProfile.display_name !== trimmedName) {
-      updateData.last_display_name_change = new Date().toISOString();
-    }
   }
 
   // Add favorite IDs only if explicitly provided in form data

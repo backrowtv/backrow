@@ -14,18 +14,18 @@ interface AccountSettingsFormProps {
   email: string;
   createdAt: string;
   displayName: string;
-  lastDisplayNameChange: string | null;
   username: string;
   usernameLastChangedAt: string | null;
 }
 
-const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
+// Username is editable every 6 months (~180 days). Display name is always
+// editable — no cooldown.
+const USERNAME_CHANGE_COOLDOWN_DAYS = 180;
 
 export function AccountSettingsForm({
   email,
   createdAt,
   displayName,
-  lastDisplayNameChange,
   username,
   usernameLastChangedAt,
 }: AccountSettingsFormProps) {
@@ -43,29 +43,6 @@ export function AccountSettingsForm({
   const [isChangingUsername, setIsChangingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState(username);
 
-  // Display name: 6-month cooldown (unchanged from prior behavior)
-  const displayNameOnCooldown = (() => {
-    if (!lastDisplayNameChange) return false;
-    const lastChange = new Date(lastDisplayNameChange);
-    const sixMonthsLater = new Date(lastChange);
-    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-    return new Date() < sixMonthsLater;
-  })();
-
-  const nextDisplayNameChangeDate = lastDisplayNameChange
-    ? (() => {
-        const lastChange = new Date(lastDisplayNameChange);
-        const sixMonthsLater = new Date(lastChange);
-        sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-        return sixMonthsLater.toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
-      })()
-    : null;
-
-  // Username: 30-day cooldown
   const usernameOnCooldown = (() => {
     if (!usernameLastChangedAt) return false;
     const last = new Date(usernameLastChangedAt);
@@ -299,16 +276,10 @@ export function AccountSettingsForm({
                         size="sm"
                         className="h-7 px-2 text-xs flex-shrink-0"
                         onClick={() => setIsChangingDisplayName(true)}
-                        disabled={displayNameOnCooldown}
                       >
                         <PencilSimple className="h-3 w-3" />
                       </Button>
                     </div>
-                    {displayNameOnCooldown && nextDisplayNameChangeDate && (
-                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                        You can change your display name again on {nextDisplayNameChangeDate}
-                      </p>
-                    )}
                   </div>
                 )}
               </div>

@@ -49,7 +49,6 @@ interface AccountSettingsAccordionProps {
     tiktok_visible?: boolean;
   };
   displayName: string;
-  lastDisplayNameChange: string | null;
   username: string;
   usernameLastChangedAt: string | null;
   // Privacy settings
@@ -98,7 +97,6 @@ export function AccountSettingsAccordion({
   createdAt,
   socialLinks,
   displayName,
-  lastDisplayNameChange,
   username,
   usernameLastChangedAt,
   privacySettings,
@@ -128,7 +126,6 @@ export function AccountSettingsAccordion({
             email={email}
             createdAt={createdAt}
             displayName={displayName}
-            lastDisplayNameChange={lastDisplayNameChange}
             username={username}
             usernameLastChangedAt={usernameLastChangedAt}
           />

@@ -49,7 +49,7 @@ export async function claimUsername(prevState: unknown, formData: FormData) {
 }
 
 /**
- * Change username from profile settings. Enforces a 30-day cooldown between
+ * Change username from profile settings. Enforces a 6-month cooldown between
  * changes (tracked via users.username_last_changed_at). Returns a structured
  * error with `nextChangeAt` when the cooldown is active so the UI can show
  * the unlock date.

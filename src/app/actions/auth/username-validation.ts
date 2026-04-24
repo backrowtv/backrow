@@ -2,7 +2,11 @@
 // file so the 'use server' file can restrict itself to async exports per
 // project convention (see CLAUDE.md).
 
-export const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
+// Usernames are editable once every 6 months. Approximated as 180 days —
+// close enough for rate-limiting and avoids month-arithmetic surprises near
+// month boundaries. If you need exact calendar-month behavior, swap the
+// consumer to `setMonth(+6)` and drop this constant.
+export const USERNAME_CHANGE_COOLDOWN_DAYS = 180;
 
 export function validateUsername(
   raw: string | null
