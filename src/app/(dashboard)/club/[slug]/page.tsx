@@ -91,11 +91,20 @@ export default async function ClubPage({ params }: ClubPageProps) {
   // render a public landing for PUBLIC clubs so the OG/JSON-LD unfurl; redirect
   // to sign-in for PRIVATE clubs so we never leak their existence.
   if (!user) {
-    const { data: publicClub } = await supabase
+    // Branch on UUID vs slug instead of .or(slug.eq,id.eq): PostgREST casts the
+    // right-hand side of id.eq to uuid and errors the whole query when we pass
+    // a slug string. That error path used to return null → notFound() → 404 +
+    // meta robots="noindex" for every anon visit, breaking the public landing
+    // and SEO.
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      identifier
+    );
+    const clubQuery = supabase
       .from("clubs")
-      .select("id, name, slug, description, theme_color, picture_url, privacy, archived")
-      .or(`slug.eq.${identifier},id.eq.${identifier}`)
-      .maybeSingle();
+      .select("id, name, slug, description, theme_color, picture_url, privacy, archived");
+    const { data: publicClub } = isUUID
+      ? await clubQuery.eq("id", identifier).maybeSingle()
+      : await clubQuery.eq("slug", identifier).maybeSingle();
 
     if (!publicClub || publicClub.archived) notFound();
     if (publicClub.privacy === "private") {
