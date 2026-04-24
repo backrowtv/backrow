@@ -1,12 +1,12 @@
 "use client";
 
-import * as Sentry from "@sentry/browser";
+import { captureExceptionIfConsented } from "@/lib/security/sentry";
 import { useEffect } from "react";
 import NextError from "next/error";
 
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    captureExceptionIfConsented(error);
   }, [error]);
 
   return (

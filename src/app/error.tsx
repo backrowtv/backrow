@@ -5,7 +5,7 @@
 // (see next.config.ts). Do not add `Sentry.init({ tracesSampleRate: ... })` in
 // this file without re-validating the build — performance tracing pulls in the
 // same OTel chain. Web Vitals are covered by @vercel/speed-insights instead.
-import * as Sentry from "@sentry/browser";
+import { captureExceptionIfConsented } from "@/lib/security/sentry";
 import { useEffect, useState } from "react";
 import { FilmReel, ArrowClockwise, House, Warning } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -32,7 +32,7 @@ export default function GlobalError({
   const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
-    Sentry.captureException(error);
+    captureExceptionIfConsented(error);
     console.error("Global error:", error);
   }, [error]);
 
