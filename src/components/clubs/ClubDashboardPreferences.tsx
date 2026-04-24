@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { SettingsRow } from "@/components/ui/settings-section";
@@ -19,6 +20,7 @@ export function ClubDashboardPreferences({
   initialShowClubCard,
   initialShowSpoilerWarnings,
 }: ClubDashboardPreferencesProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showClubCard, setShowClubCard] = useState(initialShowClubCard);
   const [showSpoilerWarnings, setShowSpoilerWarnings] = useState(initialShowSpoilerWarnings);
@@ -33,6 +35,8 @@ export function ClubDashboardPreferences({
         toast.error(result.error);
       } else {
         toast.success(next ? "Club ID card shown" : "Club ID card hidden");
+        // Drop the client router cache so the dashboard reflects the change on next visit.
+        router.refresh();
       }
     });
   };
@@ -47,6 +51,7 @@ export function ClubDashboardPreferences({
         toast.error(result.error);
       } else {
         toast.success(next ? "Spoiler warnings on" : "Spoiler warnings off");
+        router.refresh();
       }
     });
   };
