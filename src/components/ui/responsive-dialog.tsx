@@ -40,8 +40,10 @@ interface ResponsiveDialogContentProps extends React.ComponentPropsWithoutRef<
   hideClose?: boolean;
   /** Show drag handle on mobile sheet (default true) */
   showHandle?: boolean;
-  /** Max height for mobile sheet (default 90dvh) */
+  /** Max height for mobile sheet (default 92dvh) */
   sheetMaxHeight?: string;
+  /** Min height for mobile sheet (default 60dvh) — keeps short content from feeling like a half-open drawer */
+  sheetMinHeight?: string;
   /** Force a specific variant regardless of viewport */
   variant?: "auto" | "dialog" | "sheet";
   /** Center relative to main content area (dialog variant only, accounts for sidebar offset) */
@@ -58,7 +60,8 @@ const ResponsiveDialogContent = React.forwardRef<
       children,
       hideClose,
       showHandle = true,
-      sheetMaxHeight = "90dvh",
+      sheetMaxHeight = "92dvh",
+      sheetMinHeight = "60dvh",
       variant = "auto",
       contentAreaCentered,
       ...props
@@ -87,7 +90,7 @@ const ResponsiveDialogContent = React.forwardRef<
               "motion-reduce:animate-none",
               className
             )}
-            style={{ maxHeight: sheetMaxHeight }}
+            style={{ maxHeight: sheetMaxHeight, minHeight: sheetMinHeight }}
             {...props}
           >
             {showHandle && (
