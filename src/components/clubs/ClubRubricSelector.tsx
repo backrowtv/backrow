@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ export function ClubRubricSelector({
   userRubrics,
   defaultRubricId,
 }: ClubRubricSelectorProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selectedRubricId, setSelectedRubricId] = useState<string | null>(defaultRubricId);
   const [hasChanges, setHasChanges] = useState(false);
@@ -49,6 +51,7 @@ export function ClubRubricSelector({
       } else {
         toast.success("Club rubric preference saved");
         setHasChanges(false);
+        router.refresh();
       }
     });
   };
