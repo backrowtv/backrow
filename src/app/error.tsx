@@ -1,5 +1,10 @@
 "use client";
 
+// Sentry is error-capture-only here by design. `@sentry/nextjs` was removed to
+// avoid a Turbopack hash-wrapping issue with `@opentelemetry/instrumentation`
+// (see next.config.ts). Do not add `Sentry.init({ tracesSampleRate: ... })` in
+// this file without re-validating the build — performance tracing pulls in the
+// same OTel chain. Web Vitals are covered by @vercel/speed-insights instead.
 import * as Sentry from "@sentry/browser";
 import { useEffect, useState } from "react";
 import { FilmReel, ArrowClockwise, House, Warning } from "@phosphor-icons/react";
