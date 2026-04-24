@@ -227,12 +227,12 @@ function MovieCard({
             }
             alt=""
             fill
-            className="object-cover opacity-20 dark:opacity-30 group-hover:opacity-25 dark:group-hover:opacity-35 transition-opacity"
+            className="object-cover opacity-10 dark:opacity-20 group-hover:opacity-15 dark:group-hover:opacity-25 transition-opacity"
             sizes="(max-width: 768px) 100vw, 400px"
             placeholder="blur"
             blurDataURL={getBackdropBlurDataURL()}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface-2)]/80 via-[var(--surface-2)]/60 to-[var(--surface-2)]/40" />
+          <div className="absolute inset-0 bg-[var(--surface-2)]/85" />
         </div>
       )}
 
@@ -455,12 +455,12 @@ export async function FeaturedClubSection() {
                 src={backgroundUrl}
                 alt=""
                 fill
-                className="object-cover opacity-15 dark:opacity-20 group-hover:opacity-20 dark:group-hover:opacity-25 transition-opacity"
+                className="object-cover opacity-10 dark:opacity-15 group-hover:opacity-15 dark:group-hover:opacity-20 transition-opacity"
                 sizes="(max-width: 768px) 100vw, 600px"
                 placeholder="blur"
                 blurDataURL={getBackdropBlurDataURL()}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface-2)]/90 via-[var(--surface-2)]/70 to-[var(--surface-2)]/50" />
+              <div className="absolute inset-0 bg-[var(--surface-2)]/85" />
             </div>
           )}
 
