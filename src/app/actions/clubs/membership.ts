@@ -281,5 +281,7 @@ export async function updateMemberPreference(clubId: string, key: string, value:
 
   if (error) return { error: error.message };
 
+  invalidateMember(clubId, user.id);
+
   return { success: true };
 }

@@ -40,7 +40,7 @@ export default async function DiscussPage({ params, searchParams }: DiscussPageP
   // Check if user is a member
   const { data: membership } = await supabase
     .from("club_members")
-    .select("role")
+    .select("role, preferences")
     .eq("club_id", clubId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -48,6 +48,9 @@ export default async function DiscussPage({ params, searchParams }: DiscussPageP
   if (!membership) {
     redirect("/clubs");
   }
+
+  const memberPrefs = (membership.preferences as Record<string, unknown>) || {};
+  const disableSpoilerGate = memberPrefs.disable_spoiler_warnings === true;
 
   // If movie query param is present, redirect to that movie's discussion thread
   if (resolvedSearchParams.movie) {
@@ -103,7 +106,9 @@ export default async function DiscussPage({ params, searchParams }: DiscussPageP
   const filterParamsForPagination = activeFilter !== "all" ? `filter=${activeFilter}` : "";
 
   // Get spoiler states for fetched threads
-  const spoilerStates = await getSpoilerStatesForThreads(threads, user.id);
+  const spoilerStates = await getSpoilerStatesForThreads(threads, user.id, {
+    disableGate: disableSpoilerGate,
+  });
 
   const isAdmin = membership?.role === "producer" || membership?.role === "director";
   const isProducer = membership?.role === "producer" || false;

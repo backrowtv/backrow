@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { resolveClub } from "@/lib/clubs/resolveClub";
 import { ClubPersonalizationForm } from "@/components/clubs/ClubPersonalizationForm";
 import { ClubRubricSelector } from "@/components/clubs/ClubRubricSelector";
+import { ClubDashboardPreferences } from "@/components/clubs/ClubDashboardPreferences";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
 import type { RatingRubric } from "@/types/club-settings";
 import type { UserRubric } from "@/app/actions/rubrics.types";
@@ -75,9 +76,11 @@ export default async function PersonalizationSettingsPage({
     updated_at: r.updated_at,
   }));
 
-  // Get default rubric preference from club_members preferences
+  // Get preferences from club_members preferences
   const preferences = (membership.preferences as Record<string, unknown>) || {};
   const defaultRubricId = (preferences.default_rubric_id as string | null) || null;
+  const hideClubCard = preferences.hide_club_card === true;
+  const disableSpoilerWarnings = preferences.disable_spoiler_warnings === true;
 
   return (
     <div className="bg-[var(--background)]">
@@ -105,6 +108,13 @@ export default async function PersonalizationSettingsPage({
             clubId={clubId}
             userRubrics={rubrics}
             defaultRubricId={defaultRubricId}
+          />
+
+          {/* Dashboard & Discussion Preferences */}
+          <ClubDashboardPreferences
+            clubId={clubId}
+            initialShowClubCard={!hideClubCard}
+            initialShowSpoilerWarnings={!disableSpoilerWarnings}
           />
         </div>
       </div>
