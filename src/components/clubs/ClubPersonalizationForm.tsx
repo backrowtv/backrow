@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export function ClubPersonalizationForm({
   initialDisplayName,
   globalDisplayName,
 }: ClubPersonalizationFormProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [displayName, setDisplayName] = useState(initialDisplayName);
 
@@ -31,6 +33,9 @@ export function ClubPersonalizationForm({
         toast.error(result.error);
       } else {
         toast.success("Personalization settings saved");
+        // Drop client router cache so the new display name shows in the
+        // dashboard sidebar, comments, and member lists on next navigation.
+        router.refresh();
       }
     });
   };

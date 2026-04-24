@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ export function RSVPButton({
   size = "sm",
   className,
 }: RSVPButtonProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticStatus, setOptimisticStatus] = useState<RSVPStatus | null>(currentStatus);
 
@@ -63,6 +65,9 @@ export function RSVPButton({
         // Revert on error
         setOptimisticStatus(currentStatus);
         console.error("RSVP error:", result.error);
+      } else {
+        // Refresh attendee rosters / club calendar / event detail on next nav.
+        router.refresh();
       }
     });
   };
@@ -75,6 +80,8 @@ export function RSVPButton({
         // Revert on error
         setOptimisticStatus(currentStatus);
         console.error("Remove RSVP error:", result.error);
+      } else {
+        router.refresh();
       }
     });
   };
