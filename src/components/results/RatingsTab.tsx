@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { MotionProvider, m, AnimatePresence } from "@/lib/motion";
 import { Select } from "@/components/ui/select";
-import { Avatar } from "@/components/ui/avatar";
+import { ClickableUserAvatar } from "@/components/ui/clickable-user-avatar";
 import { Star, FilmReel, User, TrendUp } from "@phosphor-icons/react";
 import { formatRatingDisplay } from "@/lib/ratings/normalize";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -81,7 +81,12 @@ function MemberSummaryCard({
       onClick={onClick}
       className="w-full flex items-center gap-3 py-3 px-2 transition-all hover:bg-[var(--surface-2)] text-left"
     >
-      <Avatar src={summary.avatarUrl || undefined} alt={summary.userName} size="sm" />
+      <ClickableUserAvatar
+        entity={{ name: summary.userName, avatar_url: summary.avatarUrl }}
+        userId={summary.userId}
+        alt={summary.userName}
+        size="sm"
+      />
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate" style={{ color: "var(--text-primary)" }}>
           {summary.userName}
@@ -143,7 +148,12 @@ function MemberRatingsView({
         style={{ borderColor: "var(--border)" }}
       >
         <div className="flex items-center gap-3">
-          <Avatar alt={userName} size="md" />
+          <ClickableUserAvatar
+            entity={{ name: userName }}
+            userId={selectedUserId}
+            alt={userName}
+            size="md"
+          />
           <div>
             <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
               {userName}

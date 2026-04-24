@@ -55,7 +55,8 @@ async function loadSvglComponent(
     }
 
     return null;
-  } catch {
+  } catch (err) {
+    console.error(`brand-logo: failed to load svgl component "${componentName}"`, err);
     return null;
   }
 }

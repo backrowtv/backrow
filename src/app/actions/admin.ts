@@ -352,7 +352,6 @@ export async function setFeaturedClub(clubId: string) {
 
   invalidateMarketing("featured-club");
   revalidatePath("/admin");
-  revalidatePath("/");
   return { success: true };
 }
 

@@ -196,7 +196,8 @@ export function CuratedCollectionsManager({
       );
       const data = await response.json();
       setSearchResults(data.results || []);
-    } catch {
+    } catch (err) {
+      console.error("curated-collections: TMDB search failed", err);
       toast.error("Search failed");
     } finally {
       setIsSearching(false);
