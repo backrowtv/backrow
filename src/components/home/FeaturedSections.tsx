@@ -330,9 +330,9 @@ export async function FeaturedMovieSection() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-3">
+    <div className="flex flex-col 2xl:flex-row gap-3">
       {featured && (
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 min-w-0 space-y-1.5">
           <span className="block text-center text-sm font-medium uppercase tracking-wide text-[var(--text-muted)]">
             Featured New Release
           </span>
@@ -340,7 +340,7 @@ export async function FeaturedMovieSection() {
         </div>
       )}
       {throwback && (
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 min-w-0 space-y-1.5">
           <span className="block text-center text-sm font-medium uppercase tracking-wide text-[var(--text-muted)]">
             Throwback Movie
           </span>
@@ -525,7 +525,7 @@ export function FeaturedMovieSkeleton() {
   // Real page renders both `featured` and `throwback` side-by-side when both exist.
   // Show two cards to match the most common state.
   return (
-    <div className="flex flex-col md:flex-row gap-3">
+    <div className="flex flex-col 2xl:flex-row gap-3">
       <MovieCardSkeleton />
       <MovieCardSkeleton />
     </div>

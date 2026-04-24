@@ -16,6 +16,64 @@ interface JoinPageProps {
   searchParams: Promise<{ token?: string }>;
 }
 
+function InviteFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[var(--background)]">
+      <div className="w-full max-w-md">
+        <div className="mb-6 text-center">
+          <Link
+            href="/"
+            aria-label="BackRow home"
+            className="inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded-md"
+          >
+            <span
+              className="text-3xl sm:text-4xl tracking-wide"
+              style={{ fontFamily: "var(--font-brand)", color: "var(--primary)" }}
+            >
+              BackRow
+            </span>
+          </Link>
+        </div>
+        <Card>{children}</Card>
+      </div>
+    </div>
+  );
+}
+
+function StateIcon({ emoji }: { emoji: string }) {
+  return (
+    <div
+      className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
+      style={{ backgroundColor: "var(--surface-2)" }}
+    >
+      <span className="text-3xl" aria-hidden>
+        {emoji}
+      </span>
+    </div>
+  );
+}
+
+function ClubAvatarLarge({ pictureUrl, name }: { pictureUrl: string | null; name: string }) {
+  if (pictureUrl) {
+    return (
+      <div
+        className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <Image src={pictureUrl} alt={name} fill className="object-cover" sizes="80px" />
+      </div>
+    );
+  }
+  return (
+    <div
+      className="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-2xl font-bold"
+      style={{ backgroundColor: "var(--primary)", color: "white" }}
+    >
+      {name[0]?.toUpperCase() || "?"}
+    </div>
+  );
+}
+
 export default async function JoinPage({ params, searchParams }: JoinPageProps) {
   const { slug } = await params;
   const { token } = await searchParams;
@@ -45,58 +103,48 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
 
   if (clubError || !club) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-5 sm:p-8 text-center space-y-4">
-            <div
-              className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "var(--surface-2)" }}
-            >
-              <span className="text-3xl">😕</span>
-            </div>
+      <InviteFrame>
+        <CardContent className="p-6 sm:p-10 text-center space-y-5">
+          <StateIcon emoji="😕" />
+          <div className="space-y-2">
             <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
               Club Not Found
             </h1>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              This club doesn't exist or the link is invalid.
+              This club doesn&rsquo;t exist or the link is invalid.
             </p>
-            <Link href="/discover">
-              <Button variant="primary" className="mt-4">
-                Browse Clubs
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <Link href="/discover" className="inline-block">
+            <Button variant="primary" className="sm:min-w-[200px]">
+              Browse Clubs
+            </Button>
+          </Link>
+        </CardContent>
+      </InviteFrame>
     );
   }
 
   // Check if club is archived
   if (club.archived) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-5 sm:p-8 text-center space-y-4">
-            <div
-              className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "var(--surface-2)" }}
-            >
-              <span className="text-3xl">📦</span>
-            </div>
+      <InviteFrame>
+        <CardContent className="p-6 sm:p-10 text-center space-y-5">
+          <StateIcon emoji="📦" />
+          <div className="space-y-2">
             <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
               Club Archived
             </h1>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               This club has been archived and is no longer accepting new members.
             </p>
-            <Link href="/discover">
-              <Button variant="primary" className="mt-4">
-                Browse Clubs
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <Link href="/discover" className="inline-block">
+            <Button variant="primary" className="sm:min-w-[200px]">
+              Browse Clubs
+            </Button>
+          </Link>
+        </CardContent>
+      </InviteFrame>
     );
   }
 
@@ -108,65 +156,50 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
   // If not authenticated, show club preview with sign-in prompt
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-5 sm:p-8 text-center space-y-6">
-            {/* Club Avatar */}
-            {club.picture_url ? (
-              <div
-                className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <Image
-                  src={club.picture_url}
-                  alt={club.name}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </div>
-            ) : (
-              <div
-                className="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-2xl font-bold"
-                style={{ backgroundColor: "var(--primary)", color: "white" }}
-              >
-                {club.name[0]?.toUpperCase() || "?"}
-              </div>
-            )}
+      <InviteFrame>
+        <CardContent className="p-6 sm:p-10 text-center space-y-6 sm:space-y-7">
+          <ClubAvatarLarge pictureUrl={club.picture_url} name={club.name} />
 
-            <div className="space-y-2">
-              <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
-                You're invited to join
-              </h1>
-              <p className="text-lg font-medium" style={{ color: "var(--text-primary)" }}>
-                {club.name}
+          <div className="space-y-2">
+            <p
+              className="text-xs uppercase tracking-wide font-medium"
+              style={{ color: "var(--text-muted)" }}
+            >
+              You&rsquo;re invited to join
+            </p>
+            <h1
+              className="text-2xl font-semibold leading-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {club.name}
+            </h1>
+            {club.description && (
+              <p className="text-sm line-clamp-3 pt-1" style={{ color: "var(--text-muted)" }}>
+                {club.description}
               </p>
-              {club.description && (
-                <p className="text-sm line-clamp-3" style={{ color: "var(--text-muted)" }}>
-                  {club.description}
-                </p>
-              )}
-            </div>
+            )}
+          </div>
 
-            <div className="space-y-3">
-              <Link
-                href={`/sign-in?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}
-              >
-                <Button variant="primary" className="w-full">
-                  Sign In to Join
-                </Button>
-              </Link>
-              <Link
-                href={`/sign-up?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}
-              >
-                <Button variant="secondary" className="w-full">
-                  Create Account
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-1">
+            <Link
+              href={`/sign-in?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}
+              className="inline-block"
+            >
+              <Button variant="primary" className="w-full sm:w-auto sm:min-w-[160px]">
+                Sign In to Join
+              </Button>
+            </Link>
+            <Link
+              href={`/sign-up?redirectTo=${encodeURIComponent(token ? `/join/${slug}?token=${token}` : `/join/${slug}`)}`}
+              className="inline-block"
+            >
+              <Button variant="secondary" className="w-full sm:w-auto sm:min-w-[160px]">
+                Create Account
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </InviteFrame>
     );
   }
 
@@ -175,18 +208,19 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
     await ensureUser(supabase, user.id, user.email || "");
   } catch (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center space-y-4">
+      <InviteFrame>
+        <CardContent className="p-6 sm:p-10 text-center space-y-5">
+          <StateIcon emoji="⚠️" />
+          <div className="space-y-2">
             <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
               Error Loading Profile
             </h1>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               {error instanceof Error ? error.message : "Failed to load user profile"}
             </p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </InviteFrame>
     );
   }
 
@@ -215,72 +249,54 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
 
     // Show moderated club join page with request button
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center space-y-6">
-            {/* Club Avatar */}
-            {club.picture_url ? (
-              <div
-                className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <Image
-                  src={club.picture_url}
-                  alt={club.name}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </div>
-            ) : (
-              <div
-                className="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-2xl font-bold"
-                style={{ backgroundColor: "var(--primary)", color: "white" }}
-              >
-                {club.name[0]?.toUpperCase() || "?"}
-              </div>
-            )}
+      <InviteFrame>
+        <CardContent className="p-6 sm:p-10 text-center space-y-6 sm:space-y-7">
+          <ClubAvatarLarge pictureUrl={club.picture_url} name={club.name} />
 
-            <div className="space-y-2">
-              <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
-                {club.name}
-              </h1>
-              {club.description && (
-                <p className="text-sm line-clamp-3" style={{ color: "var(--text-muted)" }}>
-                  {club.description}
-                </p>
-              )}
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                This is a moderated club. Your request will be reviewed by an admin.
+          <div className="space-y-2">
+            <h1
+              className="text-2xl font-semibold leading-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {club.name}
+            </h1>
+            {club.description && (
+              <p className="text-sm line-clamp-3" style={{ color: "var(--text-muted)" }}>
+                {club.description}
+              </p>
+            )}
+            <p className="text-xs pt-1" style={{ color: "var(--text-muted)" }}>
+              This is a moderated club. Your request will be reviewed by an admin.
+            </p>
+          </div>
+
+          {existingRequest ? (
+            <div className="p-4 rounded-lg" style={{ backgroundColor: "var(--surface-2)" }}>
+              <p className="text-sm" style={{ color: "var(--text-primary)" }}>
+                {existingRequest.status === "pending"
+                  ? "Your join request is pending approval."
+                  : existingRequest.status === "denied"
+                    ? "Your join request was denied."
+                    : "Request status: " + existingRequest.status}
               </p>
             </div>
-
-            {existingRequest ? (
-              <div className="p-4 rounded-lg" style={{ backgroundColor: "var(--surface-2)" }}>
-                <p className="text-sm" style={{ color: "var(--text-primary)" }}>
-                  {existingRequest.status === "pending"
-                    ? "Your join request is pending approval."
-                    : existingRequest.status === "denied"
-                      ? "Your join request was denied."
-                      : "Request status: " + existingRequest.status}
-                </p>
-              </div>
-            ) : (
+          ) : (
+            <div className="flex justify-center">
               <JoinRequestButton
                 clubId={club.id}
                 clubName={club.name}
                 clubSlug={club.slug || club.id}
               />
-            )}
+            </div>
+          )}
 
-            <Link href="/discover">
-              <Button variant="ghost" size="sm">
-                Browse Other Clubs
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+          <Link href="/discover" className="inline-block">
+            <Button variant="ghost" size="sm">
+              Browse Other Clubs
+            </Button>
+          </Link>
+        </CardContent>
+      </InviteFrame>
     );
   }
 
@@ -288,29 +304,24 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
   if (club.privacy === "private") {
     if (!token) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="p-8 text-center space-y-4">
-              <div
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "var(--surface-2)" }}
-              >
-                <span className="text-3xl">🔒</span>
-              </div>
+        <InviteFrame>
+          <CardContent className="p-6 sm:p-10 text-center space-y-5">
+            <StateIcon emoji="🔒" />
+            <div className="space-y-2">
               <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
                 Private Club
               </h1>
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 This is a private club. You need an invite link from a club member to join.
               </p>
-              <Link href="/discover">
-                <Button variant="primary" className="mt-4">
-                  Browse Clubs
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Link href="/discover" className="inline-block">
+              <Button variant="primary" className="sm:min-w-[200px]">
+                Browse Clubs
+              </Button>
+            </Link>
+          </CardContent>
+        </InviteFrame>
       );
     }
 
@@ -318,61 +329,51 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
     const tokenValidation = await validateInviteToken(token);
     if (!tokenValidation.valid) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="p-8 text-center space-y-4">
-              <div
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "var(--surface-2)" }}
-              >
-                <span className="text-3xl">⏰</span>
-              </div>
+        <InviteFrame>
+          <CardContent className="p-6 sm:p-10 text-center space-y-5">
+            <StateIcon emoji="⏰" />
+            <div className="space-y-2">
               <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
                 Invalid Invite Link
               </h1>
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 {tokenValidation.error || "This invite link is invalid or has expired."}
               </p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="text-xs pt-1" style={{ color: "var(--text-muted)" }}>
                 Ask a club member for a new invite link.
               </p>
-              <Link href="/discover">
-                <Button variant="primary" className="mt-4">
-                  Browse Clubs
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Link href="/discover" className="inline-block">
+              <Button variant="primary" className="sm:min-w-[200px]">
+                Browse Clubs
+              </Button>
+            </Link>
+          </CardContent>
+        </InviteFrame>
       );
     }
 
     // Ensure the token is for this club
     if (tokenValidation.clubId !== club.id) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="p-8 text-center space-y-4">
-              <div
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "var(--surface-2)" }}
-              >
-                <span className="text-3xl">🔗</span>
-              </div>
+        <InviteFrame>
+          <CardContent className="p-6 sm:p-10 text-center space-y-5">
+            <StateIcon emoji="🔗" />
+            <div className="space-y-2">
               <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
                 Wrong Club
               </h1>
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 This invite link is for a different club.
               </p>
-              <Link href="/discover">
-                <Button variant="primary" className="mt-4">
-                  Browse Clubs
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Link href="/discover" className="inline-block">
+              <Button variant="primary" className="sm:min-w-[200px]">
+                Browse Clubs
+              </Button>
+            </Link>
+          </CardContent>
+        </InviteFrame>
       );
     }
   }
@@ -386,23 +387,24 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
 
   if (memberError) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center space-y-4">
+      <InviteFrame>
+        <CardContent className="p-6 sm:p-10 text-center space-y-5">
+          <StateIcon emoji="⚠️" />
+          <div className="space-y-2">
             <h1 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
               Error Joining Club
             </h1>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               {memberError.message}
             </p>
-            <Link href="/discover">
-              <Button variant="primary" className="mt-4">
-                Browse Clubs
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <Link href="/discover" className="inline-block">
+            <Button variant="primary" className="sm:min-w-[200px]">
+              Browse Clubs
+            </Button>
+          </Link>
+        </CardContent>
+      </InviteFrame>
     );
   }
 
