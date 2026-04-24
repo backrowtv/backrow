@@ -98,16 +98,21 @@ export async function addTheme(prevState: unknown, formData: FormData) {
     return { error: "This theme already exists in the pool" };
   }
 
-  // Add theme
-  const { error } = await supabase.from("theme_pool").insert({
-    club_id: clubId,
-    theme_name: themeName.trim(),
-    added_by: user.id,
-    is_used: false,
-  });
+  // Add theme and return the inserted row with the author joined so the client
+  // can render it immediately without a fallback-avatar flash.
+  const { data: inserted, error } = await supabase
+    .from("theme_pool")
+    .insert({
+      club_id: clubId,
+      theme_name: themeName.trim(),
+      added_by: user.id,
+      is_used: false,
+    })
+    .select("*, added_by_user:added_by(id, display_name, username, avatar_url)")
+    .single();
 
-  if (error) {
-    return { error: error.message };
+  if (error || !inserted) {
+    return { error: error?.message ?? "Failed to add theme" };
   }
 
   // Log activity
@@ -121,7 +126,18 @@ export async function addTheme(prevState: unknown, formData: FormData) {
   );
 
   invalidateClub(clubId);
-  return { success: true };
+
+  const addedByUser = Array.isArray(inserted.added_by_user)
+    ? inserted.added_by_user[0] || null
+    : inserted.added_by_user;
+
+  return {
+    success: true,
+    theme: {
+      ...inserted,
+      added_by_user: addedByUser,
+    },
+  };
 }
 
 export async function removeTheme(themeId: string, clubId: string) {

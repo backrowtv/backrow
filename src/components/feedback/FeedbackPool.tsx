@@ -172,12 +172,19 @@ export function FeedbackPool({
     }
   };
 
-  // Clear form on success
+  // Clear form on success and append the newly-returned item so the real
+  // avatar renders immediately (no fallback flash while the server revalidates).
   useEffect(() => {
     if (state && "success" in state && state.success) {
       formRef.current?.reset();
       setIsFormExpanded(false);
       toast.success(`${type === "bug" ? "Bug report" : "Feature request"} submitted`);
+      if ("item" in state && state.item) {
+        const newItem = state.item;
+        setOptimisticItems((prev) =>
+          prev.some((it) => it.id === newItem.id) ? prev : [newItem, ...prev]
+        );
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Depends on state?.success not the full state object; avoids re-running on unrelated state changes
   }, [state?.success, type]);

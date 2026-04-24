@@ -305,10 +305,19 @@ export function ThemePool({
     }
   }
 
-  // Clear form on success
+  // Clear form and append the newly-returned theme on success so the author
+  // avatar renders immediately (no fallback flash waiting for revalidation).
   useEffect(() => {
-    if (state && "success" in state && state.success && addInputRef.current) {
-      addInputRef.current.value = "";
+    if (state && "success" in state && state.success) {
+      if (addInputRef.current) {
+        addInputRef.current.value = "";
+      }
+      if ("theme" in state && state.theme) {
+        const newTheme = state.theme as Theme;
+        setOptimisticThemes((prev) =>
+          prev.some((t) => t.id === newTheme.id) ? prev : [newTheme, ...prev]
+        );
+      }
     }
   }, [state]);
 

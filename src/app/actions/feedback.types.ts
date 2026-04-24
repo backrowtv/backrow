@@ -18,5 +18,8 @@ export interface FeedbackItemWithUser {
     display_name: string | null;
     username: string | null;
     avatar_url: string | null;
+    avatar_icon: string | null;
+    avatar_color_index: number | null;
+    avatar_border_color_index: number | null;
   } | null;
 }

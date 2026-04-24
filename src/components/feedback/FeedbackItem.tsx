@@ -155,10 +155,7 @@ export function FeedbackItem({
             {item.user && (
               <div className="flex items-center gap-1.5">
                 <ClickableUserAvatar
-                  entity={userToAvatarData({
-                    display_name: item.user.display_name,
-                    avatar_url: item.user.avatar_url,
-                  })}
+                  entity={userToAvatarData(item.user)}
                   userId={item.user.id}
                   size="xs"
                 />

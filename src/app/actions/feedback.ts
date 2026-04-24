@@ -25,7 +25,8 @@ export async function getFeedbackItems(type: FeedbackType): Promise<{
     return { data: null, error: "You must be signed in to view feedback" };
   }
 
-  // Get feedback items with user info
+  // Get feedback items with user info (all avatar fields so icon/color avatars
+  // render correctly, not just photo-based ones).
   const { data: items, error: itemsError } = await supabase
     .from("feedback_items")
     .select(
@@ -130,7 +131,7 @@ export async function getFeedbackVotes(): Promise<{
 export async function addFeedbackItem(
   prevState: unknown,
   formData: FormData
-): Promise<{ success?: boolean; error?: string }> {
+): Promise<{ success?: boolean; error?: string; item?: FeedbackItemWithUser }> {
   const rateCheck = await actionRateLimit("addFeedbackItem", { limit: 5, windowMs: 60_000 });
   if (!rateCheck.success) return { error: rateCheck.error };
 
@@ -154,16 +155,43 @@ export async function addFeedbackItem(
 
   const { type, title, description } = parseResult.data;
 
-  // Insert feedback item
-  const { error } = await supabase.from("feedback_items").insert({
-    type,
-    title: title.trim(),
-    description: description?.trim() || null,
-    user_id: user.id,
-    status: "open",
-  });
+  // Insert feedback item and return it with the author joined so the client can
+  // render the new row immediately (no fallback avatar flash while the path
+  // revalidates).
+  const { data: inserted, error } = await supabase
+    .from("feedback_items")
+    .insert({
+      type,
+      title: title.trim(),
+      description: description?.trim() || null,
+      user_id: user.id,
+      status: "open",
+    })
+    .select(
+      `
+      id,
+      type,
+      title,
+      description,
+      user_id,
+      status,
+      admin_response,
+      created_at,
+      updated_at,
+      user:users!feedback_items_user_id_fkey (
+        id,
+        display_name,
+        username,
+        avatar_url,
+        avatar_icon,
+        avatar_color_index,
+        avatar_border_color_index
+      )
+    `
+    )
+    .single();
 
-  if (error) {
+  if (error || !inserted) {
     return handleActionError(error, "addFeedbackItem");
   }
 
@@ -189,7 +217,17 @@ export async function addFeedbackItem(
   }
 
   revalidatePath("/feedback");
-  return { success: true };
+
+  // Normalize the joined user (Supabase can return an array or object depending
+  // on the join relation) to match FeedbackItemWithUser.
+  const joinedUser = Array.isArray(inserted.user) ? inserted.user[0] || null : inserted.user;
+  const item: FeedbackItemWithUser = {
+    ...inserted,
+    user: joinedUser as FeedbackItemWithUser["user"],
+    vote_count: 0,
+  };
+
+  return { success: true, item };
 }
 
 /**
