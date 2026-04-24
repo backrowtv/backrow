@@ -9,7 +9,9 @@ import {
   getAvatarIconSrc,
   BACKROW_ICON_ID,
   BACKROW_ICON_PATH,
+  BACKROW_BRAND_SAGE,
 } from "@/lib/avatar-constants";
+import { isBackRowFeaturedClub } from "@/lib/clubs/backrow-featured";
 
 const FOUNDER_EMAIL = "stephen@backrow.tv";
 
@@ -113,11 +115,18 @@ export function EntityAvatar({
   }
 
   // Resolve colors
-  const defaultAvatarColor =
+  let defaultAvatarColor =
     entity.avatar_color_index !== undefined && entity.avatar_color_index !== null && !isPhotoMode
       ? getAvatarColor(entity.avatar_color_index)
       : undefined;
-  const defaultAvatarBorderColor = getAvatarBorderColor(entity.avatar_border_color_index);
+  let defaultAvatarBorderColor = getAvatarBorderColor(entity.avatar_border_color_index);
+
+  // BackRow Featured is locked to the brand sage regardless of the viewer's site theme.
+  if (isBackRowFeaturedClub(entity.slug, entity.name)) {
+    if (defaultAvatarColor === "var(--primary)") defaultAvatarColor = BACKROW_BRAND_SAGE;
+    if (defaultAvatarBorderColor === "var(--primary)")
+      defaultAvatarBorderColor = BACKROW_BRAND_SAGE;
+  }
 
   // Founder accounts get branded primary border on uploaded photos (unless they set a custom border)
   const isFounder = entity.email === FOUNDER_EMAIL;

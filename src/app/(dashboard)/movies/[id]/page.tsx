@@ -368,15 +368,15 @@ export default async function MoviePage({ params }: MoviePageProps) {
       />
       {/* Hero Section - Compact */}
       <div className="relative w-full h-[250px] lg:h-[350px] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/30 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)] to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/60 to-[var(--background)]/10 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/40 to-transparent z-10" />
         {(backdropUrl || posterUrl) && (
           <Image
             src={(backdropUrl || posterUrl)!}
             alt={movie.title}
             fill
             sizes="100vw"
-            className="object-cover opacity-55"
+            className="object-cover"
             priority
             {...(backdropBlur || posterBlur
               ? { placeholder: "blur" as const, blurDataURL: (backdropBlur || posterBlur)! }
