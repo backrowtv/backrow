@@ -87,35 +87,6 @@ export async function updateClubSettings(
     return { error: validation.errors.join(", ") };
   }
 
-  // Business logic validation
-  const festivalType = mergedSettings.festival_type as string | undefined;
-  const isEndless = festivalType === "endless";
-
-  // Validate endless festival incompatibilities
-  // Only block if the user is actively enabling an incompatible setting in this update.
-  // If it's a stale value already in the DB, auto-clean it instead of blocking.
-  if (isEndless) {
-    const isEnabling = (key: string) => key in settings && settings[key] === true;
-
-    if (isEnabling("scoring_enabled")) {
-      return {
-        error:
-          "Endless festivals are not compatible with competitive ratings/scoring. Please disable scoring first.",
-      };
-    }
-
-    if (isEnabling("nomination_guessing_enabled")) {
-      return {
-        error:
-          "Endless festivals are not compatible with guessing features. Please disable guessing first.",
-      };
-    }
-
-    // Auto-clean stale incompatible flags
-    mergedSettings.scoring_enabled = false;
-    mergedSettings.nomination_guessing_enabled = false;
-  }
-
   // Check if festival_type is being changed - must lock to season lifecycle
   const currentFestivalType = (currentSettings.festival_type as string | undefined) || "standard";
   const newFestivalType = (mergedSettings.festival_type as string | undefined) || "standard";

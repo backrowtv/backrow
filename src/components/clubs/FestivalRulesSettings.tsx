@@ -171,7 +171,6 @@ export function FestivalRulesSettings({
 
   // Derive state
   const festivalType = (localSettings.festival_type as FestivalType) || "standard";
-  const isEndless = festivalType === "endless";
   const scoringEnabled = (localSettings.scoring_enabled as boolean) ?? false;
 
   async function handleSave(options?: { confirmEndlessSwitch?: boolean }) {
@@ -465,133 +464,115 @@ export function FestivalRulesSettings({
         compact
       >
         <div className="space-y-3">
-          {!isEndless && (
-            <SettingsCard variant="info" compact>
-              <div className="flex items-start gap-1.5">
-                <Info
-                  className="h-4 w-4 flex-shrink-0 mt-0.5"
-                  style={{ color: "var(--primary)" }}
-                />
-                <Text size="sm" muted>
-                  Available in Endless festival mode.
-                </Text>
-              </div>
-            </SettingsCard>
-          )}
-          <div className={!isEndless ? "opacity-50 pointer-events-none" : ""}>
-            <SettingsRow label="Enable Movie Pool" description="Queue of suggested movies" compact>
+          <SettingsRow label="Enable Movie Pool" description="Queue of suggested movies" compact>
+            <Checkbox
+              checked={moviePoolEnabled}
+              onCheckedChange={(checked) => updateSetting("movie_pool_enabled", checked)}
+            />
+          </SettingsRow>
+
+          <div className={!moviePoolEnabled ? "opacity-50 pointer-events-none" : ""}>
+            <SettingsRow
+              label="Members Can Add Movies"
+              description="When off, only admins can add"
+              compact
+            >
               <Checkbox
-                checked={moviePoolEnabled}
-                onCheckedChange={(checked) => updateSetting("movie_pool_enabled", checked)}
-                disabled={!isEndless}
+                checked={allowNonAdminMoviePool}
+                onCheckedChange={(checked) => updateSetting("allow_non_admin_movie_pool", checked)}
+                disabled={!moviePoolEnabled}
               />
             </SettingsRow>
 
-            <div className={!moviePoolEnabled ? "opacity-50 pointer-events-none" : ""}>
-              <SettingsRow
-                label="Members Can Add Movies"
-                description="When off, only admins can add"
-                compact
-              >
-                <Checkbox
-                  checked={allowNonAdminMoviePool}
-                  onCheckedChange={(checked) =>
-                    updateSetting("allow_non_admin_movie_pool", checked)
-                  }
-                  disabled={!moviePoolEnabled || !isEndless}
-                />
-              </SettingsRow>
+            <SettingsRow
+              label="Max Movies Per User"
+              description="Movies each member can add to the pool"
+              compact
+            >
+              <NumberStepper
+                value={moviePoolMaxPerUser}
+                onChange={(v) => updateSetting("movie_pool_max_per_user", v)}
+                min={1}
+                max={20}
+              />
+            </SettingsRow>
 
+            <SettingsRow
+              label="Enable Voting"
+              description="Members can vote on pool movies"
+              compact
+            >
+              <Checkbox
+                checked={moviePoolVotingEnabled}
+                onCheckedChange={(checked) => updateSetting("movie_pool_voting_enabled", checked)}
+                disabled={!moviePoolEnabled}
+              />
+            </SettingsRow>
+
+            <div className="pt-2 border-t border-[var(--border)]">
+              <Label className="text-xs font-medium mb-2 block">Movie Selection</Label>
+              <RadioGroup
+                value={moviePoolGovernance}
+                onValueChange={(value) =>
+                  moviePoolEnabled &&
+                  updateSetting("movie_pool_governance", value as MoviePoolGovernance)
+                }
+                className="space-y-1.5"
+                disabled={!moviePoolEnabled}
+              >
+                <CompactRadioOption
+                  value="democracy"
+                  id="movie-gov-democracy"
+                  label="Members Vote"
+                  description="Most popular auto-starts"
+                  icon={<Users />}
+                  isSelected={moviePoolGovernance === "democracy"}
+                  onClick={() =>
+                    moviePoolEnabled && updateSetting("movie_pool_governance", "democracy")
+                  }
+                />
+                <CompactRadioOption
+                  value="autocracy"
+                  id="movie-gov-autocracy"
+                  label="Host Decides"
+                  description="Admins pick what's next"
+                  icon={<Crown />}
+                  isSelected={moviePoolGovernance === "autocracy"}
+                  onClick={() =>
+                    moviePoolEnabled && updateSetting("movie_pool_governance", "autocracy")
+                  }
+                />
+                <CompactRadioOption
+                  value="random"
+                  id="movie-gov-random"
+                  label="Random"
+                  description="Random selection"
+                  icon={<Shuffle />}
+                  isSelected={moviePoolGovernance === "random"}
+                  onClick={() =>
+                    moviePoolEnabled && updateSetting("movie_pool_governance", "random")
+                  }
+                />
+              </RadioGroup>
+            </div>
+
+            {moviePoolGovernance === "democracy" && moviePoolVotingEnabled && (
               <SettingsRow
-                label="Max Movies Per User"
-                description="Movies each member can add to the pool"
+                label="Auto-Promote Threshold"
+                description="Votes needed to auto-start"
                 compact
               >
                 <NumberStepper
-                  value={moviePoolMaxPerUser}
-                  onChange={(v) => updateSetting("movie_pool_max_per_user", v)}
+                  value={moviePoolAutoPromoteThreshold}
+                  onChange={(v) => updateSetting("movie_pool_auto_promote_threshold", v)}
                   min={1}
-                  max={20}
+                  max={50}
                 />
               </SettingsRow>
-
-              <SettingsRow
-                label="Enable Voting"
-                description="Members can vote on pool movies"
-                compact
-              >
-                <Checkbox
-                  checked={moviePoolVotingEnabled}
-                  onCheckedChange={(checked) => updateSetting("movie_pool_voting_enabled", checked)}
-                  disabled={!moviePoolEnabled || !isEndless}
-                />
-              </SettingsRow>
-
-              <div className="pt-2 border-t border-[var(--border)]">
-                <Label className="text-xs font-medium mb-2 block">Movie Selection</Label>
-                <RadioGroup
-                  value={moviePoolGovernance}
-                  onValueChange={(value) =>
-                    moviePoolEnabled &&
-                    updateSetting("movie_pool_governance", value as MoviePoolGovernance)
-                  }
-                  className="space-y-1.5"
-                  disabled={!moviePoolEnabled || !isEndless}
-                >
-                  <CompactRadioOption
-                    value="democracy"
-                    id="movie-gov-democracy"
-                    label="Members Vote"
-                    description="Most popular auto-starts"
-                    icon={<Users />}
-                    isSelected={moviePoolGovernance === "democracy"}
-                    onClick={() =>
-                      moviePoolEnabled && updateSetting("movie_pool_governance", "democracy")
-                    }
-                  />
-                  <CompactRadioOption
-                    value="autocracy"
-                    id="movie-gov-autocracy"
-                    label="Host Decides"
-                    description="Admins pick what's next"
-                    icon={<Crown />}
-                    isSelected={moviePoolGovernance === "autocracy"}
-                    onClick={() =>
-                      moviePoolEnabled && updateSetting("movie_pool_governance", "autocracy")
-                    }
-                  />
-                  <CompactRadioOption
-                    value="random"
-                    id="movie-gov-random"
-                    label="Random"
-                    description="Random selection"
-                    icon={<Shuffle />}
-                    isSelected={moviePoolGovernance === "random"}
-                    onClick={() =>
-                      moviePoolEnabled && updateSetting("movie_pool_governance", "random")
-                    }
-                  />
-                </RadioGroup>
-              </div>
-
-              {moviePoolGovernance === "democracy" && moviePoolVotingEnabled && (
-                <SettingsRow
-                  label="Auto-Promote Threshold"
-                  description="Votes needed to auto-start"
-                  compact
-                >
-                  <NumberStepper
-                    value={moviePoolAutoPromoteThreshold}
-                    onChange={(v) => updateSetting("movie_pool_auto_promote_threshold", v)}
-                    min={1}
-                    max={50}
-                  />
-                </SettingsRow>
-              )}
-            </div>
+            )}
           </div>
 
-          <Button onClick={() => handleSave()} disabled={isPending || !isEndless} size="sm">
+          <Button onClick={() => handleSave()} disabled={isPending} size="sm">
             {isPending ? "Saving..." : "Save"}
           </Button>
         </div>
@@ -607,86 +588,67 @@ export function FestivalRulesSettings({
         compact
       >
         <div className="space-y-3">
-          {isEndless && (
-            <SettingsCard variant="info" compact>
-              <div className="flex items-start gap-1.5">
-                <Info
-                  className="h-4 w-4 flex-shrink-0 mt-0.5"
-                  style={{ color: "var(--primary)" }}
-                />
-                <Text size="sm" muted>
-                  Available in Standard festival mode.
-                </Text>
-              </div>
-            </SettingsCard>
-          )}
-          <div className={isEndless ? "opacity-50 pointer-events-none" : ""}>
-            <SettingsRow label="Nominations Per User" compact>
-              <NumberStepper
-                value={maxNominationsPerUser}
-                onChange={(v) => updateSetting("max_nominations_per_user", v)}
-                min={1}
-                max={10}
-              />
-            </SettingsRow>
+          <SettingsRow label="Nominations Per User" compact>
+            <NumberStepper
+              value={maxNominationsPerUser}
+              onChange={(v) => updateSetting("max_nominations_per_user", v)}
+              min={1}
+              max={10}
+            />
+          </SettingsRow>
 
+          <SettingsRow
+            label="All Members Can Nominate"
+            description="When off, only admins can nominate"
+            compact
+          >
+            <Checkbox
+              checked={allowNonAdminNominations}
+              onCheckedChange={(checked) => updateSetting("allow_non_admin_nominations", checked)}
+            />
+          </SettingsRow>
+
+          <div className="pt-2 border-t border-[var(--border)]">
             <SettingsRow
-              label="All Members Can Nominate"
-              description="When off, only admins can nominate"
+              label="Festival Nomination Cap"
+              description="Limit total movies per festival"
               compact
             >
               <Checkbox
-                checked={allowNonAdminNominations}
-                onCheckedChange={(checked) => updateSetting("allow_non_admin_nominations", checked)}
-                disabled={isEndless}
+                checked={festivalCapEnabled}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    updateSetting("max_nominations_per_festival", 5);
+                  } else {
+                    updateSetting("max_nominations_per_festival", null);
+                  }
+                }}
               />
             </SettingsRow>
-
-            <div className="pt-2 border-t border-[var(--border)]">
-              <SettingsRow
-                label="Festival Nomination Cap"
-                description="Limit total movies per festival"
-                compact
-              >
-                <Checkbox
-                  checked={festivalCapEnabled}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      updateSetting("max_nominations_per_festival", 5);
-                    } else {
-                      updateSetting("max_nominations_per_festival", null);
-                    }
-                  }}
-                  disabled={isEndless}
+            {festivalCapEnabled && (
+              <div className="mt-2 flex items-center justify-end">
+                <NumberStepper
+                  value={maxNominationsPerFestival || 5}
+                  onChange={(v) => updateSetting("max_nominations_per_festival", v)}
+                  min={1}
+                  max={50}
                 />
-              </SettingsRow>
-              {festivalCapEnabled && (
-                <div className="mt-2 flex items-center justify-end">
-                  <NumberStepper
-                    value={maxNominationsPerFestival || 5}
-                    onChange={(v) => updateSetting("max_nominations_per_festival", v)}
-                    min={1}
-                    max={50}
-                  />
-                </div>
-              )}
-            </div>
-
-            {festivalType === "standard" && (
-              <SettingsRow
-                label="Blind Nominations"
-                description="Hide who nominated until results"
-                compact
-              >
-                <Checkbox
-                  checked={blindNominationsEnabled}
-                  onCheckedChange={(checked) => updateSetting("blind_nominations_enabled", checked)}
-                />
-              </SettingsRow>
+              </div>
             )}
           </div>
 
-          <Button onClick={() => handleSave()} disabled={isPending || isEndless} size="sm">
+          <SettingsRow
+            label="Blind Nominations"
+            description="Hide who nominated until results"
+            compact
+          >
+            <Checkbox
+              checked={blindNominationsEnabled}
+              onCheckedChange={(checked) => updateSetting("blind_nominations_enabled", checked)}
+            />
+          </SettingsRow>
+
+          <Button onClick={() => handleSave()} disabled={isPending} size="sm">
             {isPending ? "Saving..." : "Save"}
           </Button>
         </div>
@@ -821,114 +783,92 @@ export function FestivalRulesSettings({
         compact
       >
         <div className="space-y-3">
-          {isEndless && (
-            <SettingsCard variant="info" compact>
-              <div className="flex items-start gap-1.5">
-                <Info
-                  className="h-4 w-4 flex-shrink-0 mt-0.5"
-                  style={{ color: "var(--primary)" }}
-                />
-                <Text size="sm" muted>
-                  Available in Standard festival mode.
-                </Text>
-              </div>
-            </SettingsCard>
-          )}
+          <SettingsRow
+            label="Enable Scoring"
+            description="Award points based on movie placement"
+            compact
+          >
+            <Checkbox
+              checked={scoringEnabled}
+              onCheckedChange={(checked) => updateSetting("scoring_enabled", checked)}
+            />
+          </SettingsRow>
 
-          <div className={isEndless ? "opacity-50 pointer-events-none" : ""}>
-            <SettingsRow
-              label="Enable Scoring"
-              description="Award points based on movie placement"
-              compact
-            >
-              <Checkbox
-                checked={!isEndless && scoringEnabled}
-                onCheckedChange={(checked) => updateSetting("scoring_enabled", checked)}
-                disabled={isEndless}
-              />
-            </SettingsRow>
+          <SettingsRow
+            label="Season Standings"
+            description="Track points across the season"
+            compact
+          >
+            <Checkbox
+              checked={(localSettings.season_standings_enabled as boolean) ?? true}
+              onCheckedChange={(checked) => updateSetting("season_standings_enabled", checked)}
+            />
+          </SettingsRow>
 
-            <SettingsRow
-              label="Season Standings"
-              description="Track points across the season"
-              compact
-            >
-              <Checkbox
-                checked={
-                  !isEndless && ((localSettings.season_standings_enabled as boolean) ?? true)
-                }
-                onCheckedChange={(checked) => updateSetting("season_standings_enabled", checked)}
-                disabled={isEndless}
-              />
-            </SettingsRow>
+          <SettingsRow
+            label="Festival Winner"
+            description="Announce the winning movie at results"
+            compact
+          >
+            <Checkbox
+              checked={(localSettings.festival_winner_enabled as boolean) ?? true}
+              onCheckedChange={(checked) => updateSetting("festival_winner_enabled", checked)}
+            />
+          </SettingsRow>
 
-            <SettingsRow
-              label="Festival Winner"
-              description="Announce the winning movie at results"
-              compact
-            >
-              <Checkbox
-                checked={!isEndless && ((localSettings.festival_winner_enabled as boolean) ?? true)}
-                onCheckedChange={(checked) => updateSetting("festival_winner_enabled", checked)}
-                disabled={isEndless}
-              />
-            </SettingsRow>
+          {/* Nomination Guessing */}
+          <div className="pt-3 mt-1 border-t border-[var(--border)]">
+            <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
+              Nomination Guessing
+            </h4>
 
-            {/* Nomination Guessing */}
-            <div className="pt-3 mt-1 border-t border-[var(--border)]">
-              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
-                Nomination Guessing
-              </h4>
+            {!blindNominationsEnabled ? (
+              <SettingsCard variant="info" compact>
+                <div className="flex items-start gap-1.5">
+                  <Info
+                    className="h-4 w-4 flex-shrink-0 mt-0.5"
+                    style={{ color: "var(--primary)" }}
+                  />
+                  <Text size="sm" muted>
+                    Requires <strong>Blind Nominations</strong> to be enabled in the Nominations
+                    section.
+                  </Text>
+                </div>
+              </SettingsCard>
+            ) : (
+              <>
+                <SettingsRow
+                  label="Enable Guessing"
+                  description="Members guess who nominated each movie"
+                  compact
+                >
+                  <Checkbox
+                    checked={(localSettings.nomination_guessing_enabled as boolean) ?? false}
+                    onCheckedChange={(checked) =>
+                      updateSetting("nomination_guessing_enabled", checked)
+                    }
+                  />
+                </SettingsRow>
 
-              {!blindNominationsEnabled && !isEndless ? (
-                <SettingsCard variant="info" compact>
-                  <div className="flex items-start gap-1.5">
-                    <Info
-                      className="h-4 w-4 flex-shrink-0 mt-0.5"
-                      style={{ color: "var(--primary)" }}
-                    />
-                    <Text size="sm" muted>
-                      Requires <strong>Blind Nominations</strong> to be enabled in the Nominations
-                      section.
-                    </Text>
-                  </div>
-                </SettingsCard>
-              ) : (
-                <>
+                {(localSettings.nomination_guessing_enabled as boolean) && (
                   <SettingsRow
-                    label="Enable Guessing"
-                    description="Members guess who nominated each movie"
+                    label="Guessing Deadline"
+                    description="Days to submit guesses (0 = until results)"
                     compact
                   >
-                    <Checkbox
-                      checked={(localSettings.nomination_guessing_enabled as boolean) ?? false}
-                      onCheckedChange={(checked) =>
-                        updateSetting("nomination_guessing_enabled", checked)
-                      }
-                      disabled={isEndless}
+                    <NumberStepper
+                      value={(localSettings.guessing_deadline_days as number) ?? 7}
+                      onChange={(v) => updateSetting("guessing_deadline_days", v)}
+                      min={0}
+                      max={14}
                     />
                   </SettingsRow>
-
-                  {(localSettings.nomination_guessing_enabled as boolean) && (
-                    <SettingsRow
-                      label="Guessing Deadline"
-                      description="Days to submit guesses (0 = until results)"
-                      compact
-                    >
-                      <NumberStepper
-                        value={(localSettings.guessing_deadline_days as number) ?? 7}
-                        onChange={(v) => updateSetting("guessing_deadline_days", v)}
-                        min={0}
-                        max={14}
-                      />
-                    </SettingsRow>
-                  )}
-                </>
-              )}
-            </div>
+                )}
+              </>
+            )}
           </div>
 
-          <Button onClick={() => handleSave()} disabled={isPending || isEndless} size="sm">
+          <Button onClick={() => handleSave()} disabled={isPending} size="sm">
             {isPending ? "Saving..." : "Save"}
           </Button>
         </div>
@@ -1158,94 +1098,77 @@ export function FestivalRulesSettings({
         compact
       >
         <div className="space-y-3">
-          {isEndless && (
-            <SettingsCard variant="info" compact>
-              <div className="flex items-start gap-1.5">
-                <Info
-                  className="h-4 w-4 flex-shrink-0 mt-0.5"
-                  style={{ color: "var(--primary)" }}
-                />
-                <Text size="sm" muted>
-                  Available in Standard festival mode.
+          <RadioGroup
+            value={resultsRevealType}
+            onValueChange={(value) =>
+              updateSetting("results_reveal_type", value as ResultsRevealType)
+            }
+            className="space-y-1.5"
+          >
+            <div className="flex items-start gap-2">
+              <RadioGroupItem value="manual" id="reveal-manual" className="mt-0.5" />
+              <div>
+                <Label htmlFor="reveal-manual" className="text-sm cursor-pointer">
+                  Manual
+                </Label>
+                <Text size="tiny" muted>
+                  Click to reveal each placement
                 </Text>
               </div>
-            </SettingsCard>
+            </div>
+            <div className="flex items-start gap-2">
+              <RadioGroupItem value="automatic" id="reveal-automatic" className="mt-0.5" />
+              <div>
+                <Label htmlFor="reveal-automatic" className="text-sm cursor-pointer">
+                  Automatic
+                </Label>
+                <Text size="tiny" muted>
+                  Results reveal on a timer
+                </Text>
+              </div>
+            </div>
+          </RadioGroup>
+
+          {resultsRevealType === "automatic" && (
+            <SettingsRow
+              label="Delay Between Reveals"
+              description="Seconds between each placement"
+              compact
+            >
+              <NumberStepper
+                value={resultsRevealDelay}
+                onChange={(v) => updateSetting("results_reveal_delay_seconds", v)}
+                min={1}
+                max={30}
+              />
+            </SettingsRow>
           )}
-          <div className={isEndless ? "opacity-50 pointer-events-none" : ""}>
+
+          <div className="pt-2 border-t border-[var(--border)]">
+            <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">Reveal Order</h4>
             <RadioGroup
-              value={resultsRevealType}
+              value={resultsRevealDirection}
               onValueChange={(value) =>
-                updateSetting("results_reveal_type", value as ResultsRevealType)
+                updateSetting("results_reveal_direction", value as ResultsRevealDirection)
               }
               className="space-y-1.5"
-              disabled={isEndless}
             >
-              <div className="flex items-start gap-2">
-                <RadioGroupItem value="manual" id="reveal-manual" className="mt-0.5" />
-                <div>
-                  <Label htmlFor="reveal-manual" className="text-sm cursor-pointer">
-                    Manual
-                  </Label>
-                  <Text size="tiny" muted>
-                    Click to reveal each placement
-                  </Text>
-                </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="backward" id="direction-backward" />
+                <Label htmlFor="direction-backward" className="text-sm cursor-pointer">
+                  Last to First (build suspense)
+                </Label>
               </div>
-              <div className="flex items-start gap-2">
-                <RadioGroupItem value="automatic" id="reveal-automatic" className="mt-0.5" />
-                <div>
-                  <Label htmlFor="reveal-automatic" className="text-sm cursor-pointer">
-                    Automatic
-                  </Label>
-                  <Text size="tiny" muted>
-                    Results reveal on a timer
-                  </Text>
-                </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="forward" id="direction-forward" />
+                <Label htmlFor="direction-forward" className="text-sm cursor-pointer">
+                  First to Last (winner first)
+                </Label>
               </div>
             </RadioGroup>
-
-            {resultsRevealType === "automatic" && (
-              <SettingsRow
-                label="Delay Between Reveals"
-                description="Seconds between each placement"
-                compact
-              >
-                <NumberStepper
-                  value={resultsRevealDelay}
-                  onChange={(v) => updateSetting("results_reveal_delay_seconds", v)}
-                  min={1}
-                  max={30}
-                />
-              </SettingsRow>
-            )}
-
-            <div className="pt-2 border-t border-[var(--border)]">
-              <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">Reveal Order</h4>
-              <RadioGroup
-                value={resultsRevealDirection}
-                onValueChange={(value) =>
-                  updateSetting("results_reveal_direction", value as ResultsRevealDirection)
-                }
-                className="space-y-1.5"
-                disabled={isEndless}
-              >
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="backward" id="direction-backward" />
-                  <Label htmlFor="direction-backward" className="text-sm cursor-pointer">
-                    Last to First (build suspense)
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="forward" id="direction-forward" />
-                  <Label htmlFor="direction-forward" className="text-sm cursor-pointer">
-                    First to Last (winner first)
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
           </div>
 
-          <Button onClick={() => handleSave()} disabled={isPending || isEndless} size="sm">
+          <Button onClick={() => handleSave()} disabled={isPending} size="sm">
             {isPending ? "Saving..." : "Save"}
           </Button>
         </div>
@@ -1261,48 +1184,28 @@ export function FestivalRulesSettings({
         compact
       >
         <div className="space-y-3">
-          {isEndless ? (
-            <SettingsCard variant="info" compact>
-              <div className="flex items-start gap-1.5">
-                <Info
-                  className="h-4 w-4 flex-shrink-0 mt-0.5"
-                  style={{ color: "var(--primary)" }}
-                />
-                <Text size="sm" muted>
-                  Available in Standard festival mode.
-                </Text>
-              </div>
-            </SettingsCard>
-          ) : (
-            <SettingsCard variant="info" compact>
-              <div className="flex items-start gap-1.5">
-                <Info
-                  className="h-4 w-4 flex-shrink-0 mt-0.5"
-                  style={{ color: "var(--primary)" }}
-                />
-                <Text size="sm" muted>
-                  Phase timing is configured when creating or editing individual festivals. These
-                  defaults apply to new festivals.
-                </Text>
-              </div>
-            </SettingsCard>
-          )}
+          <SettingsCard variant="info" compact>
+            <div className="flex items-start gap-1.5">
+              <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "var(--primary)" }} />
+              <Text size="sm" muted>
+                Phase timing is configured when creating or editing individual festivals. These
+                defaults apply to new festivals.
+              </Text>
+            </div>
+          </SettingsCard>
 
-          <div className={isEndless ? "opacity-50 pointer-events-none" : ""}>
-            <SettingsRow
-              label="Auto-Start Next Festival"
-              description="Automatically begin a new festival after results"
-              compact
-            >
-              <Checkbox
-                checked={(localSettings.auto_start_next_festival as boolean) ?? false}
-                onCheckedChange={(checked) => updateSetting("auto_start_next_festival", checked)}
-                disabled={isEndless}
-              />
-            </SettingsRow>
-          </div>
+          <SettingsRow
+            label="Auto-Start Next Festival"
+            description="Automatically begin a new festival after results"
+            compact
+          >
+            <Checkbox
+              checked={(localSettings.auto_start_next_festival as boolean) ?? false}
+              onCheckedChange={(checked) => updateSetting("auto_start_next_festival", checked)}
+            />
+          </SettingsRow>
 
-          <Button onClick={() => handleSave()} disabled={isPending || isEndless} size="sm">
+          <Button onClick={() => handleSave()} disabled={isPending} size="sm">
             {isPending ? "Saving..." : "Save"}
           </Button>
         </div>
