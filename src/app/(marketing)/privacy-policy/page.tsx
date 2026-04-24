@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
   },
 };
 
-const LAST_UPDATED = "April 6, 2026";
+const LAST_UPDATED = "April 23, 2026";
 
 export default async function PrivacyPolicyPage() {
   return (
@@ -229,6 +230,38 @@ export default async function PrivacyPolicyPage() {
             </ul>
             <p className="text-sm text-[var(--text-muted)] leading-relaxed">
               To exercise any of these rights, please contact us at the address below.
+            </p>
+          </section>
+
+          <section className="space-y-3 border-t border-[var(--border)] pt-6">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">
+              California Privacy Rights (CCPA)
+            </h2>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+              California residents have the right to opt out of the sale or sharing of personal
+              information under the CCPA. BackRow does not sell personal information, and our only
+              &ldquo;share&rdquo; activity under the CCPA&rsquo;s broad definition is optional
+              analytics. You can opt out in two ways:
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-2 text-sm text-[var(--text-muted)]">
+              <li>
+                Enable <strong>Global Privacy Control</strong> in your browser. We honor the signal
+                automatically without showing a banner.
+              </li>
+              <li>
+                Manage preferences on our{" "}
+                <Link href="/cookie-settings" className="underline">
+                  cookie settings page
+                </Link>
+                .
+              </li>
+            </ul>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+              See{" "}
+              <Link href="/do-not-sell-or-share" className="underline">
+                Do Not Sell or Share My Personal Information
+              </Link>{" "}
+              for the full CCPA disclosure and alternative request methods.
             </p>
           </section>
 
