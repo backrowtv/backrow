@@ -6,7 +6,7 @@ import type { Provider } from "@supabase/supabase-js";
 import { setRedirectCookie } from "@/lib/auth/redirect";
 import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
-type OAuthProvider = "google" | "meta" | "twitter" | "apple" | "discord";
+type OAuthProvider = "google" | "apple" | "discord";
 
 interface SignInWithOAuthResult {
   error?: string;
@@ -16,7 +16,7 @@ interface SignInWithOAuthResult {
 /**
  * Initiates OAuth sign-in flow for the specified provider
  *
- * @param provider - OAuth provider ('google' | 'meta' | 'twitter' | 'apple' | 'discord')
+ * @param provider - OAuth provider ('google' | 'apple' | 'discord')
  * @returns Object with error message or redirect URL
  */
 export async function signInWithOAuth(
@@ -25,12 +25,8 @@ export async function signInWithOAuth(
 ): Promise<SignInWithOAuthResult> {
   const supabase = await createClient();
 
-  // Map provider names to Supabase provider identifiers
-  // Note: Supabase uses 'facebook' for Meta/Facebook and 'twitter' for Twitter/X
   const providerMap: Record<OAuthProvider, Provider> = {
     google: "google",
-    meta: "facebook", // Meta/Facebook uses 'facebook' in Supabase
-    twitter: "twitter", // Twitter/X uses 'twitter' in Supabase
     apple: "apple",
     discord: "discord",
   };
@@ -95,11 +91,6 @@ function getProviderScopes(provider: OAuthProvider): string {
   switch (provider) {
     case "google":
       return "email profile";
-    case "meta":
-      return "email public_profile";
-    case "twitter":
-      // Twitter OAuth 2.0 - Supabase handles scopes automatically
-      return "email";
     case "apple":
       return "email name";
     case "discord":
@@ -112,14 +103,6 @@ function getProviderScopes(provider: OAuthProvider): string {
 /**
  * Get provider-specific query parameters
  */
-function getProviderQueryParams(provider: OAuthProvider): Record<string, string> {
-  switch (provider) {
-    case "meta":
-      // Meta/Facebook specific params
-      return {
-        auth_type: "rerequest", // Re-request permissions if denied
-      };
-    default:
-      return {};
-  }
+function getProviderQueryParams(_provider: OAuthProvider): Record<string, string> {
+  return {};
 }

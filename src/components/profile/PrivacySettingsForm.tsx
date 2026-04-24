@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { AutoSaveButton } from "@/components/ui/AutoSaveButton";
+import { useAutoSaveForm } from "@/hooks/useAutoSaveForm";
 import { updatePrivacySettings } from "@/app/actions/profile";
 import { UserBlockedList } from "./UserBlockedList";
 import toast from "react-hot-toast";
@@ -14,29 +15,13 @@ interface PrivacySettingsFormProps {
 }
 
 export function PrivacySettingsForm({ initialShowProfilePopup }: PrivacySettingsFormProps) {
-  const [isPending, startTransition] = useTransition();
   const [showProfilePopup, setShowProfilePopup] = useState(initialShowProfilePopup);
-  const [hasChanges, setHasChanges] = useState(false);
 
-  const handleToggle = (checked: boolean) => {
-    setShowProfilePopup(checked);
-    setHasChanges(checked !== initialShowProfilePopup);
-  };
-
-  const handleSave = () => {
-    startTransition(async () => {
-      const result = await updatePrivacySettings({
-        showProfilePopup,
-      });
-
-      if ("error" in result && result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Privacy settings saved");
-        setHasChanges(false);
-      }
-    });
-  };
+  const { state, flush, lastSavedAt, error } = useAutoSaveForm({
+    values: { showProfilePopup },
+    save: (values) => updatePrivacySettings(values),
+    onError: (msg) => toast.error(msg),
+  });
 
   return (
     <div className="space-y-6">
@@ -64,8 +49,8 @@ export function PrivacySettingsForm({ initialShowProfilePopup }: PrivacySettings
           <Switch
             id="showProfilePopup"
             checked={showProfilePopup}
-            onCheckedChange={handleToggle}
-            disabled={isPending}
+            onCheckedChange={setShowProfilePopup}
+            disabled={state === "saving"}
           />
         </div>
         <p className="text-xs text-[var(--text-muted)] pl-6.5">
@@ -75,14 +60,16 @@ export function PrivacySettingsForm({ initialShowProfilePopup }: PrivacySettings
         </p>
       </div>
 
-      {/* Save Button */}
-      {hasChanges && (
-        <div className="pt-4 border-t border-[var(--border)]">
-          <Button onClick={handleSave} disabled={isPending} variant="primary" size="sm">
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      )}
+      {/* Save button — always visible, reflects auto-save state */}
+      <div className="pt-4 border-t border-[var(--border)]">
+        <AutoSaveButton
+          state={state}
+          onClick={flush}
+          lastSavedAt={lastSavedAt}
+          error={error}
+          size="sm"
+        />
+      </div>
 
       {/* Blocked Users List */}
       <div className="pt-4 border-t border-[var(--border)]">

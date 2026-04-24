@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { AutoSaveButton } from "@/components/ui/AutoSaveButton";
 import {
   updateNotificationPreferences,
   updateClubNotificationPreferences,
 } from "@/app/actions/profile";
-import { usePushSubscription } from "@/hooks";
+import { useAutoSaveForm, usePushSubscription } from "@/hooks";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import {
@@ -487,12 +488,9 @@ export function NotificationSettingsForm({
   userClubs = [],
   initialClubEmailPrefs = {},
 }: NotificationSettingsFormProps) {
-  const [isPending, startTransition] = useTransition();
   const [preferences, setPreferences] = useState(initialPreferences);
-  const [savedPreferences, setSavedPreferences] = useState(initialPreferences);
 
-  // Per-club email prefs state
-  const [clubEmailPrefs, setClubEmailPrefs] = useState<Record<string, ClubEmailPrefs>>(() => {
+  const initialClubPrefs = (() => {
     const result: Record<string, ClubEmailPrefs> = {};
     for (const club of userClubs) {
       result[club.id] = {
@@ -501,14 +499,61 @@ export function NotificationSettingsForm({
       };
     }
     return result;
-  });
-  const [savedClubEmailPrefs, setSavedClubEmailPrefs] = useState(clubEmailPrefs);
+  })();
+  const [clubEmailPrefs, setClubEmailPrefs] =
+    useState<Record<string, ClubEmailPrefs>>(initialClubPrefs);
 
-  const hasGlobalChanges = JSON.stringify(preferences) !== JSON.stringify(savedPreferences);
-  const hasClubChanges = JSON.stringify(clubEmailPrefs) !== JSON.stringify(savedClubEmailPrefs);
-  const hasChanges = hasGlobalChanges || hasClubChanges;
+  // Refs of last successfully-saved values — used by save() to diff and avoid
+  // re-submitting unchanged sub-actions on every debounce fire.
+  const savedPreferencesRef = useRef(initialPreferences);
+  const savedClubEmailPrefsRef = useRef<Record<string, ClubEmailPrefs>>(initialClubPrefs);
 
   const [activeTab, setActiveTab] = useState<"in-app" | "email" | "push">("in-app");
+
+  const save = useCallback(
+    async ({
+      preferences: p,
+      clubEmailPrefs: c,
+    }: {
+      preferences: GlobalPreferences;
+      clubEmailPrefs: Record<string, ClubEmailPrefs>;
+    }) => {
+      if (JSON.stringify(p) !== JSON.stringify(savedPreferencesRef.current)) {
+        const result = await updateNotificationPreferences(p);
+        if ("error" in result && result.error) return { error: result.error };
+        savedPreferencesRef.current = p;
+      }
+      for (const club of userClubs) {
+        const current = JSON.stringify(c[club.id]);
+        const saved = JSON.stringify(savedClubEmailPrefsRef.current[club.id]);
+        if (current !== saved) {
+          const result = await updateClubNotificationPreferences(club.id, c[club.id]);
+          if ("error" in result && result.error) {
+            return { error: `Failed to save ${club.name}: ${result.error}` };
+          }
+          savedClubEmailPrefsRef.current = {
+            ...savedClubEmailPrefsRef.current,
+            [club.id]: c[club.id],
+          };
+        }
+      }
+      return { success: true };
+    },
+    [userClubs]
+  );
+
+  const {
+    state: saveState,
+    flush,
+    lastSavedAt,
+    error: saveError,
+  } = useAutoSaveForm({
+    values: { preferences, clubEmailPrefs },
+    save,
+    onError: (msg) => toast.error(msg),
+  });
+
+  const isPending = saveState === "saving";
 
   const {
     status: pushStatus,
@@ -668,42 +713,6 @@ export function NotificationSettingsForm({
         }));
         break;
     }
-  };
-
-  // ── Save ──
-  const handleSave = () => {
-    startTransition(async () => {
-      // Save global preferences
-      if (hasGlobalChanges) {
-        const result = await updateNotificationPreferences(preferences);
-        if ("error" in result && result.error) {
-          toast.error(result.error);
-          return;
-        }
-      }
-
-      // Save per-club email preferences
-      if (hasClubChanges) {
-        for (const club of userClubs) {
-          const current = JSON.stringify(clubEmailPrefs[club.id]);
-          const saved = JSON.stringify(savedClubEmailPrefs[club.id]);
-          if (current !== saved) {
-            const result = await updateClubNotificationPreferences(
-              club.id,
-              clubEmailPrefs[club.id]
-            );
-            if ("error" in result && result.error) {
-              toast.error(`Failed to save ${club.name}: ${result.error}`);
-              return;
-            }
-          }
-        }
-      }
-
-      toast.success("Notification preferences saved");
-      setSavedPreferences(preferences);
-      setSavedClubEmailPrefs(clubEmailPrefs);
-    });
   };
 
   return (
@@ -1298,14 +1307,16 @@ export function NotificationSettingsForm({
         </div>
       )}
 
-      {/* Save Button */}
-      {hasChanges && (
-        <div className="pt-4 border-t border-[var(--border)]">
-          <Button onClick={handleSave} disabled={isPending} variant="primary" size="sm">
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      )}
+      {/* Save Button — always visible, reflects auto-save state */}
+      <div className="pt-4 border-t border-[var(--border)]">
+        <AutoSaveButton
+          state={saveState}
+          onClick={flush}
+          lastSavedAt={lastSavedAt}
+          error={saveError}
+          size="sm"
+        />
+      </div>
     </div>
   );
 }

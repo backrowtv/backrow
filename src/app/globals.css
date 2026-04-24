@@ -1103,6 +1103,12 @@ html {
   to { height: 0; opacity: 0; }
 }
 
+@keyframes autosave-pulse {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent); }
+  50%  { transform: scale(1.04); box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 transparent; }
+}
+
 .animate-collapsible-down {
   animation: collapsible-down var(--duration-normal) var(--easing-out-expo);
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
+import { AutoSaveButton } from "@/components/ui/AutoSaveButton";
+import { useAutoSaveForm } from "@/hooks/useAutoSaveForm";
 import { updateProfile } from "@/app/actions/auth";
-import { useActionState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -15,23 +15,19 @@ interface WatchSettingsFormProps {
 export function WatchSettingsForm({ initialShowWatchProviders = true }: WatchSettingsFormProps) {
   const router = useRouter();
   const [showWatchProviders, setShowWatchProviders] = useState(initialShowWatchProviders);
-  const hasChanges = showWatchProviders !== initialShowWatchProviders;
-  const [state, formAction, isPending] = useActionState(updateProfile, null);
 
-  useEffect(() => {
-    if (state && "success" in state && state.success) {
-      toast.success("Watch settings updated");
-      router.refresh();
-    } else if (state && "error" in state && state.error) {
-      toast.error(state.error);
-    }
-  }, [state, router]);
-
-  const handleSave = () => {
-    const formData = new FormData();
-    formData.append("show_watch_providers", String(showWatchProviders));
-    formAction(formData);
-  };
+  const { state, flush, lastSavedAt, error } = useAutoSaveForm({
+    values: { showWatchProviders },
+    save: async (values) => {
+      const formData = new FormData();
+      formData.append("show_watch_providers", String(values.showWatchProviders));
+      const result = await updateProfile(null, formData);
+      if (result && "error" in result && result.error) return { error: result.error };
+      return { success: true };
+    },
+    onError: (msg) => toast.error(msg),
+    onSuccess: () => router.refresh(),
+  });
 
   return (
     <div className="space-y-4">
@@ -43,18 +39,20 @@ export function WatchSettingsForm({ initialShowWatchProviders = true }: WatchSet
         <Switch
           checked={showWatchProviders}
           onCheckedChange={setShowWatchProviders}
-          disabled={isPending}
+          disabled={state === "saving"}
           aria-label="Show Where to Watch link on movie pages"
         />
       </div>
 
-      {hasChanges && (
-        <div className="pt-2 border-t border-[var(--border)]">
-          <Button onClick={handleSave} disabled={isPending} variant="primary" size="sm">
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      )}
+      <div className="pt-2 border-t border-[var(--border)]">
+        <AutoSaveButton
+          state={state}
+          onClick={flush}
+          lastSavedAt={lastSavedAt}
+          error={error}
+          size="sm"
+        />
+      </div>
     </div>
   );
 }

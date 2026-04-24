@@ -20,7 +20,6 @@ describe("removeContactByEmail", () => {
     send.mockReset();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
-    process.env.NODE_ENV = "test";
   });
 
   afterEach(() => {
