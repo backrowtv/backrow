@@ -700,7 +700,7 @@ export function FestivalPageClient({
                                   users: n.user_name
                                     ? { id: n.user_id, display_name: n.user_name, email: "" }
                                     : null,
-                                })) as unknown as NominationWithRelations[]
+                                })) as NominationWithRelations[]
                               }
                               ratings={
                                 resultsRatings.map((r) => ({
@@ -709,7 +709,7 @@ export function FestivalPageClient({
                                   user_id: r.user_id,
                                   rating: r.rating,
                                   users: r.user,
-                                })) as unknown as RatingWithRelations[]
+                                })) as RatingWithRelations[]
                               }
                               members={
                                 resultsMembers.map((m) => ({
@@ -742,7 +742,7 @@ export function FestivalPageClient({
                                   users: n.user_name
                                     ? { id: n.user_id, display_name: n.user_name, email: "" }
                                     : null,
-                                })) as unknown as NominationWithRelations[]
+                                })) as NominationWithRelations[]
                               }
                               guesses={
                                 resultsGuesses.map((g) => ({

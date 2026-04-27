@@ -2,8 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { invalidateFestival } from "@/lib/cache/invalidate";
+import { invalidateFestival, invalidateUser } from "@/lib/cache/invalidate";
 import { cacheMovie } from "./movies";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
@@ -410,6 +409,6 @@ export async function deleteNomination(nominationId: string) {
 
     await invalidateFestival(nomination.festival_id, { clubId: festival.club_id });
   }
-  revalidatePath("/profile");
+  invalidateUser(user.id);
   return { success: true };
 }

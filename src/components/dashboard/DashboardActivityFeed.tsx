@@ -49,6 +49,27 @@ interface ActivityItem {
   festival_slug: string | null;
 }
 
+// Shape of the deeply-nested ratings → nominations → festivals → clubs join.
+// Supabase generated types treat embedded 1:1 relations as arrays in some paths,
+// so each level accepts both object and array shapes; unwrapping happens at the
+// call site.
+type RatingActivityClub = { id?: string; slug?: string | null; name?: string | null };
+type RatingActivityFestival = {
+  id?: string;
+  slug?: string | null;
+  clubs?: RatingActivityClub | RatingActivityClub[] | null;
+};
+type RatingActivityNomination = {
+  tmdb_id?: number | null;
+  festivals?: RatingActivityFestival | RatingActivityFestival[] | null;
+};
+type RatingActivityRow = {
+  id: string;
+  rating: number | null;
+  created_at: string;
+  nominations?: RatingActivityNomination | RatingActivityNomination[] | null;
+};
+
 async function getRecentActivity(userId: string): Promise<ActivityItem[]> {
   const supabase = await createClient();
 
@@ -76,23 +97,17 @@ async function getRecentActivity(userId: string): Promise<ActivityItem[]> {
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(20)
+    .returns<RatingActivityRow[]>();
 
   if (!ratings || ratings.length === 0) {
     return [];
   }
 
   // Extract tmdb_ids and get movie details
-  const tmdbIds = (
-    ratings as unknown as Array<{
-      nominations?: {
-        tmdb_id?: number | null;
-        festivals?: { id?: string; clubs?: { id?: string; name?: string | null } | null } | null;
-      } | null;
-    }>
-  )
+  const tmdbIds = ratings
     .map((r) => {
-      const nomination = r.nominations;
+      const nomination = Array.isArray(r.nominations) ? r.nominations[0] : r.nominations;
       return nomination?.tmdb_id ?? null;
     })
     .filter((id): id is number => id !== null && id !== undefined);
@@ -111,17 +126,9 @@ async function getRecentActivity(userId: string): Promise<ActivityItem[]> {
   // Build activity items
   return ratings
     .map((rating) => {
-      const nominationsRelation = Array.isArray(rating.nominations)
+      const nomination = Array.isArray(rating.nominations)
         ? rating.nominations[0]
         : rating.nominations;
-      const nomination = nominationsRelation as {
-        tmdb_id?: number | null;
-        festivals?: {
-          id?: string;
-          slug?: string | null;
-          clubs?: { id?: string; slug?: string | null; name?: string | null } | null;
-        } | null;
-      } | null;
       const festivalsRelation = nomination?.festivals;
       const festival = Array.isArray(festivalsRelation)
         ? festivalsRelation[0]

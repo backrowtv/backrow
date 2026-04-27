@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/server";
 import { invalidateMember } from "@/lib/cache/invalidate";
 import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { checkAndAwardClubBadges } from "../club-badges";
 import type { MobileNavPreferences } from "@/lib/navigation-constants";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -67,10 +69,10 @@ async function applyDefaultRubric(
   }
 }
 
-/**
- * Join a public_open club directly (no code needed)
- */
 export async function joinPublicClub(clubId: string) {
+  const rateCheck = await actionRateLimit("joinPublicClub", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -79,6 +81,9 @@ export async function joinPublicClub(clubId: string) {
   if (!user) {
     return { error: "You must be signed in to join a club" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Ensure user exists in public.users table
   try {
@@ -159,6 +164,9 @@ export async function joinPublicClub(clubId: string) {
 }
 
 export async function toggleFavoriteClub(clubId: string) {
+  const rateCheck = await actionRateLimit("toggleFavoriteClub", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -167,6 +175,9 @@ export async function toggleFavoriteClub(clubId: string) {
   if (!user) {
     return { error: "You must be signed in to favorite clubs" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check if club exists
   const { data: club, error: clubError } = await supabase
@@ -250,17 +261,22 @@ export async function toggleFavoriteClub(clubId: string) {
   }
 }
 
-/**
- * Update a UI preference on the user's club membership.
- * Merges into the existing preferences JSONB column.
- */
 export async function updateMemberPreference(clubId: string, key: string, value: unknown) {
+  const rateCheck = await actionRateLimit("updateMemberPreference", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) return { error: "Not authenticated" };
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { data: membership } = await supabase
     .from("club_members")

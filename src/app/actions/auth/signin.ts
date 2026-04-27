@@ -11,6 +11,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { isValidEmail } from "@/lib/security/validators";
 import { resolveRedirect, setRedirectCookie } from "@/lib/auth/redirect";
 import { authCallbackUrl } from "@/lib/seo/absolute-url";
 
@@ -120,9 +121,7 @@ export async function signInWithMagicLink(prevState: unknown, formData: FormData
     return { error: "Email is required" };
   }
 
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!isValidEmail(email)) {
     return { error: "Please enter a valid email address" };
   }
 

@@ -4,6 +4,33 @@ import { TimelineView, Club } from "./TimelineView";
 import { type TimelineItem, isUrgent } from "./timeline-utils";
 import { EmptyState } from "@/components/shared/EmptyState";
 
+// Shape of the `clubs:club_id(...)` join on club_members. Supabase's generated
+// types model embedded relations as arrays even for 1:1 FKs, so accept either
+// shape and unwrap at the call site.
+type TimelineClubJoin =
+  | {
+      id: string;
+      name: string;
+      slug: string;
+      picture_url?: string | null;
+      avatar_icon?: string | null;
+      avatar_color_index?: number | null;
+      avatar_border_color_index?: number | null;
+    }
+  | {
+      id: string;
+      name: string;
+      slug: string;
+      picture_url?: string | null;
+      avatar_icon?: string | null;
+      avatar_color_index?: number | null;
+      avatar_border_color_index?: number | null;
+    }[]
+  | null;
+
+// Shape of the aggregate `club_event_rsvps(count)` embed.
+type RsvpCountAggregate = { count: number }[] | null;
+
 interface TimelineContainerProps {
   mode: "global" | "club";
   userId: string;
@@ -49,15 +76,8 @@ export async function TimelineContainer({
     if (memberships) {
       clubs = memberships
         .map((m) => {
-          const clubData = m.clubs as unknown as {
-            id: string;
-            name: string;
-            slug: string;
-            picture_url?: string | null;
-            avatar_icon?: string | null;
-            avatar_color_index?: number | null;
-            avatar_border_color_index?: number | null;
-          } | null;
+          const clubsJoin = m.clubs as TimelineClubJoin;
+          const clubData = Array.isArray(clubsJoin) ? clubsJoin[0] : clubsJoin;
           if (!clubData) return null;
           const club: Club = {
             id: clubData.id,
@@ -319,7 +339,7 @@ export async function TimelineContainer({
         }[event.event_type as string] || "Event";
 
       // Extract RSVP count from the nested query result
-      const rsvpData = event.club_event_rsvps as unknown as { count: number }[] | null;
+      const rsvpData = event.club_event_rsvps as RsvpCountAggregate;
       const attendeeCount = rsvpData?.[0]?.count ?? 0;
 
       timelineItems.push({

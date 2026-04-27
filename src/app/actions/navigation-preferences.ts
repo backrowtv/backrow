@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateUser } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { handleActionError } from "@/lib/errors/handler";
 import {
   VALID_NAV_ITEMS,
@@ -14,22 +16,8 @@ import {
   type SidebarNavItemId,
   type MobileNavPreferences,
   type SidebarNavPreferences,
-  type CornerPosition,
-  type MenuPosition,
   type MovieLinkPreferences,
 } from "@/lib/navigation-constants";
-
-/**
- * Migrate old 4-corner position to new left/right position
- * @deprecated This handles migration from floatingButtonCorner to menuPosition
- */
-function migrateCornerToPosition(corner?: CornerPosition): MenuPosition {
-  if (corner === "top-left" || corner === "bottom-left") return "left";
-  return "right"; // default for top-right, bottom-right, or undefined
-}
-
-// Note: Types are exported from @/lib/navigation-constants directly
-// 'use server' files can only export async functions, not objects or type re-exports
 
 /**
  * Get the current user's mobile nav preferences
@@ -70,8 +58,7 @@ export async function getNavPreferences(): Promise<MobileNavPreferences> {
     itemCount,
     favoriteClubId: prefs.favoriteClubId || null,
     hideLabels: prefs.hideLabels ?? false,
-    // Migrate old floatingButtonCorner to new menuPosition
-    menuPosition: prefs.menuPosition ?? migrateCornerToPosition(prefs.floatingButtonCorner),
+    menuPosition: prefs.menuPosition ?? "right",
   };
 }
 
@@ -81,6 +68,9 @@ export async function getNavPreferences(): Promise<MobileNavPreferences> {
 export async function updateNavPreferences(
   preferences: Partial<MobileNavPreferences>
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("updateNavPreferences", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -89,6 +79,9 @@ export async function updateNavPreferences(
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   // Validate items
   if (preferences.items) {
@@ -160,14 +153,14 @@ export async function updateNavPreferences(
     return { success: false, ...handleActionError(error, "updateNavPreferences") };
   }
 
-  revalidatePath("/", "layout");
+  invalidateUser(user.id);
   return { success: true };
 }
 
-/**
- * Reset nav preferences to defaults
- */
 export async function resetNavPreferences(): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("resetNavPreferences", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -176,6 +169,9 @@ export async function resetNavPreferences(): Promise<{ success: boolean; error?:
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   const { error } = await supabase
     .from("users")
@@ -186,7 +182,7 @@ export async function resetNavPreferences(): Promise<{ success: boolean; error?:
     return { success: false, ...handleActionError(error, "resetNavPreferences") };
   }
 
-  revalidatePath("/", "layout");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -275,6 +271,12 @@ export async function getSidebarPreferences(): Promise<SidebarNavPreferences> {
 export async function updateSidebarPreferences(
   preferences: Partial<SidebarNavPreferences>
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("updateSidebarPreferences", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -283,6 +285,9 @@ export async function updateSidebarPreferences(
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   // Validate itemOrder
   if (preferences.itemOrder) {
@@ -323,14 +328,17 @@ export async function updateSidebarPreferences(
     return { success: false, ...handleActionError(error, "updateSidebarPreferences") };
   }
 
-  revalidatePath("/", "layout");
+  invalidateUser(user.id);
   return { success: true };
 }
 
-/**
- * Reset sidebar preferences to defaults
- */
 export async function resetSidebarPreferences(): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("resetSidebarPreferences", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -339,6 +347,9 @@ export async function resetSidebarPreferences(): Promise<{ success: boolean; err
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   const { error } = await supabase
     .from("users")
@@ -349,7 +360,7 @@ export async function resetSidebarPreferences(): Promise<{ success: boolean; err
     return { success: false, ...handleActionError(error, "resetSidebarPreferences") };
   }
 
-  revalidatePath("/", "layout");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -395,6 +406,12 @@ export async function getMovieLinkPreferences(): Promise<MovieLinkPreferences> {
 export async function updateMovieLinkPreferences(
   preferences: MovieLinkPreferences
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("updateMovieLinkPreferences", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -403,6 +420,9 @@ export async function updateMovieLinkPreferences(
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   // Validate that all links are valid types
   const invalidLinks = preferences.visibleLinks.filter((link) => !MOVIE_LINK_TYPES.includes(link));
@@ -433,14 +453,17 @@ export async function updateMovieLinkPreferences(
     return { success: false, ...handleActionError(error, "updateMovieLinkPreferences") };
   }
 
-  revalidatePath("/movies", "layout");
+  invalidateUser(user.id);
   return { success: true };
 }
 
-/**
- * Reset movie link preferences to defaults (show all)
- */
 export async function resetMovieLinkPreferences(): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("resetMovieLinkPreferences", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -449,6 +472,9 @@ export async function resetMovieLinkPreferences(): Promise<{ success: boolean; e
   if (!user) {
     return { success: false, error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   // Get current social_links and remove movie_link_preferences
   const { data: userData } = await supabase
@@ -470,6 +496,6 @@ export async function resetMovieLinkPreferences(): Promise<{ success: boolean; e
     return { success: false, ...handleActionError(error, "resetMovieLinkPreferences") };
   }
 
-  revalidatePath("/movies", "layout");
+  invalidateUser(user.id);
   return { success: true };
 }

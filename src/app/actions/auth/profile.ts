@@ -7,9 +7,8 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 import { cacheLife, cacheTag } from "next/cache";
-import { CacheTags } from "@/lib/cache/invalidate";
+import { CacheTags, invalidateUser } from "@/lib/cache/invalidate";
 import { getSharp } from "@/lib/image/sharp-loader";
 import { handleActionError } from "@/lib/errors/handler";
 import { enqueueImageProcessing } from "@/lib/jobs/producers";
@@ -398,10 +397,8 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
   // Note: Favorite clubs are managed separately via toggleFavoriteClub() in clubs/membership.ts
   // and navigation preferences are managed via updateNavPreferences() in navigation-preferences.ts
 
-  // Revalidate profile pages
-  revalidatePath("/profile");
-  revalidatePath("/profile/edit");
-  revalidatePath("/");
+  // Invalidate user cache
+  invalidateUser(user.id);
 
   return { success: true, message: "Profile updated successfully" };
 }

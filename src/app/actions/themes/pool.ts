@@ -8,11 +8,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidateClub } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { handleActionError } from "@/lib/errors/handler";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { MAX_THEME_LENGTH } from "./helpers";
 
 export async function addTheme(prevState: unknown, formData: FormData) {
+  const rateCheck = await actionRateLimit("addTheme", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -21,6 +26,9 @@ export async function addTheme(prevState: unknown, formData: FormData) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const clubId = formData.get("clubId") as string;
   const themeName = formData.get("themeName") as string;
@@ -146,6 +154,9 @@ export async function addTheme(prevState: unknown, formData: FormData) {
 }
 
 export async function removeTheme(themeId: string, clubId: string) {
+  const rateCheck = await actionRateLimit("removeTheme", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -154,6 +165,9 @@ export async function removeTheme(themeId: string, clubId: string) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check user is a member (club_members has composite PK, no id column)
   const { data: membership } = await supabase
@@ -224,6 +238,9 @@ export async function removeTheme(themeId: string, clubId: string) {
 }
 
 export async function updateTheme(themeId: string, newName: string, clubId: string) {
+  const rateCheck = await actionRateLimit("updateTheme", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -232,6 +249,9 @@ export async function updateTheme(themeId: string, newName: string, clubId: stri
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   if (!newName || !newName.trim()) {
     return { error: "Theme name is required" };

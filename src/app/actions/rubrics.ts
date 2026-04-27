@@ -1,8 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { invalidateMember } from "@/lib/cache/invalidate";
+import { invalidateMember, invalidateUser } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import type { RatingRubric } from "@/types/club-settings";
 import type { UserRubric, FestivalRubricLock, ActionResult } from "./rubrics.types";
 
@@ -71,6 +72,9 @@ export async function createRubric(
   categories: RatingRubric[],
   isDefault: boolean = false
 ): Promise<ActionResult<UserRubric>> {
+  const rateCheck = await actionRateLimit("createRubric", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -79,6 +83,9 @@ export async function createRubric(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate categories
   if (!name.trim()) {
@@ -114,7 +121,7 @@ export async function createRubric(
     return { error: error.message };
   }
 
-  revalidatePath("/profile/settings/ratings");
+  invalidateUser(user.id);
   return { success: true, data: data as UserRubric };
 }
 
@@ -129,6 +136,9 @@ export async function updateRubric(
     is_default?: boolean;
   }
 ): Promise<ActionResult<UserRubric>> {
+  const rateCheck = await actionRateLimit("updateRubric", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -137,6 +147,9 @@ export async function updateRubric(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate if categories are being updated
   if (updates.categories) {
@@ -171,7 +184,7 @@ export async function updateRubric(
     return { error: error.message };
   }
 
-  revalidatePath("/profile/settings/ratings");
+  invalidateUser(user.id);
   return { success: true, data: data as UserRubric };
 }
 
@@ -179,6 +192,9 @@ export async function updateRubric(
  * Delete a rubric
  */
 export async function deleteRubric(rubricId: string): Promise<ActionResult> {
+  const rateCheck = await actionRateLimit("deleteRubric", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -187,6 +203,9 @@ export async function deleteRubric(rubricId: string): Promise<ActionResult> {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error } = await supabase
     .from("user_rubrics")
@@ -198,7 +217,7 @@ export async function deleteRubric(rubricId: string): Promise<ActionResult> {
     return { error: error.message };
   }
 
-  revalidatePath("/profile/settings/ratings");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -206,6 +225,9 @@ export async function deleteRubric(rubricId: string): Promise<ActionResult> {
  * Duplicate an existing rubric
  */
 export async function duplicateRubric(rubricId: string): Promise<ActionResult<UserRubric>> {
+  const rateCheck = await actionRateLimit("duplicateRubric", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -214,6 +236,9 @@ export async function duplicateRubric(rubricId: string): Promise<ActionResult<Us
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get the original rubric
   const { data: original, error: fetchError } = await supabase
@@ -291,7 +316,7 @@ export async function duplicateRubric(rubricId: string): Promise<ActionResult<Us
     return { error: error.message };
   }
 
-  revalidatePath("/profile/settings/ratings");
+  invalidateUser(user.id);
   return { success: true, data: data as UserRubric };
 }
 
@@ -299,6 +324,9 @@ export async function duplicateRubric(rubricId: string): Promise<ActionResult<Us
  * Set a rubric as the default
  */
 export async function setDefaultRubric(rubricId: string): Promise<ActionResult> {
+  const rateCheck = await actionRateLimit("setDefaultRubric", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -307,6 +335,9 @@ export async function setDefaultRubric(rubricId: string): Promise<ActionResult> 
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error } = await supabase
     .from("user_rubrics")
@@ -318,7 +349,7 @@ export async function setDefaultRubric(rubricId: string): Promise<ActionResult> 
     return { error: error.message };
   }
 
-  revalidatePath("/profile/settings/ratings");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -329,6 +360,8 @@ export async function createRubricFromPreset(
   presetId: string,
   customName?: string
 ): Promise<ActionResult<UserRubric>> {
+  // Rate limit + email gate are enforced inside createRubric below.
+
   const { PRESET_RUBRICS, createRubricsFromPreset } = await import("@/types/club-settings");
 
   const preset = PRESET_RUBRICS.find((p) => p.id === presetId);
@@ -389,6 +422,9 @@ export async function lockFestivalRubric(
     dontAskAgain?: boolean;
   }
 ): Promise<ActionResult<FestivalRubricLock>> {
+  const rateCheck = await actionRateLimit("lockFestivalRubric", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -397,6 +433,9 @@ export async function lockFestivalRubric(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Verify user is a member of the club for this festival
   const { data: festival, error: festivalError } = await supabase
@@ -502,6 +541,12 @@ export async function updateClubRubricSelection(
   clubId: string,
   rubricId: string | null // null = use club rubric or no rubric
 ): Promise<ActionResult> {
+  const rateCheck = await actionRateLimit("updateClubRubricSelection", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -510,6 +555,9 @@ export async function updateClubRubricSelection(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get current preferences
   const { data: membership, error: fetchError } = await supabase
@@ -590,6 +638,12 @@ export async function setClubRubricPreference(
   clubId: string,
   rubricId: string | null
 ): Promise<ActionResult> {
+  const rateCheck = await actionRateLimit("setClubRubricPreference", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -598,6 +652,9 @@ export async function setClubRubricPreference(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get current preferences
   const { data: membership, error: fetchError } = await supabase
@@ -629,7 +686,6 @@ export async function setClubRubricPreference(
   }
 
   invalidateMember(clubId, user.id);
-  revalidatePath("/profile/settings/ratings");
   return { success: true };
 }
 

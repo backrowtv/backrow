@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import {
   DEFAULT_DISPLAY_PREFERENCES,
   DEFAULT_THEME_PREFERENCES,
@@ -60,6 +62,12 @@ export async function getDisplayPreferences(): Promise<DisplayPreferences> {
 export async function updateDisplayPreferences(
   preferences: Partial<DisplayPreferences>
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("updateDisplayPreferences", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   try {
     const supabase = await createClient();
 
@@ -69,6 +77,9 @@ export async function updateDisplayPreferences(
     if (!user) {
       return { success: false, error: "Not authenticated" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { success: false, error: verified.error };
 
     // Validate time format
     if (preferences.timeFormat && !["12h", "24h"].includes(preferences.timeFormat)) {
@@ -109,7 +120,7 @@ export async function updateDisplayPreferences(
       return { success: false, error: result.error };
     }
 
-    revalidatePath("/", "layout");
+    invalidateUser(user.id);
     return { success: true };
   } catch (error) {
     const result = handleActionError(error, { action: "updateDisplayPreferences" });
@@ -164,6 +175,12 @@ export async function getThemePreferences(): Promise<ThemePreferences> {
 export async function updateThemePreferences(
   preferences: Partial<ThemePreferences>
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("updateThemePreferences", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   try {
     const supabase = await createClient();
 
@@ -173,6 +190,9 @@ export async function updateThemePreferences(
     if (!user) {
       return { success: false, error: "Not authenticated" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { success: false, error: verified.error };
 
     // Get current social_links to merge
     const { data: userData } = await supabase

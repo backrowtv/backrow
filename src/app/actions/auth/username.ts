@@ -116,6 +116,5 @@ export async function changeUsername(prevState: unknown, formData: FormData) {
   if (updateError) return { error: "Could not update username. Please try again." };
 
   invalidateUser(user.id);
-  revalidatePath("/profile/settings/account");
   return { success: true, username };
 }

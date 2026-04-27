@@ -3,25 +3,41 @@
 import { createClient } from "@/lib/supabase/server";
 import { env } from "@/lib/config/env";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { isValidEmail } from "@/lib/security/validators";
+import { sanitizeForStorage } from "@/lib/security/sanitize";
 import type { ContactFormResult } from "./contact.types";
 import { sendEmail } from "@/lib/email/resend";
 import { contactNotificationHtml } from "@/lib/email/templates/render";
 
 export async function submitContactForm(formData: FormData): Promise<ContactFormResult> {
+  // Public unauthenticated endpoint — layered rate limit blocks scripted floods
+  // (3/min) and slow-drip spam (20/hr). Higher than typical to absorb shared-NAT
+  // (offices, university Wi-Fi).
+  const burst = await actionRateLimit("submitContactForm:burst", {
+    limit: 3,
+    windowMs: 60_000,
+  });
+  if (!burst.success) return { success: false, error: burst.error };
+  const sustained = await actionRateLimit("submitContactForm:hourly", {
+    limit: 20,
+    windowMs: 60 * 60_000,
+  });
+  if (!sustained.success) return { success: false, error: sustained.error };
+
   try {
     const name = formData.get("name")?.toString().trim();
     const email = formData.get("email")?.toString().trim();
     const subject = formData.get("subject")?.toString().trim();
     const message = formData.get("message")?.toString().trim();
 
-    // Validation
     if (!name || name.length === 0) {
       return { success: false, error: "Name is required" };
     }
     if (!email || email.length === 0) {
       return { success: false, error: "Email is required" };
     }
-    if (!email.includes("@")) {
+    if (!isValidEmail(email)) {
       return { success: false, error: "Invalid email address" };
     }
     if (!subject || subject.length === 0) {
@@ -31,7 +47,6 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
       return { success: false, error: "Message is required" };
     }
 
-    // Additional validation
     if (name.length > 200) {
       return { success: false, error: "Name is too long" };
     }
@@ -47,12 +62,11 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
 
     const supabase = await createClient();
 
-    // Insert into contact_submissions table
     const { error } = await supabase.from("contact_submissions").insert({
-      name,
+      name: sanitizeForStorage(name),
       email,
-      subject,
-      message,
+      subject: sanitizeForStorage(subject),
+      message: sanitizeForStorage(message),
     });
 
     if (error) {
@@ -60,7 +74,6 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
       return { success: false, error: result.error };
     }
 
-    // Send email notification (best-effort — don't fail the form submission)
     try {
       const notifyEmail = env.CONTACT_NOTIFY_EMAIL || "support@backrow.dev";
       await sendEmail({
@@ -70,7 +83,6 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
         replyTo: email,
       });
     } catch (emailError) {
-      // Log but don't fail — the submission is already saved to DB
       console.error("Failed to send contact notification email:", emailError);
     }
 

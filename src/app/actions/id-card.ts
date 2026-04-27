@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import type {
   IDCardSettings,
@@ -120,8 +120,7 @@ export async function updateFeaturedBadges(
       return handleActionError(error, "updateFeaturedBadges");
     }
 
-    revalidatePath("/profile");
-    revalidatePath("/profile/display-case");
+    invalidateUser(user.id);
 
     return { success: true };
   } catch (error) {
@@ -178,8 +177,7 @@ export async function updateSocialLinksVisibility(
       return handleActionError(error, "updateSocialLinksVisibility");
     }
 
-    revalidatePath("/profile");
-    revalidatePath("/profile/display-case");
+    invalidateUser(user.id);
 
     return { success: true };
   } catch (error) {

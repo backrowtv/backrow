@@ -5,6 +5,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { CacheTags } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { getMovieDetails, getPosterUrl, extractUSCertification } from "@/lib/tmdb/client";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
 
 // Generate movie slug from title and year
 function generateMovieSlug(title: string, year: number | string | null): string {
@@ -161,8 +162,17 @@ export async function ensureMovieExists(
 /**
  * Force refresh a movie's data from TMDB, bypassing the cache
  * This is useful for updating movies that are missing backdrop_url or overview
+ *
+ * NOTE: this action is invoked from a Server Component during anonymous home-page
+ * render (`FeaturedSections.tsx`), so we cannot apply `requireVerifiedEmail` here.
+ * Rate-limit by IP only — the action mutates the public movies cache, not user
+ * data. See docs/security.md "Cache helpers" for follow-up if a tighter gate is
+ * needed.
  */
 export async function refreshMovie(tmdbId: number) {
+  const rateCheck = await actionRateLimit("refreshMovie", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Fetch fresh data from TMDB
@@ -313,7 +323,7 @@ export async function getMovieBySlug(slug: string) {
     return { error: "Movie not found" };
   }
 
-  if (movie.tmdb_id) cacheTag(CacheTags.movie(movie.tmdb_id as number));
+  cacheTag(CacheTags.movie(movie.tmdb_id as number));
 
   return { movie };
 }

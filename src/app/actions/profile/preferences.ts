@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateMember, invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { mergePreferencesMapped } from "@/lib/utils/merge-preferences";
 import type { UserRatingPreferences } from "@/types/user-rating-preferences";
@@ -62,8 +62,7 @@ export async function updatePrivacySettings(settings: {
     return { error: updateError.message || "Failed to update privacy settings" };
   }
 
-  revalidatePath("/profile/settings/account");
-  revalidatePath("/profile");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -164,7 +163,7 @@ export async function updateNotificationPreferences(
     return { error: updateError.message || "Failed to update notification preferences" };
   }
 
-  revalidatePath("/profile/settings/account");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -277,7 +276,7 @@ export async function updateClubNotificationPreferences(
     return { error: updateError.message || "Failed to update notification preferences" };
   }
 
-  revalidatePath(`/club/[slug]/settings/notifications`);
+  invalidateMember(clubId, user.id);
   return { success: true };
 }
 
@@ -334,8 +333,7 @@ export async function updateRatingPreferences(
     return handleActionError(updateError, "updateRatingPreferences");
   }
 
-  revalidatePath("/profile/settings/ratings");
-  revalidatePath("/profile");
+  invalidateUser(user.id);
   return { success: true };
 }
 

@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateUser } from "@/lib/cache/invalidate";
 import { logMemberActivity } from "@/lib/activity/logger";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import type {
   BlockUserResult,
   BlockedUser,
@@ -11,10 +13,10 @@ import type {
 } from "./types";
 import { handleActionError } from "@/lib/errors/handler";
 
-/**
- * Block a user
- */
 export async function blockUser(userId: string): Promise<BlockUserResult> {
+  const rateCheck = await actionRateLimit("blockUser", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -23,6 +25,9 @@ export async function blockUser(userId: string): Promise<BlockUserResult> {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   if (user.id === userId) {
     return { error: "You cannot block yourself" };
@@ -63,14 +68,14 @@ export async function blockUser(userId: string): Promise<BlockUserResult> {
     });
   }
 
-  revalidatePath("/profile/settings/account");
+  invalidateUser(user.id);
   return { success: true };
 }
 
-/**
- * Unblock a user
- */
 export async function unblockUser(userId: string): Promise<BlockUserResult> {
+  const rateCheck = await actionRateLimit("unblockUser", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -79,6 +84,9 @@ export async function unblockUser(userId: string): Promise<BlockUserResult> {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error } = await supabase
     .from("user_blocks")
@@ -90,7 +98,7 @@ export async function unblockUser(userId: string): Promise<BlockUserResult> {
     return handleActionError(error, "unblockUser");
   }
 
-  revalidatePath("/profile/settings/account");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -195,14 +203,14 @@ export async function hasUserBlockedMe(targetUserId: string): Promise<boolean> {
   return !!data;
 }
 
-/**
- * Report a user
- */
 export async function reportUser(
   userId: string,
   reason: string,
   details?: string
 ): Promise<ReportUserResult> {
+  const rateCheck = await actionRateLimit("reportUser", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -211,6 +219,9 @@ export async function reportUser(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   if (user.id === userId) {
     return { error: "You cannot report yourself" };

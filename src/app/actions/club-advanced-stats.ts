@@ -4,6 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
 import type { ClubAdvancedStats, GetClubAdvancedStatsResult } from "./profile/types";
 
+// Shape of the `users` join when selecting `club_members.users:user_id(id, display_name)`.
+// Supabase's generated types treat embedded relations as arrays even when 1:1, so
+// we accept either an object or an array shape and unwrap at the call site.
+type ClubMemberUserJoin =
+  | { id: string; display_name: string }
+  | { id: string; display_name: string }[]
+  | null;
+
 export async function getClubAdvancedStats(clubId: string): Promise<GetClubAdvancedStatsResult> {
   try {
     const supabase = await createClient();
@@ -93,7 +101,8 @@ export async function getClubAdvancedStats(clubId: string): Promise<GetClubAdvan
     // Member name lookup
     const memberNames = new Map<string, string>();
     for (const m of members) {
-      const user = m.users as unknown as { id: string; display_name: string } | null;
+      const usersJoin = m.users as ClubMemberUserJoin;
+      const user = Array.isArray(usersJoin) ? usersJoin[0] : usersJoin;
       if (user) memberNames.set(user.id, user.display_name);
     }
 

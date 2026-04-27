@@ -4,6 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
 import type { GetUserProfileStatsResult, UserProfileStats } from "./types";
 
+// Shape of the JSON `results` column on `festival_results` when used to compute
+// guessing accuracy. `nominator_reveals` maps nomination_id → user_id of the
+// actual nominator.
+type FestivalResultsGuessShape = {
+  guesses?: { nominator_reveals?: Record<string, string> };
+} | null;
+
 /**
  * Compute guessing accuracy from nomination_guesses + festival_results.
  * Extracted from ProfileStats.tsx for reuse.
@@ -28,12 +35,7 @@ async function computeGuessingAccuracy(
       .in("festival_id", festivalIds);
 
     const resultsMap = new Map(
-      (results || []).map((r) => [
-        r.festival_id,
-        r.results as unknown as {
-          guesses?: { nominator_reveals?: Record<string, string> };
-        } | null,
-      ])
+      (results || []).map((r) => [r.festival_id, r.results as FestivalResultsGuessShape])
     );
 
     for (const guessRecord of userGuesses) {

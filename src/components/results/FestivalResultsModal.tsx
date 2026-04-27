@@ -172,6 +172,9 @@ export function FestivalResultsModal({
                 festival_id: null,
                 rubric_scores: null,
                 review: null,
+                // Placeholder fields above (festival_id, nomination_id, user_id) may be
+                // null at runtime even though RatingWithRelations declares them as
+                // non-null. Downstream RatingsTab only reads `user_id` and `rating`.
               } as unknown as RatingWithRelations;
             });
 

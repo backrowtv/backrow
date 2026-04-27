@@ -84,8 +84,8 @@ export function TestAuthClient({ currentUser }: TestAuthClientProps) {
         if (memberships) {
           setClubMemberships(
             memberships.map((m) => {
-              // Handle clubs relation - can be array or object
-              const clubsData = m.clubs as unknown as { name: string } | { name: string }[] | null;
+              // Handle clubs relation - can be array or object depending on PostgREST shape
+              const clubsData = m.clubs as { name: string } | { name: string }[] | null;
               const clubName = Array.isArray(clubsData) ? clubsData[0]?.name : clubsData?.name;
               return {
                 club_id: m.club_id,

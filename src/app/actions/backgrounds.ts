@@ -3,6 +3,12 @@
 import { getSharp } from "@/lib/image/sharp-loader";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import {
+  invalidateClub,
+  invalidateFestival,
+  invalidatePath,
+  invalidateUser,
+} from "@/lib/cache/invalidate";
 import { isAdmin } from "./admin";
 import type { EntityType, BackgroundImage, BackgroundInput } from "@/lib/backgrounds";
 
@@ -123,15 +129,15 @@ export async function upsertBackground(
     return { data: null, error: result.error.message };
   }
 
-  // Revalidate relevant paths
+  // Invalidate the affected entity's cache
   if (input.entity_type === "site_page") {
-    revalidatePath(input.entity_id);
+    invalidatePath(input.entity_id);
   } else if (input.entity_type === "club") {
-    revalidatePath(`/club/${input.entity_id}`);
+    invalidateClub(input.entity_id);
   } else if (input.entity_type === "festival") {
-    revalidatePath("/"); // Festival pages vary
+    await invalidateFestival(input.entity_id);
   } else if (input.entity_type === "profile") {
-    revalidatePath(`/profile/${input.entity_id}`);
+    invalidateUser(input.entity_id);
   }
 
   revalidatePath("/admin");
@@ -177,9 +183,15 @@ export async function deleteBackground(
     return { success: false, error: error.message };
   }
 
-  // Revalidate paths
+  // Invalidate the affected entity's cache
   if (background.entity_type === "site_page") {
-    revalidatePath(background.entity_id);
+    invalidatePath(background.entity_id);
+  } else if (background.entity_type === "club") {
+    invalidateClub(background.entity_id);
+  } else if (background.entity_type === "festival") {
+    await invalidateFestival(background.entity_id);
+  } else if (background.entity_type === "profile") {
+    invalidateUser(background.entity_id);
   }
   revalidatePath("/admin");
 

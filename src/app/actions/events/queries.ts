@@ -103,13 +103,14 @@ export async function getClubEvents(
         )
       `
       )
-      .in("event_id", eventIds);
+      .in("event_id", eventIds)
+      .returns<EventRSVP[]>();
 
     // Group RSVPs by event
     const rsvpsByEvent = new Map<string, EventRSVP[]>();
     rsvps?.forEach((rsvp) => {
       const existing = rsvpsByEvent.get(rsvp.event_id) || [];
-      existing.push(rsvp as unknown as EventRSVP);
+      existing.push(rsvp);
       rsvpsByEvent.set(rsvp.event_id, existing);
     });
 
@@ -186,10 +187,11 @@ export async function getEvent(eventId: string) {
       )
     `
     )
-    .eq("event_id", eventId);
+    .eq("event_id", eventId)
+    .returns<EventRSVP[]>();
 
   const typedEvent = event as ClubEvent;
-  typedEvent.rsvps = (rsvps || []) as unknown as EventRSVP[];
+  typedEvent.rsvps = rsvps || [];
   typedEvent.rsvp_counts = {
     going: typedEvent.rsvps.filter((r) => r.status === "going").length,
     maybe: typedEvent.rsvps.filter((r) => r.status === "maybe").length,

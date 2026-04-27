@@ -8,11 +8,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidateClub } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { handleActionError } from "@/lib/errors/handler";
 import { checkMemberPermission } from "./helpers";
 import type { RSVPStatus } from "./types";
 
 export async function rsvpToEvent(eventId: string, status: RSVPStatus) {
+  const rateCheck = await actionRateLimit("rsvpToEvent", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -21,6 +26,9 @@ export async function rsvpToEvent(eventId: string, status: RSVPStatus) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get event to check club membership
   const { data: event, error: fetchError } = await supabase
@@ -93,6 +101,9 @@ export async function rsvpToEvent(eventId: string, status: RSVPStatus) {
 }
 
 export async function removeRsvp(eventId: string) {
+  const rateCheck = await actionRateLimit("removeRsvp", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -101,6 +112,9 @@ export async function removeRsvp(eventId: string) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get event for revalidation
   const { data: event } = await supabase

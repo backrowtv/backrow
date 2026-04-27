@@ -13,6 +13,12 @@ interface ProfileStatsProps {
   userId: string;
 }
 
+// Shape of the JSON `results` column on `festival_results` when used to compute
+// guessing accuracy. `nominator_reveals` maps nomination_id → nominator user id.
+type FestivalResultsGuessShape = {
+  guesses?: { nominator_reveals?: Record<string, string> };
+} | null;
+
 export async function ProfileStats({ userId }: ProfileStatsProps) {
   const supabase = await createClient();
 
@@ -70,10 +76,7 @@ export async function ProfileStats({ userId }: ProfileStatsProps) {
       .in("festival_id", festivalIds);
 
     const resultsMap = new Map(
-      (results || []).map((r) => [
-        r.festival_id,
-        r.results as unknown as { guesses?: { nominator_reveals?: Record<string, string> } } | null,
-      ])
+      (results || []).map((r) => [r.festival_id, r.results as FestivalResultsGuessShape])
     );
 
     // Calculate accuracy for each festival

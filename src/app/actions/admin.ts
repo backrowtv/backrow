@@ -2,8 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { invalidateMarketing } from "@/lib/cache/invalidate";
+import { invalidateClub, invalidateMarketing } from "@/lib/cache/invalidate";
 import { escapeLike } from "@/lib/security/postgrest-escape";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 // Helper to check if user is a site admin
 // Uses the site_admins table for role-based access control
@@ -274,10 +276,16 @@ export async function getAdminOverviewData() {
 
 // Update a site setting
 export async function updateSiteSetting(key: string, value: unknown) {
+  const rateCheck = await actionRateLimit("updateSiteSetting", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const { error: authError, user, supabase } = await requireAdmin();
   if (authError || !user) {
     return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error: dbError } = await supabase.from("site_settings").upsert({
     key,
@@ -296,10 +304,16 @@ export async function updateSiteSetting(key: string, value: unknown) {
 
 // Set featured club
 export async function setFeaturedClub(clubId: string) {
+  const rateCheck = await actionRateLimit("setFeaturedClub", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const { error: authError, user, supabase } = await requireAdmin();
   if (authError || !user) {
     return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check if club exists and is public
   const { data: club, error: clubError } = await supabase
@@ -350,6 +364,7 @@ export async function setFeaturedClub(clubId: string) {
     return { error: updateError.message };
   }
 
+  invalidateClub(clubId);
   invalidateMarketing("featured-club");
   revalidatePath("/admin");
   return { success: true };
@@ -364,10 +379,19 @@ export async function createSiteAnnouncement(data: {
   showOnDashboard: boolean;
   expiresAt?: string;
 }) {
+  const rateCheck = await actionRateLimit("createSiteAnnouncement", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const { error: authError, user, supabase } = await requireAdmin();
   if (authError || !user) {
     return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error } = await supabase.from("site_announcements").insert({
     title: data.title,
@@ -400,10 +424,19 @@ export async function updateSiteAnnouncement(
     expiresAt?: string | null;
   }
 ) {
-  const { error: authError, supabase } = await requireAdmin();
-  if (authError) {
-    return { error: authError };
+  const rateCheck = await actionRateLimit("updateSiteAnnouncement", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
+  const { error: authError, user, supabase } = await requireAdmin();
+  if (authError || !user) {
+    return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (data.title !== undefined) updateData.title = data.title;
@@ -426,10 +459,19 @@ export async function updateSiteAnnouncement(
 
 // Delete site announcement
 export async function deleteSiteAnnouncement(id: string) {
-  const { error: authError, supabase } = await requireAdmin();
-  if (authError) {
-    return { error: authError };
+  const rateCheck = await actionRateLimit("deleteSiteAnnouncement", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
+  const { error: authError, user, supabase } = await requireAdmin();
+  if (authError || !user) {
+    return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error } = await supabase.from("site_announcements").delete().eq("id", id);
 
@@ -566,10 +608,16 @@ export async function listSiteAdmins() {
 
 // Add a site admin
 export async function addSiteAdmin(userId: string) {
+  const rateCheck = await actionRateLimit("addSiteAdmin", { limit: 5, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const { error: authError, user, supabase } = await requireAdmin();
   if (authError || !user) {
     return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Verify user exists
   const { data: targetUser, error: userError } = await supabase
@@ -609,10 +657,16 @@ export async function addSiteAdmin(userId: string) {
 
 // Remove a site admin
 export async function removeSiteAdmin(userId: string) {
+  const rateCheck = await actionRateLimit("removeSiteAdmin", { limit: 5, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const { error: authError, user, supabase } = await requireAdmin();
   if (authError || !user) {
     return { error: authError || "Unauthorized" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Prevent removing yourself
   if (userId === user.id) {

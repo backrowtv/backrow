@@ -54,9 +54,6 @@ export const SIDEBAR_NAV_ITEMS = [
 
 export type SidebarNavItemId = (typeof SIDEBAR_NAV_ITEMS)[number];
 
-export type CornerPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
-
-// New simplified menu position type for hamburger in bottom nav
 export type MenuPosition = "left" | "right";
 
 export interface MobileNavPreferences {
@@ -64,9 +61,6 @@ export interface MobileNavPreferences {
   itemCount: number;
   favoriteClubId?: string | null;
   hideLabels?: boolean;
-  /** @deprecated Use menuPosition instead */
-  floatingButtonCorner?: CornerPosition;
-  /** Position of hamburger menu in bottom nav bar */
   menuPosition?: MenuPosition;
 }
 

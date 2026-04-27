@@ -560,8 +560,10 @@ export async function getFestivalBySlug(clubId: string, slug: string) {
     return null;
   }
 
-  if (festival?.id) cacheTag(CacheTags.festival(festival.id as string));
-  if (festival?.season_id) cacheTag(CacheTags.season(festival.season_id as string));
+  if (!festival) return null;
+
+  cacheTag(CacheTags.festival(festival.id as string));
+  if (festival.season_id) cacheTag(CacheTags.season(festival.season_id as string));
 
   return festival;
 }

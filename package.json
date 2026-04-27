@@ -33,8 +33,7 @@
     "delete-all-data": "tsx scripts/delete-all-data.ts",
     "create-test-user": "tsx scripts/create-test-user.ts",
     "delete-test-users": "tsx scripts/delete-test-users.ts",
-    "generate-types": "supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts",
-    "generate-types:help": "echo 'Replace YOUR_PROJECT_ID with your Supabase project ID. Get it from: https://supabase.com/dashboard/project/_/settings/general'",
+    "db:gen-types": "supabase gen types typescript --project-id nxpeptgrhbveqphwwowj > src/lib/supabase/database.types.ts",
     "test:rls": "bun run supabase/tests/run-rls-tests.ts",
     "prepare": "husky install"
   },

@@ -8,6 +8,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidateClub, invalidateMember } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { checkAdminPermission, validateImageUpload, extractStorageFilename } from "./_helpers";
 import { handleActionError } from "@/lib/errors/handler";
 import { validateSettingsUpdate } from "@/lib/validation/club-settings";
@@ -51,6 +53,9 @@ export async function updateClubSettings(
   settings: Record<string, unknown>,
   options?: { confirmEndlessSwitch?: boolean }
 ) {
+  const rateCheck = await actionRateLimit("updateClubSettings", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -59,6 +64,9 @@ export async function updateClubSettings(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check admin permissions
   const { isAdmin } = await checkAdminPermission(supabase, clubId, user.id);
@@ -257,6 +265,12 @@ export async function updateClubMemberPersonalization(
     clubBio?: string | null;
   }
 ) {
+  const rateCheck = await actionRateLimit("updateClubMemberPersonalization", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -265,6 +279,9 @@ export async function updateClubMemberPersonalization(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check membership
   const { data: membership } = await supabase

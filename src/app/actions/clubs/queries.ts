@@ -33,9 +33,10 @@ export async function getClubBySlug(slug: string) {
     return null;
   }
 
-  if (club?.id) cacheTag(CacheTags.club(club.id as string));
   cacheTag(CacheTags.clubsIndex());
+  if (!club) return null;
 
+  cacheTag(CacheTags.club(club.id as string));
   return club;
 }
 
@@ -114,9 +115,18 @@ export type UserClub = {
   avatar_border_color_index: number | null;
 };
 
+type ClubStatsRow = {
+  club_id: string;
+  member_count: number;
+  festival_count: number;
+  movies_watched: number;
+  active_festival_phase: string | null;
+};
+
 /**
- * Get user's clubs with all needed data for the clubs page
- * Uses optimized queries to avoid N+1 problems
+ * Get user's clubs with all needed data for the clubs page.
+ * Uses the `get_user_club_stats` RPC (migration 0014) to push aggregation
+ * server-side instead of pulling all nominations and counting in JS.
  */
 export async function getUserClubs(): Promise<UserClubsData> {
   const supabase = await createClient();
@@ -148,81 +158,28 @@ export async function getUserClubs(): Promise<UserClubsData> {
 
   const favoriteClubIds = new Set(favoritesResult.data?.map((f) => f.club_id) || []);
 
-  // Get clubs data if user has memberships
   let memberClubs: UserClub[] = [];
 
   if (memberClubIds.length > 0) {
-    // Fetch clubs, festivals, member counts, festival counts, and nomination counts in parallel
-    const [clubsResult, festivalsResult, countsResult, allFestivalsResult, nominationsResult] =
-      await Promise.all([
-        supabase
-          .from("clubs")
-          .select(
-            "id, name, slug, description, picture_url, theme_color, settings, privacy, avatar_icon, avatar_color_index, avatar_border_color_index, genres"
-          )
-          .in("id", memberClubIds)
-          .eq("archived", false),
-        supabase
-          .from("festivals")
-          .select("club_id, phase")
-          .in("club_id", memberClubIds)
-          .in("status", ["nominating", "watching"]),
-        supabase.from("club_members").select("club_id").in("club_id", memberClubIds),
-        // Festival counts per club
-        supabase
-          .from("festivals")
-          .select("club_id")
-          .in("club_id", memberClubIds)
-          .is("deleted_at", null),
-        // Nomination counts (movies watched) per club
-        supabase
-          .from("nominations")
-          .select("tmdb_id, festival_id, festivals!inner(club_id)")
-          .in("festivals.club_id", memberClubIds)
-          .is("deleted_at", null),
-      ]);
+    const [clubsResult, statsResult] = await Promise.all([
+      supabase
+        .from("clubs")
+        .select(
+          "id, name, slug, description, picture_url, theme_color, settings, privacy, avatar_icon, avatar_color_index, avatar_border_color_index, genres"
+        )
+        .in("id", memberClubIds)
+        .eq("archived", false),
+      supabase.rpc("get_user_club_stats", { p_user_id: user.id }),
+    ]);
 
     const clubs = clubsResult.data || [];
-    const activeFestivals = festivalsResult.data || [];
-    const counts = countsResult.data || [];
-    const allFestivals = allFestivalsResult.data || [];
-    const allNominations = nominationsResult.data || [];
+    const stats = (statsResult.data ?? []) as ClubStatsRow[];
+    const statsByClub = new Map(stats.map((s) => [s.club_id, s]));
 
-    // Build phase map (first active festival per club)
-    const clubFestivalPhase = new Map<string, FestivalPhase>();
-    for (const f of activeFestivals) {
-      if (!clubFestivalPhase.has(f.club_id)) {
-        clubFestivalPhase.set(f.club_id, f.phase as FestivalPhase);
-      }
-    }
-
-    // Build member count map
-    const memberCounts = new Map<string, number>();
-    for (const c of counts) {
-      memberCounts.set(c.club_id, (memberCounts.get(c.club_id) || 0) + 1);
-    }
-
-    // Build festival count map
-    const festivalCounts = new Map<string, number>();
-    for (const f of allFestivals) {
-      if (f.club_id) {
-        festivalCounts.set(f.club_id, (festivalCounts.get(f.club_id) || 0) + 1);
-      }
-    }
-
-    // Build movies watched count map
-    const moviesWatchedCounts = new Map<string, number>();
-    for (const n of allNominations as unknown as Array<{ festivals?: { club_id: string } }>) {
-      const clubId = n.festivals?.club_id;
-      if (clubId) {
-        moviesWatchedCounts.set(clubId, (moviesWatchedCounts.get(clubId) || 0) + 1);
-      }
-    }
-
-    // Transform to UserClub format
     memberClubs = clubs.map((club) => {
       const settings = (club.settings as Record<string, unknown>) || {};
       const ratingsEnabled = settings.club_ratings_enabled !== false;
+      const s = statsByClub.get(club.id);
 
       return {
         id: club.id,
@@ -233,15 +190,14 @@ export async function getUserClubs(): Promise<UserClubsData> {
         theme_color: club.theme_color,
         settings: club.settings as Record<string, unknown> | null,
         privacy: club.privacy,
-        member_count: memberCounts.get(club.id) || 0,
-        festival_count: festivalCounts.get(club.id) || 0,
-        movies_watched: moviesWatchedCounts.get(club.id) || 0,
+        member_count: s?.member_count ?? 0,
+        festival_count: s?.festival_count ?? 0,
+        movies_watched: s?.movies_watched ?? 0,
         user_role: membershipMap.get(club.id),
         is_favorite: favoriteClubIds.has(club.id),
-        festival_phase: clubFestivalPhase.get(club.id) || null,
+        festival_phase: (s?.active_festival_phase as FestivalPhase | null) ?? null,
         ratings_enabled: ratingsEnabled,
         genres: (club as { genres?: string[] | null }).genres ?? null,
-        // Avatar columns - read directly from columns
         avatar_icon: (club as { avatar_icon?: string | null }).avatar_icon ?? null,
         avatar_color_index:
           (club as { avatar_color_index?: number | null }).avatar_color_index ?? null,

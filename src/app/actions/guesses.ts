@@ -2,8 +2,13 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidateFestival } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 export async function saveGuesses(festivalId: string, guesses: Record<string, string>) {
+  const rateCheck = await actionRateLimit("saveGuesses", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -12,6 +17,9 @@ export async function saveGuesses(festivalId: string, guesses: Record<string, st
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   if (!festivalId || !guesses) {
     return { error: "Festival ID and guesses are required" };

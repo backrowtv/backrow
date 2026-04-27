@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import {
   DEFAULT_DISCUSSION_PREFERENCES,
   type DiscussionPreferences,
@@ -50,6 +52,12 @@ export async function getDiscussionPreferences(): Promise<DiscussionPreferences>
 export async function updateDiscussionPreferences(
   preferences: Partial<DiscussionPreferences>
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("updateDiscussionPreferences", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   try {
     const supabase = await createClient();
 
@@ -59,6 +67,9 @@ export async function updateDiscussionPreferences(
     if (!user) {
       return { success: false, error: "Not authenticated" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { success: false, error: verified.error };
 
     // Get current preferences to merge
     const { data: userData } = await supabase
@@ -85,7 +96,7 @@ export async function updateDiscussionPreferences(
       return { success: false, error: result.error };
     }
 
-    revalidatePath("/", "layout");
+    invalidateUser(user.id);
     return { success: true };
   } catch (error) {
     const result = handleActionError(error, { action: "updateDiscussionPreferences" });

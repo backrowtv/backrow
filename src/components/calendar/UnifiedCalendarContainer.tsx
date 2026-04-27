@@ -3,6 +3,14 @@ import { UnifiedCalendar, Club, Season, Festival, ClubEvent } from "./UnifiedCal
 import { CalendarBlank } from "@phosphor-icons/react/dist/ssr";
 import { EmptyState } from "@/components/shared/EmptyState";
 
+// Shape of the `clubs:club_id(...)` join on club_members. Supabase's generated
+// types model embedded relations as arrays even when the FK is 1:1, so accept
+// either shape and unwrap at the call site.
+type ClubJoin =
+  | { id: string; name: string; slug: string }
+  | { id: string; name: string; slug: string }[]
+  | null;
+
 interface UnifiedCalendarContainerProps {
   mode: "global" | "club";
   userId: string;
@@ -44,7 +52,8 @@ export async function UnifiedCalendarContainer({
     if (memberships) {
       clubs = memberships
         .map((m) => {
-          const clubData = m.clubs as unknown as { id: string; name: string; slug: string } | null;
+          const clubsJoin = m.clubs as ClubJoin;
+          const clubData = Array.isArray(clubsJoin) ? clubsJoin[0] : clubsJoin;
           return clubData
             ? {
                 id: clubData.id,

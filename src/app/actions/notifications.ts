@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import type {
   Notification,
   GroupedNotifications,
@@ -146,6 +148,9 @@ export async function getNotificationsByType(): Promise<{
  * Mark a single notification as read
  */
 export async function markAsRead(notificationId: string): Promise<{ error?: string }> {
+  const rateCheck = await actionRateLimit("markAsRead", { limit: 60, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -154,6 +159,9 @@ export async function markAsRead(notificationId: string): Promise<{ error?: stri
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   try {
     // First verify the notification belongs to the user
@@ -192,6 +200,9 @@ export async function markAsRead(notificationId: string): Promise<{ error?: stri
  * Mark all notifications as read for the current user
  */
 export async function markAllAsRead(): Promise<{ error?: string }> {
+  const rateCheck = await actionRateLimit("markAllAsRead", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -200,6 +211,9 @@ export async function markAllAsRead(): Promise<{ error?: string }> {
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   try {
     const { error } = await supabase
@@ -224,6 +238,12 @@ export async function markAllAsRead(): Promise<{ error?: string }> {
  * from the read query, so the popout flips to its empty state.
  */
 export async function archiveAllNotifications(): Promise<{ error?: string }> {
+  const rateCheck = await actionRateLimit("archiveAllNotifications", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -232,6 +252,9 @@ export async function archiveAllNotifications(): Promise<{ error?: string }> {
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   try {
     const { error } = await supabase

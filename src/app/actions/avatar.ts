@@ -15,7 +15,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub, invalidateUser } from "@/lib/cache/invalidate";
 import { getSharp } from "@/lib/image/sharp-loader";
 import { handleActionError } from "@/lib/errors/handler";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
@@ -197,9 +197,7 @@ export async function updateUserAvatar(
     });
   }
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/edit");
-  revalidatePath("/");
+  invalidateUser(user.id);
 
   return { success: true, avatarUrl };
 }
@@ -351,8 +349,6 @@ export async function updateClubAvatar(
     updateData.picture_url = null;
   }
 
-  const { data: club } = await supabase.from("clubs").select("slug").eq("id", clubId).single();
-
   const { error: updateError } = await supabase.from("clubs").update(updateData).eq("id", clubId);
 
   if (updateError) {
@@ -368,11 +364,7 @@ export async function updateClubAvatar(
     });
   }
 
-  if (club?.slug) {
-    revalidatePath(`/club/${club.slug}`);
-    revalidatePath(`/club/${club.slug}/settings`);
-  }
-  revalidatePath("/");
+  invalidateClub(clubId);
 
   return { success: true, pictureUrl };
 }

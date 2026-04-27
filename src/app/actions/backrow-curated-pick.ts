@@ -1,12 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { invalidateMarketing } from "@/lib/cache/invalidate";
+import { invalidateClub, invalidateMarketing } from "@/lib/cache/invalidate";
 import { addEndlessMovie, advanceEndlessFestival } from "./endless-festival";
 import { refreshMovie, cacheMovie } from "./movies";
 import { createPlayingMovieThread } from "./discussions/auto";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 // BackRow Featured club slug - this is the official BackRow club for homepage features
 const BACKROW_FEATURED_SLUG = "backrow-featured";
@@ -100,6 +101,9 @@ export async function setFeaturedMovie(
   curatorNote: string,
   durationDays: number = 7
 ) {
+  const rateCheck = await actionRateLimit("setFeaturedMovie", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -109,6 +113,9 @@ export async function setFeaturedMovie(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check admin status
   const isAdmin = await isBackRowAdmin(user.id);
@@ -182,7 +189,7 @@ export async function setFeaturedMovie(
   });
 
   invalidateMarketing("curated-pick");
-  revalidatePath("/club/backrow");
+  invalidateClub(clubId);
 
   return { success: true, threadId: result.threadId };
 }
@@ -190,6 +197,9 @@ export async function setFeaturedMovie(
 // Advance to the next featured movie (admin only)
 // This completes the current festival and allows setting a new one
 export async function advanceFeaturedMovie() {
+  const rateCheck = await actionRateLimit("advanceFeaturedMovie", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -199,6 +209,9 @@ export async function advanceFeaturedMovie() {
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check admin status
   const isAdmin = await isBackRowAdmin(user.id);
@@ -227,7 +240,7 @@ export async function advanceFeaturedMovie() {
     .gt("expires_at", new Date().toISOString());
 
   invalidateMarketing("curated-pick");
-  revalidatePath("/club/backrow");
+  invalidateClub(clubId);
 
   return { success: true, message: "Festival completed. Ready to set new featured movie." };
 }
@@ -268,6 +281,12 @@ export async function getFeaturedMovieHistory(limit: number = 10) {
  * This updates backdrop_url and overview fields
  */
 export async function refreshCurrentFeaturedMovie() {
+  const rateCheck = await actionRateLimit("refreshCurrentFeaturedMovie", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -277,6 +296,9 @@ export async function refreshCurrentFeaturedMovie() {
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get the current featured movie
   const current = await getCurrentFeaturedMovie();
@@ -292,7 +314,8 @@ export async function refreshCurrentFeaturedMovie() {
   }
 
   invalidateMarketing("curated-pick");
-  revalidatePath("/club/backrow");
+  const clubId = await getBackRowClubId();
+  if (clubId) invalidateClub(clubId);
 
   return { success: true, movie: result.movie };
 }
@@ -314,6 +337,9 @@ const SLOT_THEMES: Record<MovieSlot, string> = {
  * Multiple festivals can be active simultaneously
  */
 export async function setMovieInSlot(slot: MovieSlot, tmdbId: number, curatorNote?: string) {
+  const rateCheck = await actionRateLimit("setMovieInSlot", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -323,6 +349,9 @@ export async function setMovieInSlot(slot: MovieSlot, tmdbId: number, curatorNot
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Check admin status
   const isAdmin = await isBackRowAdmin(user.id);
@@ -458,8 +487,7 @@ export async function setMovieInSlot(slot: MovieSlot, tmdbId: number, curatorNot
   });
 
   invalidateMarketing("curated-pick");
-  revalidatePath(`/club/${club.slug}`);
-  revalidatePath(`/club/${BACKROW_FEATURED_SLUG}`);
+  invalidateClub(club.id);
 
   return {
     success: true,
@@ -487,6 +515,12 @@ export async function setThrowbackMovie(tmdbId: number, curatorNote?: string) {
  * Fix the BackRow Featured club slug to match its name
  */
 export async function fixBackRowFeaturedSlug() {
+  const rateCheck = await actionRateLimit("fixBackRowFeaturedSlug", {
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -496,6 +530,9 @@ export async function fixBackRowFeaturedSlug() {
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Find the BackRow Featured club by name pattern
   const { data: club, error: clubError } = await supabase
@@ -534,7 +571,7 @@ export async function fixBackRowFeaturedSlug() {
   }
 
   invalidateMarketing("curated-pick");
-  revalidatePath(`/club/${correctSlug}`);
+  invalidateClub(club.id);
 
   return { success: true, oldSlug: club.slug, newSlug: correctSlug };
 }
@@ -544,6 +581,12 @@ export async function fixBackRowFeaturedSlug() {
  * This sets up the dual-movie system with placeholder movies if needed
  */
 export async function initializeBackRowFeatured() {
+  const rateCheck = await actionRateLimit("initializeBackRowFeatured", {
+    limit: 3,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   // Check authentication
@@ -553,6 +596,9 @@ export async function initializeBackRowFeatured() {
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // First fix the slug
   const slugResult = await fixBackRowFeaturedSlug();

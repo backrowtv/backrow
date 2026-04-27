@@ -245,17 +245,13 @@ export async function getMovieAverageRating(
 
 /**
  * Check if a movie is in a user's watchlist
- * Note: future_nomination_list table may not be in generated types yet
  */
 export async function isMovieInWatchlist(
   db: DbClient,
   userId: string,
   tmdbId: number
 ): Promise<boolean> {
-  // Use type assertion since future_nomination_list may not be in generated types
-  const { count, error } = await (
-    db as unknown as { from: (table: string) => ReturnType<typeof db.from> }
-  )
+  const { count, error } = await db
     .from("future_nomination_list")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)

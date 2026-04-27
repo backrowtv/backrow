@@ -240,6 +240,18 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
     // PARALLEL FETCH: Clubs and discussions (if user has clubs)
     if (clubIds.length > 0) {
+      // Combine thread IDs from both sources
+      type ThreadData = {
+        id: string;
+        title: string;
+        slug: string | null;
+        comment_count: number;
+        club_id: string;
+        created_at: string;
+        author: { display_name: string; avatar_url: string | null } | null;
+      };
+      type TaggedThread = { thread: ThreadData | null };
+
       const [clubsResult, taggedThreadsResult, legacyThreadsResult] = await Promise.all([
         supabase.from("clubs").select("id, name").in("id", clubIds).eq("archived", false),
         supabase
@@ -253,7 +265,8 @@ export default async function MoviePage({ params }: MoviePageProps) {
         `
           )
           .eq("tag_type", "movie")
-          .eq("tmdb_id", finalTmdbId),
+          .eq("tmdb_id", finalTmdbId)
+          .returns<TaggedThread[]>(),
         supabase
           .from("discussion_threads")
           .select(
@@ -268,18 +281,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
         name: c.name,
       }));
 
-      // Combine thread IDs from both sources
-      type ThreadData = {
-        id: string;
-        title: string;
-        slug: string | null;
-        comment_count: number;
-        club_id: string;
-        created_at: string;
-        author: { display_name: string; avatar_url: string | null } | null;
-      };
-      type TaggedThread = { thread: ThreadData | null };
-      const typedTaggedThreads = (taggedThreadsResult.data || []) as unknown as TaggedThread[];
+      const typedTaggedThreads = taggedThreadsResult.data || [];
 
       // Collect all unique threads
       const threadMap = new Map<string, ThreadData>();

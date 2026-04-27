@@ -10,7 +10,7 @@
  * those clubs first.
  *
  * Security (see docs/security.md):
- *   rate-limit → BotID (high-value) → getUser → requireVerifiedEmail → business
+ *   rate-limit → getUser → requireVerifiedEmail → business
  */
 
 import { NextResponse } from "next/server";

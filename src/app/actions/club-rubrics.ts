@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidateMember } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import type { UpdateClubRubricPreferenceResult } from "./club-rubrics.types";
 
 /**
@@ -11,6 +13,12 @@ export async function updateClubRubricPreference(
   clubId: string,
   rubricId: string | null
 ): Promise<UpdateClubRubricPreferenceResult> {
+  const rateCheck = await actionRateLimit("updateClubRubricPreference", {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -19,6 +27,9 @@ export async function updateClubRubricPreference(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Verify user is a member of the club
   const { data: membership, error: membershipError } = await supabase

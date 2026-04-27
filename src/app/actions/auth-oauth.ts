@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { Provider } from "@supabase/supabase-js";
 import { setRedirectCookie } from "@/lib/auth/redirect";
 import { authCallbackUrl } from "@/lib/seo/absolute-url";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
 
 type OAuthProvider = "google" | "apple" | "discord";
 
@@ -23,6 +24,12 @@ export async function signInWithOAuth(
   provider: OAuthProvider,
   postAuthRedirect?: string
 ): Promise<SignInWithOAuthResult> {
+  // OAuth sign-in is the *entry point* into the auth flow — the email gate
+  // doesn't apply here (it's enforced once the session is established by
+  // /auth/callback handling). Rate-limit only, matching signIn/signUp.
+  const rateCheck = await actionRateLimit("signInWithOAuth", { limit: 5, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const providerMap: Record<OAuthProvider, Provider> = {

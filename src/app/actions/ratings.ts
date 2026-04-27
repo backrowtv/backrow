@@ -7,6 +7,17 @@ import { normalizeRating, INTERNAL_RATING_SCALE } from "@/lib/ratings/normalize"
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { markMovieWatched } from "@/app/actions/endless-festival/watch-history";
 
+// Shape returned for `festivals!inner(status, theme)` joins on the `ratings` table.
+// PostgREST models embedded relations as nullable even when `!inner` guarantees the row,
+// so we shape it as a single non-null object.
+type RatingFestivalJoin = { status: string; theme: string | null };
+type SyncableRatingRow = {
+  id: string;
+  festival_id?: string;
+  nominations: { tmdb_id: number | null } | null;
+  festivals: RatingFestivalJoin | null;
+};
+
 export async function createRating(prevState: unknown, formData: FormData) {
   const rateCheck = await actionRateLimit("createRating", { limit: 20, windowMs: 60_000 });
   if (!rateCheck.success) return { error: rateCheck.error };
@@ -368,11 +379,13 @@ export async function updateGenericRating(
     .from("ratings")
     .select("id, festival_id, nominations!inner(tmdb_id), festivals!inner(status, theme)")
     .eq("user_id", user.id)
-    .eq("nominations.tmdb_id", tmdbId);
+    .eq("nominations.tmdb_id", tmdbId)
+    .returns<SyncableRatingRow[]>();
 
   if (syncableRatings) {
     for (const fr of syncableRatings) {
-      const fest = fr.festivals as unknown as { status: string; theme: string | null };
+      const fest = fr.festivals;
+      if (!fest) continue;
       const isSyncable = fest.status === "watching" || !fest.theme;
       if (isSyncable) {
         await supabase.from("ratings").update({ rating: normalizedRating }).eq("id", fr.id);
@@ -422,11 +435,13 @@ export async function deleteGenericRating(tmdbId: number) {
     .from("ratings")
     .select("id, nominations!inner(tmdb_id), festivals!inner(status, theme)")
     .eq("user_id", user.id)
-    .eq("nominations.tmdb_id", tmdbId);
+    .eq("nominations.tmdb_id", tmdbId)
+    .returns<SyncableRatingRow[]>();
 
   if (syncableRatings) {
     for (const fr of syncableRatings) {
-      const fest = fr.festivals as unknown as { status: string; theme: string | null };
+      const fest = fr.festivals;
+      if (!fest) continue;
       const isSyncable = fest.status === "watching" || !fest.theme;
       if (isSyncable) {
         await supabase.from("ratings").delete().eq("id", fr.id);
@@ -489,10 +504,12 @@ export async function deleteEndlessRating(festivalId: string, nominationId: stri
         .select("id, nominations!inner(tmdb_id), festivals!inner(status, theme)")
         .eq("user_id", user.id)
         .eq("nominations.tmdb_id", nom.tmdb_id)
-        .neq("nomination_id", nominationId);
+        .neq("nomination_id", nominationId)
+        .returns<SyncableRatingRow[]>();
 
       const hasOtherSyncedRating = otherRatings?.some((r) => {
-        const fest = r.festivals as unknown as { status: string; theme: string | null };
+        const fest = r.festivals;
+        if (!fest) return false;
         return fest.status === "watching" || !fest.theme;
       });
 

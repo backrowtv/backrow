@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub, invalidateMovie, invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Create a club note (discussion) for a movie
@@ -12,6 +14,9 @@ export async function createClubNote(
   tmdbId: number,
   note: string
 ): Promise<{ error?: string; data?: unknown }> {
+  const rateCheck = await actionRateLimit("createClubNote", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -20,6 +25,9 @@ export async function createClubNote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate note
   const trimmedNote = note.trim();
@@ -65,7 +73,8 @@ export async function createClubNote(
     return handleActionError(error, "createClubNote");
   }
 
-  revalidatePath(`/movies/${tmdbId}`);
+  invalidateMovie(tmdbId);
+  invalidateClub(clubId);
   return { data };
 }
 
@@ -76,6 +85,9 @@ export async function updateClubNote(
   noteId: string,
   note: string
 ): Promise<{ error?: string; data?: unknown }> {
+  const rateCheck = await actionRateLimit("updateClubNote", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -84,6 +96,9 @@ export async function updateClubNote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate note
   const trimmedNote = note.trim();
@@ -98,7 +113,7 @@ export async function updateClubNote(
   // Verify user owns the note
   const { data: existingNote } = await supabase
     .from("club_notes")
-    .select("user_id, tmdb_id")
+    .select("user_id, tmdb_id, club_id")
     .eq("id", noteId)
     .single();
 
@@ -131,7 +146,8 @@ export async function updateClubNote(
     return handleActionError(error, "updateClubNote");
   }
 
-  revalidatePath(`/movies/${existingNote.tmdb_id}`);
+  invalidateMovie(existingNote.tmdb_id);
+  if (existingNote.club_id) invalidateClub(existingNote.club_id);
   return { data };
 }
 
@@ -139,6 +155,9 @@ export async function updateClubNote(
  * Delete a club note
  */
 export async function deleteClubNote(noteId: string): Promise<{ error?: string }> {
+  const rateCheck = await actionRateLimit("deleteClubNote", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -148,10 +167,13 @@ export async function deleteClubNote(noteId: string): Promise<{ error?: string }
     return { error: "Not authenticated" };
   }
 
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
+
   // Verify user owns the note
   const { data: existingNote } = await supabase
     .from("club_notes")
-    .select("user_id, tmdb_id")
+    .select("user_id, tmdb_id, club_id")
     .eq("id", noteId)
     .single();
 
@@ -170,7 +192,8 @@ export async function deleteClubNote(noteId: string): Promise<{ error?: string }
     return handleActionError(error, "deleteClubNote");
   }
 
-  revalidatePath(`/movies/${existingNote.tmdb_id}`);
+  invalidateMovie(existingNote.tmdb_id);
+  if (existingNote.club_id) invalidateClub(existingNote.club_id);
   return {};
 }
 
@@ -223,6 +246,9 @@ export async function createPrivateNote(
   tmdbId: number,
   note: string
 ): Promise<{ error?: string; data?: PrivateNote }> {
+  const rateCheck = await actionRateLimit("createPrivateNote", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -231,6 +257,9 @@ export async function createPrivateNote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate note
   const trimmedNote = note.trim();
@@ -257,7 +286,7 @@ export async function createPrivateNote(
     return handleActionError(error, "createPrivateNote");
   }
 
-  revalidatePath(`/movies/[slug]`, "page");
+  invalidateUser(user.id);
   return { data };
 }
 
@@ -268,6 +297,9 @@ export async function updatePrivateNote(
   noteId: string,
   note: string
 ): Promise<{ error?: string; data?: PrivateNote }> {
+  const rateCheck = await actionRateLimit("updatePrivateNote", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -276,6 +308,9 @@ export async function updatePrivateNote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate note
   const trimmedNote = note.trim();
@@ -317,7 +352,7 @@ export async function updatePrivateNote(
     return handleActionError(error, "updatePrivateNote");
   }
 
-  revalidatePath(`/movies/[slug]`, "page");
+  invalidateUser(user.id);
   return { data };
 }
 
@@ -325,6 +360,9 @@ export async function updatePrivateNote(
  * Delete a private note by ID
  */
 export async function deletePrivateNote(noteId: string): Promise<{ error?: string }> {
+  const rateCheck = await actionRateLimit("deletePrivateNote", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -333,6 +371,9 @@ export async function deletePrivateNote(noteId: string): Promise<{ error?: strin
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Verify user owns the note
   const { data: existingNote } = await supabase
@@ -355,7 +396,7 @@ export async function deletePrivateNote(noteId: string): Promise<{ error?: strin
     return handleActionError(error, "deletePrivateNote");
   }
 
-  revalidatePath(`/movies/[slug]`, "page");
+  invalidateUser(user.id);
   return {};
 }
 
@@ -408,6 +449,12 @@ export async function createFestivalPrivateNote(
   festivalId: string,
   note: string
 ): Promise<{ error?: string; data?: FestivalPrivateNote }> {
+  const rateCheck = await actionRateLimit("createFestivalPrivateNote", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -416,6 +463,9 @@ export async function createFestivalPrivateNote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const trimmedNote = note.trim();
   if (!trimmedNote || trimmedNote.length === 0) {
@@ -450,6 +500,12 @@ export async function updateFestivalPrivateNote(
   noteId: string,
   note: string
 ): Promise<{ error?: string; data?: FestivalPrivateNote }> {
+  const rateCheck = await actionRateLimit("updateFestivalPrivateNote", {
+    limit: 20,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -458,6 +514,9 @@ export async function updateFestivalPrivateNote(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const trimmedNote = note.trim();
   if (!trimmedNote || trimmedNote.length === 0) {
@@ -503,6 +562,12 @@ export async function updateFestivalPrivateNote(
  * Delete a festival private note
  */
 export async function deleteFestivalPrivateNote(noteId: string): Promise<{ error?: string }> {
+  const rateCheck = await actionRateLimit("deleteFestivalPrivateNote", {
+    limit: 20,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -511,6 +576,9 @@ export async function deleteFestivalPrivateNote(noteId: string): Promise<{ error
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { data: existingNote } = await supabase
     .from("private_notes")

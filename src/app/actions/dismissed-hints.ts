@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import type { DismissedHints } from "@/types/dismissed-hints";
 
 /**
@@ -34,6 +36,9 @@ export async function getDismissedHints(): Promise<DismissedHints> {
  * Dismiss a single hint by key
  */
 export async function dismissHint(key: string): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("dismissHint", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   try {
     const supabase = await createClient();
 
@@ -41,6 +46,9 @@ export async function dismissHint(key: string): Promise<{ success: boolean; erro
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { success: false, error: verified.error };
 
     // Get current hints and merge
     const { data: userData } = await supabase
@@ -75,6 +83,9 @@ export async function dismissHint(key: string): Promise<{ success: boolean; erro
 export async function bulkDismissHints(
   keys: string[]
 ): Promise<{ success: boolean; error?: string }> {
+  const rateCheck = await actionRateLimit("bulkDismissHints", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   try {
     const supabase = await createClient();
 
@@ -82,6 +93,9 @@ export async function bulkDismissHints(
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Not authenticated" };
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { success: false, error: verified.error };
 
     const { data: userData } = await supabase
       .from("users")

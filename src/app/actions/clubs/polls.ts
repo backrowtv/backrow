@@ -8,12 +8,17 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidatePoll } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { getClubSlug, checkAdminPermission, checkMembership } from "./_helpers";
 import { handleActionError } from "@/lib/errors/handler";
 import { createNotificationsForUsers } from "../notifications";
 import { logClubActivity } from "@/lib/activity/logger";
 
 export async function createPoll(prevState: unknown, formData: FormData) {
+  const rateCheck = await actionRateLimit("createPoll", { limit: 5, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -22,6 +27,9 @@ export async function createPoll(prevState: unknown, formData: FormData) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const clubId = formData.get("clubId") as string;
   const question = formData.get("question") as string;
@@ -110,6 +118,9 @@ export async function createPoll(prevState: unknown, formData: FormData) {
 }
 
 export async function voteOnPoll(pollId: string, optionIndex: number) {
+  const rateCheck = await actionRateLimit("voteOnPoll", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -118,6 +129,9 @@ export async function voteOnPoll(pollId: string, optionIndex: number) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get poll to verify it's active, check settings, and verify membership
   const { data: poll, error: pollError } = await supabase
@@ -204,6 +218,9 @@ export interface UpdatePollData {
 }
 
 export async function closePoll(pollId: string) {
+  const rateCheck = await actionRateLimit("closePoll", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -212,6 +229,9 @@ export async function closePoll(pollId: string) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get poll to check permissions
   const { data: poll, error: pollError } = await supabase
@@ -255,6 +275,9 @@ export async function closePoll(pollId: string) {
 }
 
 export async function updatePoll(pollId: string, data: UpdatePollData) {
+  const rateCheck = await actionRateLimit("updatePoll", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -263,6 +286,9 @@ export async function updatePoll(pollId: string, data: UpdatePollData) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get poll to check permissions
   const { data: poll, error: pollError } = await supabase
@@ -335,6 +361,9 @@ export async function updatePoll(pollId: string, data: UpdatePollData) {
 }
 
 export async function deletePoll(pollId: string) {
+  const rateCheck = await actionRateLimit("deletePoll", { limit: 10, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -343,6 +372,9 @@ export async function deletePoll(pollId: string) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Get poll to check permissions
   const { data: poll, error: pollError } = await supabase

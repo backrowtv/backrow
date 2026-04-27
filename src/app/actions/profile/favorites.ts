@@ -1,19 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import type { FavoriteItemType, UserFavorite } from "@/types/favorites";
 import { cachePerson } from "@/app/actions/persons";
 import { cacheMovie } from "@/app/actions/movies";
 
 const MAX_FEATURED = 4;
-
-function revalidateFavorites() {
-  revalidatePath("/", "layout");
-  revalidatePath("/profile");
-  revalidatePath("/profile/display-case");
-}
 
 /**
  * Get all favorites for a user, ordered by sort_order
@@ -229,7 +223,7 @@ export async function addFavorite(
     }
   }
 
-  revalidateFavorites();
+  invalidateUser(user.id);
   return { success: true, data: fav };
 }
 
@@ -254,7 +248,7 @@ export async function removeFavorite(
 
   if (error) return handleActionError(error, "removeFavorite");
 
-  revalidateFavorites();
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -293,7 +287,7 @@ export async function toggleFeatured(
 
   if (error) return handleActionError(error, "toggleFeatured");
 
-  revalidateFavorites();
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -323,6 +317,6 @@ export async function reorderFavorites(
   const failed = results.find((r) => r.error);
   if (failed?.error) return handleActionError(failed.error, "reorderFavorites");
 
-  revalidateFavorites();
+  invalidateUser(user.id);
   return { success: true };
 }

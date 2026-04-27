@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateFestival, invalidateUser } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { cacheMovie } from "../movies";
 import { logMemberActivity } from "@/lib/activity/logger";
@@ -85,8 +85,7 @@ export async function addToFutureNominations(
     tags,
   });
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/nominations");
+  invalidateUser(user.id);
   return { success: true, id: data.id };
 }
 
@@ -131,8 +130,7 @@ export async function removeFromFutureNominations(
     poster_url: movie?.poster_url,
   });
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/nominations");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -309,8 +307,7 @@ export async function addFutureNominationLink(
     return handleActionError(error, "addFutureNominationLink");
   }
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/nominations");
+  invalidateUser(user.id);
   return { success: true, id: data.id };
 }
 
@@ -361,8 +358,7 @@ export async function removeFutureNominationLink(
     return handleActionError(error, "removeFutureNominationLink");
   }
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/nominations");
+  invalidateUser(user.id);
   return { success: true };
 }
 
@@ -475,7 +471,7 @@ export async function nominateFromFutureList(
     await supabase.from("future_nomination_list").delete().eq("id", futureNominationId);
   }
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/nominations");
+  invalidateUser(user.id);
+  await invalidateFestival(festivalId, { clubId });
   return { success: true, nominationId: nomination.id };
 }

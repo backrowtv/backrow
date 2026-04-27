@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
-import { revalidatePath } from "next/cache";
+import { invalidateMember } from "@/lib/cache/invalidate";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -439,10 +439,8 @@ async function JoinPageContent({ params, searchParams }: JoinPageProps) {
     console.error("Failed to check club badges:", error);
   }
 
-  // Revalidate paths
-  revalidatePath("/discover");
-  revalidatePath(`/club/${club.slug || club.id}`);
-  revalidatePath("/");
+  // Invalidate cache: member joined a club
+  invalidateMember(club.id, user.id);
 
   // Redirect to club page
   redirect(`/club/${club.slug || club.id}`);

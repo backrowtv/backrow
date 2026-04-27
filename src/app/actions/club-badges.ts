@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import {
   type ClubBadgeCategory,
   type ClubBadgeWithProgress,
@@ -281,6 +283,12 @@ export async function updateClubFeaturedBadges(
   clubId: string,
   badgeIds: string[]
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("updateClubFeaturedBadges", {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
 
@@ -292,6 +300,9 @@ export async function updateClubFeaturedBadges(
     if (!user) {
       return { error: "Not authenticated" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Check if user is producer or director
     const { data: membership } = await supabase

@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
 import { processLetterboxdImport, type LetterboxdCsvRow } from "@/lib/letterboxd/import";
 import Papa from "papaparse";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import type { ImportLetterboxdDataResult } from "./letterboxd-import.types";
 
 /**
@@ -12,6 +14,9 @@ import type { ImportLetterboxdDataResult } from "./letterboxd-import.types";
 export async function importLetterboxdData(
   formData: FormData
 ): Promise<ImportLetterboxdDataResult> {
+  const rateCheck = await actionRateLimit("importLetterboxdData", { limit: 3, windowMs: 60_000 });
+  if (!rateCheck.success) return { success: false, error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -20,6 +25,9 @@ export async function importLetterboxdData(
   if (!user) {
     return { success: false, error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { success: false, error: verified.error };
 
   const file = formData.get("file") as File | null;
   if (!file) {

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { invalidateClub } from "@/lib/cache/invalidate";
 import { handleActionError } from "@/lib/errors/handler";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { autoJoinFeaturedClub } from "@/lib/users/autoJoinFeatured";
@@ -292,10 +292,8 @@ export async function createUserAndClub(formData: FormData) {
     }
   }
 
-  // Revalidate paths
-  revalidatePath("/");
-  revalidatePath("/clubs");
-  revalidatePath(`/club/${club.slug}`);
+  // Invalidate caches: club + index pages
+  invalidateClub(club.id);
 
   // Return success with redirect URL (don't use redirect() as it throws and breaks try/catch on client)
   return { success: true, clubSlug: club.slug };

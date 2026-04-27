@@ -4,20 +4,23 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { env } from "@/lib/config/env";
 
-/**
- * Create anonymous Supabase client for cached queries (no cookies needed)
- * Use this for 'use cache' functions that access public data
- * This client uses the anon key but doesn't require dynamic APIs like cookies()
- */
+// Generated DB types live at ./database.types.ts (regen via `bun run db:gen-types`).
+// Factories below are deliberately UNTYPED — typing them with <Database> surfaces
+// 200+ pre-existing mismatches between hand-written local types and DB reality.
+// To get type safety on a specific query, opt in per-site:
+//
+//   import type { Database } from "@/lib/supabase/database.types";
+//   const supabase = await createClient();
+//   const { data } = await supabase.from("clubs").select("*, users(*)")
+//     .returns<MyShape>();
+//
+// Reconciling all local types with generated types is tracked separately.
+
 export function createPublicClient() {
   return createSupabaseClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
 export async function createClient() {
-  // Opt the entire render scope out of cacheComponents prerender. Every
-  // caller of this function reads cookies (for the Supabase session), which
-  // is inherently dynamic. Without this, pages that call createClient()
-  // fail prerender with "Uncached data accessed outside <Suspense>".
   await connection();
   const cookieStore = await cookies();
 
@@ -37,11 +40,6 @@ export async function createClient() {
   });
 }
 
-/**
- * Service-role client for cross-user operations that must bypass RLS
- * (e.g. push dispatch reading other users' subscriptions).
- * Never expose to the browser. Only call from server code.
- */
 export function createServiceClient() {
   const { NEXT_PUBLIC_SUPABASE_URL: url, SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey } = env;
   if (!serviceRoleKey) {
