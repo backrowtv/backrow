@@ -10,15 +10,15 @@ these contracts changes, both files change in the same PR.
 
 ## Retention windows
 
-| Data                                        | Retained for                                        |
-| ------------------------------------------- | --------------------------------------------------- |
-| Account profile (public.users + auth.users) | Indefinitely while account is active                |
-| User-authored content (ratings, noms, etc.) | Indefinitely while account is active                |
-| Signed export archives (account-exports)    | 7 days from generation, then swept by weekly cron   |
-| `job_dedup` rows                            | 7 days                                              |
-| Archived notifications                      | 30 days (see `cleanup-archived-notifications` cron) |
-| Soft-deleted accounts (`users.deleted_at`)  | 30 days until hard-delete queue job fires           |
-| Soft-deleted discussion comments            | 30 days, then hard-deleted by `orphan-sweep` cron   |
+| Data                                        | Retained for                                         |
+| ------------------------------------------- | ---------------------------------------------------- |
+| Account profile (public.users + auth.users) | Indefinitely while account is active                 |
+| User-authored content (ratings, noms, etc.) | Indefinitely while account is active                 |
+| Signed export archives (account-exports)    | 7 days from generation, then swept by weekly cron    |
+| `job_dedup` rows                            | 7 days                                               |
+| Archived notifications                      | 30 days (see `cleanup-archived-notifications` cron)  |
+| Soft-deleted accounts (`users.deleted_at`)  | 30 days, enforced by a delayed enqueue (see Phase 1) |
+| Soft-deleted discussion comments            | 30 days, then hard-deleted by `orphan-sweep` cron    |
 
 ---
 
@@ -88,6 +88,12 @@ browser is redirected to `/?deleted=1` — the landing page banner explains the
 30-day grace window and surfaces the support email for restoration.
 
 ### Phase 3 — hard-delete (30 days later, queue worker)
+
+This is a **delayed enqueue**, not a cron sweep. Phase 1 calls
+`enqueueAccountHardDelete(user.id, { delaySeconds: 30 * 86400 })`; Vercel
+Queues holds the message until its delay elapses, then dispatches it once
+to the worker route. The orphan-sweep cron is separate and covers different
+lifecycles (see "Operational notes" below).
 
 `src/lib/jobs/handlers/account-hard-delete.ts`:
 

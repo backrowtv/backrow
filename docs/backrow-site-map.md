@@ -15,22 +15,33 @@ Complete route structure and page hierarchy for BackRow application.
 
 - `/sign-in` - Sign in page
 - `/sign-up` - Sign up page
+- `/sign-up/confirm` - Email-verification confirmation landing
 - `/forgot-password` - Forgot password page
 - `/reset-password` - Reset password page
+
+### Root page
+
+- `/` - Landing page (`src/app/page.tsx`); routes to marketing landing if not authenticated, home if authenticated.
 
 ### (marketing) Route Group
 
 **Layout**: Marketing layout (no sidebar, no dashboard padding)
 
-- `/` - Landing page (when not authenticated)
 - `/blog` - Blog page
-- `/contact` - Contact page
+- `/contact` - Contact page (public form, layered rate limit)
+- `/cookie-settings` - Cookie consent management (CCPA)
 - `/create-club` - Create club CTA
+- `/do-not-sell-or-share` - Do Not Sell or Share My Personal Information (CCPA)
 - `/faq` - FAQ page
 - `/privacy-policy` - Privacy policy
 - `/subscriptions` - Subscriptions page
 - `/terms-of-use` - Terms of use
 - `/user-agreement` - User agreement
+
+### Welcome / callback (top-level, not in a group)
+
+- `/welcome/username` - OAuth username picker (mandatory after first OAuth sign-in)
+- `/auth/callback` - OAuth callback handler (Supabase redirect target)
 
 ### (dashboard) Route Group
 
@@ -39,8 +50,8 @@ Complete route structure and page hierarchy for BackRow application.
 #### Main Dashboard Pages
 
 - `/home` - Authenticated home (3-column: HomeSidebar, HomeFeed, HomeWidgets)
+- `/dashboard` - Dashboard redirect to `/home`
 - `/clubs` - Clubs list page (tabs: All, Owner, Admin, Member, Following)
-- `/clubs/new` - Create new club (wizard flow)
 - `/activity` - Global activity feed
 - `/calendar` - Global calendar
 - `/discover` - Discover page
@@ -49,14 +60,17 @@ Complete route structure and page hierarchy for BackRow application.
 - `/search` - Search page
 - `/timeline` - Timeline — deadlines and dates from clubs
 
+> Note: `/clubs/new` is a permanent redirect to `/create-club`
+> (`next.config.ts`); not enumerated as its own page.
+
 #### Club Routes (`/club/[slug]`)
 
 **Layout**: Club layout (auth + membership check)
 
 - `/club/[slug]` - Club detail page (hero festival, announcements, calendar, members)
-- `/club/[slug]/calendar` - Club calendar page
-- `/club/[slug]/discuss` - Discussion page
+- `/club/[slug]/discuss` - Discussion list page
 - `/club/[slug]/discuss/[thread-slug]` - Discussion thread detail
+- `/club/[slug]/discuss/[thread-slug]/comment/[commentId]` - Deep-link to a single comment
 - `/club/[slug]/display-case` - Display case page
 - `/club/[slug]/endless` - Endless festival mode
 - `/club/[slug]/events` - Club events
@@ -90,6 +104,7 @@ Complete route structure and page hierarchy for BackRow application.
 - `/club/[slug]/manage/club-management` - Club management
 - `/club/[slug]/manage/festival` - Festival management
 - `/club/[slug]/manage/homepage-movies` - Homepage movies
+- `/club/[slug]/manage/import-history` - Letterboxd / external import history
 - `/club/[slug]/manage/season` - Season management
 
 #### Profile Routes (`/profile`)
@@ -125,6 +140,7 @@ Complete route structure and page hierarchy for BackRow application.
 - `/admin/announcements` - Site announcements
 - `/admin/badges` - Badge management
 - `/admin/collections` - Curated collections
+- `/admin/components` - Component catalog (admin-only design reference)
 - `/admin/feedback` - User feedback
 - `/admin/settings` - Admin settings
 - `/admin/users` - User management
@@ -133,7 +149,85 @@ Complete route structure and page hierarchy for BackRow application.
 
 - `/test-auth` - Test auth widget (dev only)
 - `/test-styling` - Test styling catalog (dev only)
-- `/dashboard` - Dashboard redirect
+
+## API Routes
+
+Every `src/app/api/**/route.ts` endpoint. Authentication model varies — cron
+routes accept `CRON_SECRET` bearer; queue workers run as system via
+`experimentalTriggers` in `vercel.json`; user-callable routes match the
+write-path posture in `docs/security.md`.
+
+### Account lifecycle
+
+- `/api/account/delete` - Soft-delete the account, schedule the 30-day hard-delete worker
+- `/api/account/export` - Enqueue an account-export job, email the signed ZIP
+
+### Auth callback (top-level)
+
+- `/auth/callback` - Page-level OAuth handler; not under `/api`. See Welcome / callback group above.
+
+### Brand assets
+
+- `/api/brand/wordmark` - Wordmark SVG renderer
+
+### Clubs
+
+- `/api/clubs` - List/create-helper endpoints (used by client search/autocomplete)
+- `/api/clubs/[clubId]` - Club detail endpoint
+- `/api/clubs/[clubId]/festivals` - Club festival list
+
+### Cron (CRON_SECRET-gated)
+
+- `/api/cron/advance-festivals` - Hourly: auto-advance festival phases
+- `/api/cron/archive-notifications` - Daily: archive notifications older than 30 days
+- `/api/cron/cleanup-job-dedup` - Nightly: TTL the `job_dedup` table
+- `/api/cron/delete-archived-notifications` - Weekly: purge archived notifications
+- `/api/cron/orphan-sweep` - Weekly: delete expired export ZIPs and hard-delete soft-deleted comments
+- `/api/cron/process-polls` - Process expired polls
+- `/api/cron/rollover-seasons` - Monthly: create new seasons
+
+### Discussions
+
+- `/api/discussions/existing` - Lookup auto-created discussion threads (movie/actor/director)
+
+### Events
+
+- `/api/events/[eventId]/ics` - Calendar ICS download for an event
+
+### Icons (PWA + favicons)
+
+- `/api/icons/apple-dark`, `/api/icons/apple-light`
+- `/api/icons/club-backrow-dark`, `/api/icons/club-backrow-light`
+- `/api/icons/favicon-dark`, `/api/icons/favicon-light`
+- `/api/icons/pwa-192`, `/api/icons/pwa-512`
+
+### Job workers (queue-bound, not internet-addressable)
+
+- `/api/jobs/account-export` - Build + email user data export
+- `/api/jobs/account-hard-delete` - 30-day hard-delete worker
+- `/api/jobs/bulk-email` - Per-recipient send via Resend
+- `/api/jobs/image-processing` - Sharp resize + thumbnail variants
+- `/api/jobs/notification-fanout` - Notification + push fan-out per club
+
+### Marketing data
+
+- `/api/film-news` - RSS film-news passthrough
+- `/api/movie-headlines` - Headline aggregator for the marketing landing
+- `/api/upcoming-movies` - Upcoming movie releases
+
+### Migrations
+
+- `/api/migrations/apply-notification-archiving` - One-shot migration helper
+
+### Health
+
+- `/api/health` - Health check endpoint
+
+### TMDB proxy
+
+- `/api/tmdb/credits` - TMDB credits proxy
+- `/api/tmdb/search` - TMDB movie search proxy
+- `/api/tmdb/search-people` - TMDB person search proxy
 
 ## Layout Patterns
 
@@ -179,13 +273,21 @@ Complete route structure and page hierarchy for BackRow application.
 - `[year]` - Year (4 digits)
 - `[userId]` - User ID
 - `[thread-slug]` - Discussion thread slug
+- `[commentId]` - Comment UUID (deep-link)
+- `[clubId]` - Club UUID (API routes)
+- `[eventId]` - Event UUID (API routes)
 
 ## Page Count Summary
 
-| Route Group | Pages  |
-| ----------- | ------ |
-| Auth        | 4      |
-| Marketing   | 9      |
-| Dashboard   | 62     |
-| API         | 17     |
-| **Total**   | **92** |
+Counts derive from `find src/app -name 'page.tsx'` and
+`find src/app/api -name 'route.ts'` at the time of writing.
+
+| Route Group        | Pages   |
+| ------------------ | ------- |
+| Root               | 1       |
+| Auth               | 5       |
+| Marketing          | 10      |
+| Welcome / callback | 1       |
+| Dashboard          | 62      |
+| API routes         | 25      |
+| **Total**          | **104** |

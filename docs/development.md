@@ -53,7 +53,11 @@ bun tsx scripts/test-factory --scenario=tiny   # or small/medium/active/large
 
 For multi-scenario setups, user lists, and teardown flags, see `docs/TESTING.md`.
 
-**BotID + rate limits in dev.** `checkBotId()` auto-bypasses when `NODE_ENV !== "production"`, so Playwright doesn't need headers or special tokens. Action rate limits (default 5/min per action/IP) all share the same Playwright origin — if a spec fires auth actions in a tight loop and gets 429s, space them or scope the factory run to fewer iterations.
+**Rate limits in dev.** Action rate limits (default 10/min per action/IP via `actionRateLimit`) auto-fall-back to an in-memory `Map` when `KV_REST_API_URL` / `KV_REST_API_TOKEN` are unset, so Playwright doesn't need Upstash creds locally. If a spec fires auth actions in a tight loop and gets 429s, space them or scope the factory run. To debug live limits, look up keys under `br:rl:act:*` (server actions) and `br:rl:api:*` (API routes) in the Upstash dashboard.
+
+## Regenerating Supabase types
+
+Run `bun run db:gen-types` after schema migrations to refresh `src/lib/supabase/database.types.ts`. The factories are deliberately untyped right now — opt into typing per query with `.returns<T>()` until local types are reconciled with the generated `Database` type.
 
 ## CI pipeline overview
 
@@ -104,7 +108,7 @@ The Supabase GitHub integration auto-provisions a database branch for every PR a
 2. In the workflow, `supabase/setup-cli@v1` + `supabase branches get --branch $BRANCH_NAME` to fetch the URL/keys at runtime.
 3. Export into the step's `env:` block for `test:e2e`.
 
-If you prefer not to query the API per-run, promote the most recent branch's creds to `PREVIEW_SUPABASE_*` secrets manually — CI falls back to those. The long-term fix is the integration's native Actions outputs; re-check upstream when they GA.
+If you prefer not to query the API per-run, promote the most recent branch's creds to `PREVIEW_SUPABASE_*` secrets manually — CI falls back to those.
 
 **Resetting a branch.** Dashboard → Branches → ⋮ → Reset. Triggered by merge conflicts in migrations or drift from the baseline.
 

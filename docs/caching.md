@@ -29,6 +29,36 @@ static. This doc is the single source of truth for how we cache and invalidate.
 
 ---
 
+## Static + dynamic in one route (PPR via Suspense)
+
+With `cacheComponents: true` (`next.config.ts:13`), every route can serve a
+cached static shell plus dynamic islands wrapped in `<Suspense>`. Anything
+that reads `cookies()`, `headers()`, `searchParams`, or calls `await
+connection()` becomes a dynamic island; everything else prerenders.
+
+```tsx
+export default function Page() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <DynamicContent />
+    </Suspense>
+  );
+}
+async function DynamicContent() {
+  await connection(); // mark this branch dynamic
+  const supabase = await createClient();
+  // ...
+}
+```
+
+19 app routes use this pattern, including `welcome/username`, `clubs`,
+`discover`, `profile`, `profile/nominations`, `club/[slug]`,
+`club/[slug]/manage`, `club/[slug]/events`, `club/[slug]/polls`,
+`club/[slug]/stats`. The fallback is the prerendered shell; dynamic data
+streams in on first paint.
+
+---
+
 ## Tag naming — colon scheme
 
 All cache tags use `entity:id` or `entity:index` form. Every tag string is
@@ -41,11 +71,13 @@ declared via `CacheTags.*` in `src/lib/cache/invalidate.ts`, never hand-written.
 | One season          | `CacheTags.season(id)`              | `season:s1…`                |
 | One discussion      | `CacheTags.discussion(id)`          | `discussion:t1…`            |
 | One poll            | `CacheTags.poll(id)`                | `poll:p1…`                  |
+| One user (profile)  | `CacheTags.user(userId)`            | `user:u1…`                  |
 | One user (member)   | `CacheTags.member(userId)`          | `member:u1…`                |
 | One movie (TMDB id) | `CacheTags.movie(tmdbId)`           | `movie:603`                 |
 | Club list index     | `CacheTags.clubsIndex()`            | `clubs:index`               |
 | Discover index      | `CacheTags.discoverIndex()`         | `discover:index`            |
 | Featured club slot  | `CacheTags.featuredClub()`          | `featured:club`             |
+| Curated marquee     | `CacheTags.curatedPick()`           | `curated:current`           |
 | Marketing slots     | `CacheTags.upcomingMovies()` / `…`  | `movies:upcoming`           |
 | Stats (per-kind)    | `CacheTags.clubStats(clubId, kind)` | `stats:participation:a4b2…` |
 
@@ -151,6 +183,7 @@ helpers in `src/lib/cache/invalidate.ts` so cascades stay consistent:
 
 | Write                        | Helper                                             |
 | ---------------------------- | -------------------------------------------------- |
+| User preference / avatar     | `invalidateUser(userId)`                           |
 | Club metadata / settings     | `invalidateClub(clubId)`                           |
 | Festival lifecycle / phase   | `await invalidateFestival(festivalId, { clubId })` |
 | Discussion thread / comments | `invalidateDiscussion(threadId, clubId)`           |
@@ -159,6 +192,7 @@ helpers in `src/lib/cache/invalidate.ts` so cascades stay consistent:
 | Season rollover / conclude   | `invalidateSeason(seasonId, clubId)`               |
 | Stats (recompute per-kind)   | `invalidateClubStats(clubId, kind?)`               |
 | Movie metadata               | `invalidateMovie(tmdbId)`                          |
+| Curated home pick            | `invalidateCuratedPick()`                          |
 | Admin featured-club / news … | `invalidateMarketing(slot)`                        |
 
 Each helper cascades the parents automatically. `invalidateFestival` looks up
@@ -248,3 +282,30 @@ path-based version re-executes everything under `/club/<slug>`.
 - **Runtime Cache API (`@vercel/functions`)** — per-region KV cache for hot
   API responses. Not needed at launch scale; revisit when a single
   deployment region starts bottlenecking.
+
+---
+
+## Tag helper by scope (write-path triage)
+
+Pick the helper that matches the scope of the write. `revalidatePath` is
+reserved for genuinely broad writes — see "When `revalidatePath` is still
+allowed" above.
+
+| Scope of the write                                       | Helper                                             |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| User-scoped (preferences, avatar, profile-only fields)   | `invalidateUser(userId)`                           |
+| Single club (settings, metadata, announcements, members) | `invalidateClub(clubId)`                           |
+| Single festival (phase, results, lifecycle)              | `await invalidateFestival(festivalId, { clubId })` |
+| Single discussion thread / comments                      | `invalidateDiscussion(threadId, clubId)`           |
+| Single poll (vote, close, edit)                          | `invalidatePoll(pollId, clubId)`                   |
+| Membership (join, leave, role change)                    | `invalidateMember(clubId, userId)`                 |
+| Single season (rollover, conclude)                       | `invalidateSeason(seasonId, clubId)`               |
+| Single movie (TMDB metadata change)                      | `invalidateMovie(tmdbId)`                          |
+| Curated marquee pick on home                             | `invalidateCuratedPick()`                          |
+| Marketing slot (featured-club, news, upcoming, popular)  | `invalidateMarketing(slot)`                        |
+| Genuinely broad shells (home, `/admin`, `/discover`)     | `revalidatePath('/...')`                           |
+
+If the write touches multiple scopes (e.g. an admin curated-pick edit that
+also republishes the home page), call each matching helper in sequence — the
+helpers cascade their parents but they don't overlap across unrelated
+scopes.

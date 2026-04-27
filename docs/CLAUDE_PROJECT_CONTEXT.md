@@ -44,14 +44,19 @@ BackRow is a **movie social platform** for running themed film festivals with fr
 /                     # Landing page (marketing) or Home (if authenticated)
 /sign-in             # Sign in page
 /sign-up             # Sign up page
+/sign-up/confirm     # Email-verification confirmation landing
 /blog                # Blog
-/contact             # Contact form
+/contact             # Contact form (layered rate limit)
+/cookie-settings     # Cookie consent management (CCPA)
 /create-club         # Create club CTA
+/do-not-sell-or-share # CCPA "Do Not Sell or Share" page
 /faq                 # FAQ
 /subscriptions       # Subscription plans
 /terms-of-use        # Terms of use
 /user-agreement      # User agreement
 /privacy-policy      # Privacy policy
+/welcome/username    # OAuth username picker (mandatory after first OAuth sign-in)
+/auth/callback       # OAuth callback handler (Supabase redirect target)
 ```
 
 ### Dashboard Routes (Authenticated)
@@ -59,12 +64,11 @@ BackRow is a **movie social platform** for running themed film festivals with fr
 ```
 /home                # Home feed (Goodreads-style 3-column layout)
 /clubs               # User's clubs list + Following tab for public clubs
-/clubs/new           # Create new club (wizard flow)
 /club/[slug]         # Club overview/activity (NOTE: singular /club/ not /clubs/)
 /club/[slug]/discuss                       # Club discussions
 /club/[slug]/discuss/[thread-slug]         # Discussion thread detail
+/club/[slug]/discuss/[thread-slug]/comment/[commentId]  # Deep-link to a single comment
 /club/[slug]/members                       # Club members
-/club/[slug]/calendar                      # Club calendar
 /club/[slug]/history                       # Club history
 /club/[slug]/display-case                  # Club display case
 /club/[slug]/stats                         # Club statistics
@@ -83,6 +87,7 @@ BackRow is a **movie social platform** for running themed film festivals with fr
 /club/[slug]/manage/club-management        # Club management
 /club/[slug]/manage/festival               # Festival management
 /club/[slug]/manage/homepage-movies        # Homepage movies
+/club/[slug]/manage/import-history         # Letterboxd / external import history
 /club/[slug]/manage/season                 # Season management
 /club/[slug]/season/[season-slug]          # Season detail + leaderboard
 /club/[slug]/festival/[festival-slug]      # Festival detail
@@ -113,33 +118,78 @@ BackRow is a **movie social platform** for running themed film festivals with fr
 /profile/settings/display    # Sidebar customization
 /profile/settings/subscriptions # Subscription management
 
-/admin               # Site admin dashboard (admin only)
+/admin                       # Site admin dashboard (admin only)
+/admin/overview              # Admin overview metrics
+/admin/announcements         # Manage site announcements
+/admin/badges                # Badge management
+/admin/collections           # Curated collections
+/admin/components            # Component catalog (admin-only design reference)
+/admin/feedback              # User feedback management
+/admin/settings              # Site admin settings
+/admin/users                 # User management
 ```
 
 ### API Routes
 
+Authoritative list lives in `docs/backrow-site-map.md`. Summary:
+
 ```
-/api/cron/advance-festivals              # Hourly: Auto-advance festival phases
-/api/cron/rollover-seasons               # Monthly: Create new seasons
-/api/cron/archive-notifications          # Daily: Archive old notifications
-/api/cron/delete-archived-notifications  # Weekly: Clean up archived
+# Account lifecycle (auth + email gate)
+/api/account/delete                      # Soft-delete + schedule 30-day hard-delete
+/api/account/export                      # Enqueue user-data export ZIP
+
+# Brand assets
+/api/brand/wordmark                      # Wordmark SVG renderer
+
+# Clubs
+/api/clubs                               # List/lookup helpers
+/api/clubs/[clubId]                      # Club detail
+/api/clubs/[clubId]/festivals            # Club festivals
+
+# Cron (CRON_SECRET-gated)
+/api/cron/advance-festivals              # Hourly: auto-advance festival phases
+/api/cron/archive-notifications          # Daily: archive notifications older than 30 days
+/api/cron/cleanup-job-dedup              # Nightly: TTL the job_dedup table
+/api/cron/delete-archived-notifications  # Weekly: purge archived notifications
+/api/cron/orphan-sweep                   # Weekly: expired exports + soft-deleted comments
 /api/cron/process-polls                  # Process expired polls
-/api/tmdb/search                         # TMDB movie search
-/api/tmdb/credits                        # TMDB credits
-/api/tmdb/search-people                  # TMDB person search
-/api/film-news                           # RSS film news feed
-/api/movie-headlines                     # Movie headlines
+/api/cron/rollover-seasons               # Monthly: new seasons
+
+# Discussions
+/api/discussions/existing                # Check existing discussion threads
+
+# Events
+/api/events/[eventId]/ics                # ICS download
+
+# Health
 /api/health                              # Health check endpoint
-/api/export                              # Data export
+
+# Icons (PWA + favicons; 8 endpoints under /api/icons/*)
+
+# Job workers (queue-bound, not internet-addressable)
+/api/jobs/account-export
+/api/jobs/account-hard-delete
+/api/jobs/bulk-email
+/api/jobs/image-processing
+/api/jobs/notification-fanout
+
+# Marketing data
+/api/film-news                           # RSS film-news passthrough
+/api/movie-headlines                     # Marketing landing headline aggregator
 /api/upcoming-movies                     # Upcoming movie releases
-/api/discussions/existing                # Check existing discussions
-/api/events/[eventId]/ics                # Calendar ICS download
-/api/clubs/[clubId]/festivals            # Club festivals API
+
+# Migrations
+/api/migrations/apply-notification-archiving
+
+# TMDB proxy
+/api/tmdb/credits
+/api/tmdb/search
+/api/tmdb/search-people
 ```
 
 ---
 
-## Database Schema (65+ Tables)
+## Database Schema (76 tables)
 
 ### Core Tables
 
@@ -331,7 +381,7 @@ date.toLocaleDateString()
 
 ## Server Actions
 
-Located in `/src/app/actions/` (142 files across 10 modular subdirectories + root-level files):
+Located in `/src/app/actions/` (146 files across 10 modular subdirectories + root-level files):
 
 ```
 actions/
@@ -434,6 +484,9 @@ const person = await getPersonDetails(tmdbId);
 | `rollover-seasons`              | Monthly  | Create new seasons on Jan 1                      |
 | `archive-notifications`         | Daily    | Archive notifications older than 30 days         |
 | `delete-archived-notifications` | Weekly   | Delete archived notifications older than 90 days |
+| `cleanup-job-dedup`             | Nightly  | TTL the `job_dedup` table (7-day retention)      |
+| `orphan-sweep`                  | Weekly   | Expired exports + 30d soft-deleted comments      |
+| `process-polls`                 | Hourly   | Run actions on expired polls                     |
 
 ---
 
@@ -456,7 +509,7 @@ src/
 │   │   ├── discover/        # Discover clubs/movies
 │   │   └── timeline/        # Timeline - deadlines and dates
 │   ├── (marketing)/         # Public marketing pages
-│   ├── actions/             # Server actions (142 files, 10 subdirectories)
+│   ├── actions/             # Server actions (146 files, 10 subdirectories)
 │   └── api/                 # API routes (cron jobs)
 ├── components/
 │   ├── ui/                  # shadcn/ui components
@@ -493,32 +546,76 @@ src/
 
 ## Current Status (April 2026)
 
-**Project Completion:** Production-ready, pre-launch
+**Project Completion:** Production-ready, pre-launch.
 
-### Recent Changes (April 2026)
+### Auth callback flow + welcome/username picker
 
-- ✅ Ratings System Overhaul — All ratings numeric 0.0-10.0, no icon/visual modes
-- ✅ Server Actions Modularization — Monolithic files split into 10 subdirectories
-- ✅ Route Consolidation — Admin routes consolidated to `/manage/*`
-- ✅ Favorite Movies/Persons — Favorite button on movie and person pages
-- ✅ Production Audit — Launch guide and pre-launch checklist complete
-- ✅ Auth Flow Redesign — Simplified sign-in/sign-up pages
-- ✅ Club Creation Wizard — Streamlined wizard flow
-- ✅ Performance Optimizations — React Compiler, package import optimization
+- OAuth flow lands on `/auth/callback`, exchanges the code, and redirects
+  to `/welcome/username` when the user has no canonical username.
+- Username picker is mandatory after first OAuth sign-in. Atomic on signup
+  (commit-or-roll-back).
+- Wizard signup, OAuth callback, and email signup all auto-join
+  `backrow-featured` via `src/lib/users/autoJoinFeatured.ts`.
 
-### Previous Completions
+### Username cooldown
 
-- ✅ User Rubrics, User Moderation, Club Events, Navigation Preferences
-- ✅ Discussion Thread Tags and Slugs, Fuzzy Search, Movie Certifications
-- ✅ Slug-based routing for movies and persons
-- ✅ Festival Type Lock, Admin Dashboard, Badge System
-- ✅ RLS Performance Optimizations (`(SELECT auth.uid())` pattern)
-- ✅ Letterboxd import (shipped — see `src/lib/letterboxd/import.ts` and club manage import wizard)
-- ✅ Push notifications (shipped — Web Push API + VAPID, opt-in via /profile/settings/notifications)
+- Username changes carry a 6-month cooldown (180 days, see
+  `USERNAME_CHANGE_COOLDOWN_DAYS` in `src/app/actions/auth/username-validation.ts`).
+- Display name has no cooldown — always editable.
 
-### Remaining Work
+### Notification lifecycle
 
-- Production deployment (launch guide ready)
+- Bell popout exposes `archiveAllNotifications()` ("Clear all"); the action
+  archives every unarchived notification for the user.
+- The standalone `/notifications` page route was removed (see commit
+  `ae8aead`); the bell popout is the only entry point.
+
+### Discussion thread edit history
+
+- Migration `0012` added `is_edited`, `edited_at`, and `edit_history JSONB`
+  on `discussion_threads`. The thread modal renders the latest version
+  with an "edited" badge and a history dropdown.
+
+### Recent changes (audit window)
+
+- Vercel bot-detection layer removed (Apr 20) after iOS Safari false
+  positives. Rate limits, auth, and email verification are the only
+  write-path defenses.
+- Layered burst+sustained rate limit on `/contact` (3/min + 20/hr) plus
+  `sanitizeForStorage` on stored fields. Shared `isValidEmail()` helper in
+  `src/lib/security/validators.ts` replaces inline regex copies.
+- `escapeLike()` (`src/lib/security/postgrest-escape.ts`) wraps user input
+  on every `.or()` and interpolated `.ilike()` site. See `docs/security.md`.
+- `retryWithBackoff()` (`src/lib/retry.ts`) wraps every TMDB fetch and
+  every `sendEmail` call.
+- Marketing landing rebuild — lead with club archetypes, push festival
+  flow below.
+- CCPA features — cookie banner, `/cookie-settings`, GPC signal,
+  `/do-not-sell-or-share` page.
+- Migrations 0013 (storage RLS subselect form), 0014 (`get_user_club_stats`
+  RPC, replaces JS aggregation in `clubs/queries.ts`), 0015 (flushes legacy
+  `floatingButtonCorner` and removes `migrateCornerToPosition`).
+- ~70 mutating server actions retrofitted with `actionRateLimit` +
+  `requireVerifiedEmail`. Coverage table in `docs/security.md` is
+  authoritative.
+- Path-based `revalidatePath` calls converted to tag-based `invalidate*`
+  helpers. New `CacheTags.curatedPick` + `invalidateCuratedPick` for the
+  marketing curated slot.
+- Generated Supabase types live at `src/lib/supabase/database.types.ts`
+  (regenerate with `bun run db:gen-types`). Factories are deliberately
+  untyped pending reconciliation with the generated `Database` type;
+  individual queries opt into typing via `.returns<T>()`.
+
+### Previous completions
+
+- User Rubrics, User Moderation, Club Events, Navigation Preferences
+- Discussion Thread Tags and Slugs, Fuzzy Search, Movie Certifications
+- Slug-based routing for movies and persons
+- Festival Type Lock, Admin Dashboard, Badge System
+- RLS Performance Optimizations (`(SELECT auth.uid())` pattern)
+- Letterboxd import (`src/lib/letterboxd/import.ts` + manage wizard)
+- Push notifications (Web Push API + VAPID, opt-in via
+  `/profile/settings/notifications`)
 
 ---
 

@@ -28,7 +28,7 @@ Feature docs: [`docs/security.md`](docs/security.md) (write-path gates), [`docs/
 | ---------- | ------------------------------------ |
 | Framework  | Next.js 16 (App Router)              |
 | React      | 19                                   |
-| TypeScript | 5 (strict mode)                      |
+| TypeScript | 6 (strict mode)                      |
 | Runtime    | Bun 1.3+ (package manager & runtime) |
 | Database   | Supabase (PostgreSQL + Auth + RLS)   |
 | Styling    | Tailwind CSS 4 + CSS Variables       |
@@ -60,7 +60,7 @@ Migrations live in `supabase/migrations/`. See [`supabase/migrations/README.md`]
 After applying migrations, regenerate TypeScript types:
 
 ```bash
-bun run generate-types
+bun run db:gen-types
 ```
 
 ### Project Structure
@@ -94,7 +94,7 @@ backrow/
 | ------------------------------------------------------------------ | ------------------------------------------------------- |
 | [`CLAUDE.md`](CLAUDE.md)                                           | Project rules, critical conventions, auth/DB rules      |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md)                               | Database schema, routes, state machines, RLS, key flows |
-| [`docs/CLAUDE_PROJECT_CONTEXT.md`](docs/CLAUDE_PROJECT_CONTEXT.md) | Product context and vision                              |
+| [`docs/CLAUDE_PROJECT_CONTEXT.md`](docs/CLAUDE_PROJECT_CONTEXT.md) | Routes, schema, and server-action reference             |
 | [`docs/TESTING.md`](docs/TESTING.md)                               | Testing checklists and multi-user flows                 |
 | [`docs/backrow-site-map.md`](docs/backrow-site-map.md)             | Full route inventory                                    |
 | [`docs/ACTIVITY_FEED_GUIDE.md`](docs/ACTIVITY_FEED_GUIDE.md)       | Activity feed reference                                 |

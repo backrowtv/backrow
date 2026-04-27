@@ -2,6 +2,11 @@
 
 > Generated from codebase analysis on 2025-12-11, updated 2026-04-09
 
+> NOTE: This is a point-in-time snapshot. For current schema, see Supabase
+> tables (or generate types via `supabase gen types typescript`); for current
+> routes, see [docs/backrow-site-map.md](docs/backrow-site-map.md). Sections
+> below may have drifted from the live codebase.
+
 ## Table of Contents
 
 1. [Database Schema](#1-database-schema)

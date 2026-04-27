@@ -103,8 +103,8 @@ each topic to its route via `experimentalTriggers` in `vercel.json`; the
 route is not internet-addressable under that trigger. So the usual rule
 applies to the **producer** (server action), not the worker:
 
-- Producer runs `actionRateLimit` → `requireHuman` (high-value only) → auth
-  → `requireVerifiedEmail` before `enqueue*()`.
+- Producer runs `actionRateLimit` → auth → `requireVerifiedEmail` before
+  `enqueue*()`.
 - Worker runs as system: no user identity, service-role Supabase client.
 
 This is a deviation from the `CRON_SECRET` bearer pattern we use for cron
@@ -168,3 +168,18 @@ an error.
 6. Add a switch arm in `src/lib/jobs/inline-runner.ts` for the dev fallback.
 7. Update the topic table in this document and (if the producer is a new
    server action) `docs/security.md`.
+
+## Upstream resilience
+
+External APIs occasionally drop connections, time out, or return 5xx blips.
+`retryWithBackoff()` (`src/lib/retry.ts`) wraps two integration points:
+
+- `src/lib/tmdb/client.ts:33` — every TMDB fetch (also gated by 3-second
+  `AbortSignal.timeout`)
+- `src/lib/email/resend.ts:33` — every `sendEmail` call (transactional +
+  queued bulk)
+
+Signature: `retryWithBackoff(fn, options?: { maxAttempts?: number; backoffMs?: number; shouldRetry?: (err) => boolean })`.
+Defaults: `maxAttempts = 3`, `backoffMs = 200` (linear: 200ms before retry 2,
+400ms before retry 3). Pass `shouldRetry: (err) => …` to skip retries on
+non-transient errors (4xx).
