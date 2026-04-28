@@ -47,7 +47,9 @@ export async function GET() {
       ? [{ name: "Righteous", data: righteous, weight: 400, style: "normal" }]
       : undefined,
     headers: {
-      "Cache-Control": "public, max-age=86400, s-maxage=31536000, immutable",
+      // Short s-maxage so a bad bake recovers within an hour at the CDN edge.
+      // No `immutable` — we may need to invalidate (e.g., font-load failure).
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
     },
   });
 }
