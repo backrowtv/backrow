@@ -1,35 +1,30 @@
-// Righteous WOFF2 lives in /public/fonts/ so Vercel serves it as a static
-// asset on the same origin as the function. We fetch it from there at request
-// time. Both this approach and `new URL(..., import.meta.url)` are documented
-// patterns for `next/og` ImageResponse, but in practice the static-asset
-// fetch is more reliable — the bundler doesn't always trace files referenced
-// by `new URL`, and we hit that case (preview deployment kept rendering the
-// sans-serif fallback).
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+
+// Righteous WOFF2 is bundled at ./fonts/Righteous-Regular.woff2. We resolve
+// the path via `import.meta.url` and read it with `fs.readFile` so we don't
+// depend on HTTP at request time. Vercel preview deployments are protected
+// by SSO, so server-to-server fetches from the function to its own origin
+// fail — the file-system path approach sidesteps that entirely.
 //
-// Previously this fetched from `fonts.gstatic.com` at request time, but Google
-// rotated the URL hash and the fetch silently 404'd — every wordmark/OG image
-// rendered as the sans-serif fallback. Hosting it on our own origin removes
-// the dependency on Google's CDN URLs being stable forever.
+// Inclusion of the woff2 in the function bundle is enforced by
+// `outputFileTracingIncludes` in next.config.ts.
+//
+// Previously this fetched from `fonts.gstatic.com` at request time, but
+// Google rotated the URL hash and the fetch silently 404'd — every
+// wordmark/OG image rendered as the sans-serif fallback. Hosting the font
+// in-repo removes the dependency on Google's CDN URL stability.
 
-const FONT_PATH = "/fonts/Righteous-Regular.woff2";
-
-function fontUrl(): string {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}${FONT_PATH}`;
-  if (process.env.NEXT_PUBLIC_SITE_URL) return `${process.env.NEXT_PUBLIC_SITE_URL}${FONT_PATH}`;
-  return `http://localhost:3000${FONT_PATH}`;
-}
+const FONT_PATH = fileURLToPath(new URL("./fonts/Righteous-Regular.woff2", import.meta.url));
 
 export async function loadRighteous(): Promise<ArrayBuffer | null> {
-  const url = fontUrl();
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`[og-fonts] Failed to load Righteous from ${url}: HTTP ${response.status}`);
-      return null;
-    }
-    return await response.arrayBuffer();
+    const buffer = await readFile(FONT_PATH);
+    // Return a fresh ArrayBuffer (Buffer is a Uint8Array view; ImageResponse
+    // wants a standalone ArrayBuffer).
+    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
   } catch (err) {
-    console.error(`[og-fonts] Failed to load Righteous from ${url}:`, err);
+    console.error(`[og-fonts] readFile failed for ${FONT_PATH}:`, err);
     return null;
   }
 }

@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   // traces it into the lambda via the dynamic-import chain without the
   // hash-externalize trap.
   serverExternalPackages: ["sharp"],
+  // Ensure the bundled Righteous WOFF2 ships with any function that calls
+  // loadRighteous() in src/lib/seo/og-fonts.ts (wordmark route + OG images).
+  // Without this, @vercel/nft sometimes misses the file and ImageResponse
+  // falls back to sans-serif.
+  outputFileTracingIncludes: {
+    "**/*": ["./src/lib/seo/fonts/**"],
+  },
   // React Compiler (stable in Next.js 16) - automatic memoization
   // Reduces re-renders by 25-40% without manual useMemo/useCallback
   reactCompiler: true,
