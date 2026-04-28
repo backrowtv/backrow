@@ -49,18 +49,13 @@ export function useTheme() {
   };
 }
 
-// Menu item version of theme toggle for use in dropdown menus
+// Menu item version of theme toggle for use in dropdown menus.
+// This is only ever rendered inside an opened Radix DropdownMenuContent — never
+// during SSR — so we don't need a mounted gate. The useState initializer below
+// synchronously reads the real theme from localStorage via getThemeState(),
+// avoiding a one-frame "Theme" placeholder flash when the menu opens.
 export function ThemeMenuItem({ onClick }: { onClick?: () => void }) {
-  const { theme, toggleTheme, mounted } = useTheme();
-
-  if (!mounted) {
-    return (
-      <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-        <div className="h-4 w-4" />
-        <span>Theme</span>
-      </div>
-    );
-  }
+  const { theme, toggleTheme } = useTheme();
 
   const handleClick = () => {
     toggleTheme();

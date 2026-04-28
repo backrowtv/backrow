@@ -318,8 +318,11 @@ export function ThemePool({
           prev.some((t) => t.id === newTheme.id) ? prev : [newTheme, ...prev]
         );
       }
+      // Refresh server data so the parent's themes prop updates (for the
+      // count badge in CollapsibleThemePool, derived from the prop).
+      router.refresh();
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <div

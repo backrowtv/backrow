@@ -679,12 +679,8 @@ export default async function MoviePage({ params }: MoviePageProps) {
           )}
 
           {/* Watch Providers */}
-          {watchProviders && (
-            <WatchProviders
-              providers={watchProviders}
-              justWatchUrl={watchProviders.link || null}
-              isVisible={showWatchProviders}
-            />
+          {watchProviders?.link && (
+            <WatchProviders justWatchUrl={watchProviders.link} isVisible={showWatchProviders} />
           )}
         </div>
       </div>

@@ -87,6 +87,24 @@ export function CollapsibleMoviePool({
     }
   }, [clubId, hasLoaded, isExpanded]);
 
+  // Re-fetch after pool mutations so list, count badge, and votes stay in sync
+  const handlePoolChanged = useCallback(async () => {
+    const data = await getEndlessFestivalData(clubId);
+    if (!("error" in data)) {
+      setMovies(data.pool);
+      setMovieCount(data.pool.length);
+      if (data.poolVotes) {
+        const votesMap = new Map(Object.entries(data.poolVotes).map(([id, vote]) => [id, vote]));
+        setInitialVotes(votesMap);
+      }
+    } else {
+      // If the pool data fetch fails, fall back to a count-only refresh so the
+      // badge does not get stuck showing a stale value.
+      const count = await getMoviePoolCount(clubId);
+      setMovieCount(count);
+    }
+  }, [clubId]);
+
   // Fetch on mount if expanded
   useEffect(() => {
     if (isExpanded && !hasLoaded) {
@@ -182,6 +200,7 @@ export function CollapsibleMoviePool({
                   variant="minimal"
                   hideSort={false}
                   onMovieAdded={handleMovieAdded}
+                  onPoolChanged={handlePoolChanged}
                   currentUserId={currentUserId}
                   initialVotes={initialVotes}
                   instanceId={instanceId}

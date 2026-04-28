@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import { useClubPreference } from "@/lib/hooks/useClubPreferences";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -119,23 +119,23 @@ export function EndlessFestivalSettings({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  // Re-fetch all endless festival data (used on mount and after pool/playing mutations)
+  const reloadFestivalData = useCallback(async () => {
+    if (!clubId) return;
+    const result = await getEndlessFestivalData(clubId);
+    if (!("error" in result)) {
+      setNowPlaying(result.nowPlaying);
+      setPool(result.pool);
+      setRecentlyPlayed(result.recentlyPlayed);
+    }
+  }, [clubId]);
+
   // Fetch endless festival data on mount
   useEffect(() => {
     if (!clubId) return;
-
-    const loadData = async () => {
-      setIsLoading(true);
-      const result = await getEndlessFestivalData(clubId);
-      if (!("error" in result)) {
-        setNowPlaying(result.nowPlaying);
-        setPool(result.pool);
-        setRecentlyPlayed(result.recentlyPlayed);
-      }
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, [clubId]);
+    setIsLoading(true);
+    reloadFestivalData().finally(() => setIsLoading(false));
+  }, [clubId, reloadFestivalData]);
 
   // Reset pagination when nowPlaying changes
   useEffect(() => {
@@ -596,6 +596,7 @@ export function EndlessFestivalSettings({
           canManage={true}
           votingEnabled={true}
           instanceId="settings"
+          onPoolChanged={reloadFestivalData}
         />
       )}
 

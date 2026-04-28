@@ -20,14 +20,28 @@ const state: ThemeState = {
 let initialized = false;
 let dbSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
+function hasSupabaseAuthCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return /(?:^|;)\s*sb-[^=]*-auth-token/.test(document.cookie);
+}
+
 function init() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
 
-  const stored = localStorage.getItem("theme") as ThemeMode | null;
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  state.theme = stored || (prefersDark ? "dark" : "light");
-  state.colorTheme = localStorage.getItem("colorTheme") || "default";
+  // Unauthenticated visitors always get dark mode, ignoring any leftover
+  // localStorage from a previous authenticated session. Mirrors the inline
+  // theme-init script in src/app/layout.tsx so the SSR class never flips.
+  const authed = hasSupabaseAuthCookie();
+  if (!authed) {
+    state.theme = "dark";
+    state.colorTheme = "default";
+  } else {
+    const stored = localStorage.getItem("theme") as ThemeMode | null;
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    state.theme = stored || (prefersDark ? "dark" : "light");
+    state.colorTheme = localStorage.getItem("colorTheme") || "default";
+  }
 
   applyThemeToDOM(state.theme);
   applyColorThemeToDOM(state.colorTheme);

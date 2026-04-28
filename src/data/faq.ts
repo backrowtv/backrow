@@ -20,6 +20,7 @@ export interface FAQQuestion {
   showOnLanding: boolean;
   landingCategory?: "basics" | "watching" | "competing" | "social";
   keywords: string[];
+  link?: { href: string; label: string };
 }
 
 export interface FAQCategory {
@@ -68,11 +69,11 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "how-to-start",
         question: "How do I start?",
-        answer:
-          "Sign up. Then either create your own club or browse public ones in Discover.",
+        answer: "Sign up. Then either create your own club or browse public ones in Discover.",
         priority: 2,
         showOnLanding: false,
         keywords: ["start", "begin", "create", "join", "setup", "onboard"],
+        link: { href: "/discover", label: "Browse public clubs" },
       },
       {
         id: "solo-use",
@@ -82,6 +83,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 3,
         showOnLanding: false,
         keywords: ["alone", "solo", "myself", "single", "friends"],
+        link: { href: "/create-club", label: "Create a club" },
       },
       {
         id: "what-movies",
@@ -274,8 +276,7 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "endless-themes",
         question: "Do Endless clubs use themes?",
-        answer:
-          'Optional. Some clubs run a standing theme like "horror only", most leave it open.',
+        answer: 'Optional. Some clubs run a standing theme like "horror only", most leave it open.',
         priority: 3,
         showOnLanding: false,
         keywords: ["theme", "open", "endless"],
@@ -283,8 +284,7 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "rate-own",
         question: "Can I rate my own pick?",
-        answer:
-          "In Endless, yes. In Standard, no — it would skew the points.",
+        answer: "In Endless, yes. In Standard, no — it would skew the points.",
         priority: 3,
         showOnLanding: false,
         keywords: ["own", "self", "nomination", "bias"],
@@ -300,8 +300,7 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "how-to-rate",
         question: "How does rating work?",
-        answer:
-          "A number from 0.0 to 10.0. That's it. No stars, no popcorn, no emoji.",
+        answer: "A number from 0.0 to 10.0. That's it. No stars, no popcorn, no emoji.",
         priority: 1,
         showOnLanding: false,
         keywords: ["rate", "score", "rating", "number", "scale"],
@@ -309,11 +308,11 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "step-size",
         question: "Can I change how granular it is?",
-        answer:
-          "Yes — pick 0.1, 0.5, or 1.0 steps in your rating settings.",
+        answer: "Yes — pick 0.1, 0.5, or 1.0 steps in your rating settings.",
         priority: 2,
         showOnLanding: false,
         keywords: ["step", "increment", "granular", "precision"],
+        link: { href: "/profile/settings/ratings", label: "Rating settings" },
       },
       {
         id: "rubrics",
@@ -323,6 +322,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["rubric", "weighted", "category", "template", "criteria"],
+        link: { href: "/profile/settings/ratings", label: "Manage rubrics" },
       },
       {
         id: "rating-scope",
@@ -354,8 +354,7 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "too-big-to-compete",
         question: "What if my club is too big to compete?",
-        answer:
-          "Use Endless mode. Built for exactly that — no phases, no scoring, no deadlines.",
+        answer: "Use Endless mode. Built for exactly that — no phases, no scoring, no deadlines.",
         priority: 1,
         showOnLanding: true,
         landingCategory: "competing",
@@ -404,6 +403,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 1,
         showOnLanding: false,
         keywords: ["badges", "achievement", "unlock"],
+        link: { href: "/profile/display-case", label: "View your Display Case" },
       },
       {
         id: "badge-categories",
@@ -422,6 +422,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["display case", "favorites", "showcase", "profile", "shelf"],
+        link: { href: "/profile/display-case", label: "Edit your Display Case" },
       },
     ],
   },
@@ -537,6 +538,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 1,
         showOnLanding: false,
         keywords: ["profile", "privacy", "visibility", "id card", "card"],
+        link: { href: "/profile", label: "View your profile" },
       },
       {
         id: "id-card",
@@ -555,6 +557,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["avatar", "image", "profile picture", "custom", "icon"],
+        link: { href: "/profile/edit", label: "Customize your avatar" },
       },
       {
         id: "social-links",
@@ -564,6 +567,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 3,
         showOnLanding: false,
         keywords: ["letterboxd", "imdb", "trakt", "social", "links"],
+        link: { href: "/profile/edit", label: "Add your accounts" },
       },
       {
         id: "activity-feed",
@@ -573,6 +577,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["activity", "feed", "timeline", "updates"],
+        link: { href: "/activity", label: "Open your activity feed" },
       },
     ],
   },
@@ -590,6 +595,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 1,
         showOnLanding: false,
         keywords: ["notifications", "alerts", "in-app"],
+        link: { href: "/profile/settings/notifications", label: "Notification settings" },
       },
       {
         id: "email-notifications",
@@ -599,6 +605,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["email", "unsubscribe", "off"],
+        link: { href: "/profile/settings/notifications", label: "Email preferences" },
       },
       {
         id: "push-notifications",
@@ -608,6 +615,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["push", "mobile", "web push"],
+        link: { href: "/profile/settings/notifications", label: "Enable push" },
       },
       {
         id: "mute-club",
@@ -638,17 +646,16 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "text-size",
         question: "Can I make text bigger?",
-        answer:
-          "BackRow respects your browser/OS text size and zoom.",
+        answer: "BackRow respects your browser/OS text size and zoom.",
         priority: 2,
         showOnLanding: false,
         keywords: ["text", "size", "bigger", "zoom", "larger"],
+        link: { href: "/profile/settings/display", label: "Display settings" },
       },
       {
         id: "reduced-motion",
         question: "Does BackRow respect reduced motion?",
-        answer:
-          "Yes. Turn on reduced motion in your OS and the fancier transitions calm down.",
+        answer: "Yes. Turn on reduced motion in your OS and the fancier transitions calm down.",
         priority: 2,
         showOnLanding: false,
         keywords: ["reduced motion", "animation", "prefers-reduced-motion"],
@@ -656,11 +663,11 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "accessibility-issues",
         question: "I hit something that's not accessible. How do I report it?",
-        answer:
-          "Use the Feedback page. Accessibility reports jump to the top of the queue.",
+        answer: "Use the Feedback page. Accessibility reports jump to the top of the queue.",
         priority: 3,
         showOnLanding: false,
         keywords: ["a11y", "screen reader", "report", "issue"],
+        link: { href: "/feedback", label: "Report an issue" },
       },
     ],
   },
@@ -682,8 +689,7 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "block",
         question: "Can I block someone?",
-        answer:
-          "Yes. Blocked users can't see your activity or interact with you.",
+        answer: "Yes. Blocked users can't see your activity or interact with you.",
         priority: 2,
         showOnLanding: false,
         keywords: ["block", "hide", "moderation"],
@@ -700,8 +706,7 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "report-content",
         question: "How do I report someone?",
-        answer:
-          "Every user ID card has a report option. Reports go to BackRow staff for review.",
+        answer: "Every user ID card has a report option. Reports go to BackRow staff for review.",
         priority: 3,
         showOnLanding: false,
         keywords: ["report", "flag", "abuse", "moderate"],
@@ -725,11 +730,11 @@ export const faqCategories: FAQCategory[] = [
       {
         id: "sign-in-methods",
         question: "What sign-in methods are supported?",
-        answer:
-          "Email + password, plus OAuth with Google, Apple, Facebook, X, and Discord.",
+        answer: "Email + password, plus OAuth with Google, Apple, Facebook, X, and Discord.",
         priority: 2,
         showOnLanding: false,
         keywords: ["sign-in", "oauth", "google", "apple", "login"],
+        link: { href: "/sign-in", label: "Sign in" },
       },
       {
         id: "change-email",
@@ -739,6 +744,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 3,
         showOnLanding: false,
         keywords: ["email", "change", "update"],
+        link: { href: "/profile/settings/account", label: "Account settings" },
       },
       {
         id: "delete-account",
@@ -748,6 +754,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 1,
         showOnLanding: false,
         keywords: ["delete", "account", "remove"],
+        link: { href: "/profile/settings/account", label: "Account settings" },
       },
     ],
   },

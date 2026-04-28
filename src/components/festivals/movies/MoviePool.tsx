@@ -49,6 +49,8 @@ interface MoviePoolProps {
   hideSort?: boolean;
   /** Callback when a movie is added - used to update parent state */
   onMovieAdded?: (movie: EndlessMovie) => void;
+  /** Callback fired after any successful pool mutation (add/remove/move/auto-promote/random-pick). Parents that own pool data should refetch here so counts and other derived state stay in sync. */
+  onPoolChanged?: () => void;
   /** Current user ID to filter own submissions */
   currentUserId?: string;
   /** External filter control - show only current user's movies */
@@ -77,6 +79,7 @@ export function MoviePool({
   variant = "default",
   hideSort = false,
   onMovieAdded,
+  onPoolChanged,
   currentUserId,
   showOnlyMine: externalShowOnlyMine,
   initialVotes,
@@ -249,6 +252,7 @@ export function MoviePool({
           );
           setOptimisticMovies((prev) => prev.filter((m) => m.id !== movie.id));
           router.refresh();
+          onPoolChanged?.();
         } else {
           toast.success(result.voted ? "Vote added!" : "Vote removed");
         }
@@ -269,6 +273,7 @@ export function MoviePool({
           setOptimisticMovies((prev) => prev.filter((m) => m.id !== result.poolItemId));
         }
         router.refresh();
+        onPoolChanged?.();
       }
     });
   };
@@ -323,6 +328,7 @@ export function MoviePool({
         setCuratorNote("");
         setSearchResults([]);
         router.refresh();
+        onPoolChanged?.();
       }
     });
   };
@@ -337,6 +343,7 @@ export function MoviePool({
         toast.success(`${movie.title} is now playing!`);
         setOptimisticMovies((prev) => prev.filter((m) => m.id !== movie.id));
         router.refresh();
+        onPoolChanged?.();
       }
     });
   };
@@ -356,6 +363,7 @@ export function MoviePool({
       } else {
         toast.success("Movie removed from pool");
         router.refresh();
+        onPoolChanged?.();
       }
       setDeletingMovieId(null);
     });

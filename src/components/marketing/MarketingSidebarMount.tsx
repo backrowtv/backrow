@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   FileText,
   Handshake,
+  Heart,
 } from "@phosphor-icons/react";
 import { useSecondarySidebarSafe } from "@/components/layout/SecondarySidebarContext";
 import type { SecondarySidebarItem } from "@/components/layout/SecondarySidebar";
@@ -62,6 +63,11 @@ export function MarketingSidebarMount() {
         label: "User Agreement",
         href: "/user-agreement",
         icon: <Handshake className="h-4 w-4" />,
+      },
+      {
+        label: "Acknowledgments",
+        href: "/acknowledgments",
+        icon: <Heart className="h-4 w-4" />,
       },
     ];
   }, []);

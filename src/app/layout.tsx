@@ -242,9 +242,18 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var stored = localStorage.getItem('theme');
-                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var theme = stored || (prefersDark ? 'dark' : 'light');
+                  // Unauthenticated visitors always get dark mode, regardless of
+                  // leftover localStorage from a previous session. Detect auth by
+                  // looking for a Supabase auth-token cookie.
+                  var hasAuthCookie = /(?:^|;)\\s*sb-[^=]*-auth-token/.test(document.cookie);
+                  var theme;
+                  if (!hasAuthCookie) {
+                    theme = 'dark';
+                  } else {
+                    var stored = localStorage.getItem('theme');
+                    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    theme = stored || (prefersDark ? 'dark' : 'light');
+                  }
                   document.documentElement.classList.add(theme);
                   document.documentElement.style.colorScheme = theme;
                   var themeColor = theme === 'dark' ? '#111311' : '#f7f5f0';
@@ -253,13 +262,13 @@ export default function RootLayout({
                     meta.setAttribute('content', themeColor);
                     meta.removeAttribute('media');
                   });
-                  var colorTheme = localStorage.getItem('colorTheme');
-                  if (colorTheme && colorTheme !== 'default') {
-                    document.documentElement.setAttribute('data-color-theme', colorTheme);
+                  if (hasAuthCookie) {
+                    var colorTheme = localStorage.getItem('colorTheme');
+                    if (colorTheme && colorTheme !== 'default') {
+                      document.documentElement.setAttribute('data-color-theme', colorTheme);
+                    }
                   }
                 } catch (e) {
-                  // Theme initialization failed - fall back to system preference
-                  // This can happen if localStorage is unavailable (private browsing, storage full)
                   console.warn('Theme initialization failed:', e);
                 }
               })();

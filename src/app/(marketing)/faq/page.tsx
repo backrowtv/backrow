@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BrandText } from "@/components/ui/brand-text";
 import { getAllCategories } from "@/data/faq";
-import { CaretDown } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight, CaretDown } from "@phosphor-icons/react/dist/ssr";
 import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 
@@ -103,6 +104,15 @@ export default function FAQPage() {
                       <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
                         <BrandText>{item.answer}</BrandText>
                       </p>
+                      {item.link ? (
+                        <Link
+                          href={item.link.href}
+                          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)] hover:underline"
+                        >
+                          {item.link.label}
+                          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                      ) : null}
                     </details>
                   ))}
                 </div>

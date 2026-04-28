@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 // Movie background credits - add entries here when using movie stills
@@ -98,6 +97,15 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="/acknowledgments"
+                  className="transition-colors"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Acknowledgments
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/contact"
                   className="transition-colors"
                   style={{ color: "var(--text-muted)" }}
@@ -135,25 +143,16 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* TMDB Attribution */}
+          {/* Attribution */}
           <div>
             <h4 className="font-semibold mb-3 text-sm" style={{ color: "var(--text-primary)" }}>
-              Data Provider
+              Data &amp; Credits
             </h4>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="relative" style={{ width: 80, height: 20 }}>
-                <Image
-                  src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
-                  alt="TMDB Logo"
-                  fill
-                  sizes="80px"
-                  className="opacity-70 object-contain"
-                  unoptimized
-                />
-              </div>
-            </div>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-              This product uses the TMDB API but is not endorsed or certified by TMDB.
+            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              Movie data via TMDB &amp; JustWatch.{" "}
+              <Link href="/acknowledgments" className="underline">
+                Acknowledgments
+              </Link>
             </p>
           </div>
         </div>

@@ -196,14 +196,14 @@ function CategorySlider({
             onChange={(e) => onChange(parseFloat(e.target.value))}
             disabled={disabled}
             className={cn(
-              "w-full rounded-full appearance-none cursor-pointer relative z-10 touch-action-none",
-              compact ? "h-1.5" : "h-2",
+              "w-full rounded-full appearance-none cursor-pointer relative z-10 touch-pan-y",
+              compact ? "h-2" : "h-3",
               "bg-transparent",
               // Webkit (Chrome, Safari) thumb
               "[&::-webkit-slider-thumb]:appearance-none",
               compact
-                ? "[&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3"
-                : "[&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4",
+                ? "[&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5"
+                : "[&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6",
               "[&::-webkit-slider-thumb]:rounded-full",
               "[&::-webkit-slider-thumb]:bg-[var(--primary)]",
               "[&::-webkit-slider-thumb]:border-2",
@@ -214,8 +214,8 @@ function CategorySlider({
               "[&::-webkit-slider-thumb]:hover:scale-110",
               // Firefox thumb
               compact
-                ? "[&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3"
-                : "[&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4",
+                ? "[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5"
+                : "[&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6",
               "[&::-moz-range-thumb]:rounded-full",
               "[&::-moz-range-thumb]:bg-[var(--primary)]",
               "[&::-moz-range-thumb]:border-2",

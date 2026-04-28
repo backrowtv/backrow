@@ -7,6 +7,16 @@ import toast from "react-hot-toast";
 
 type OAuthProvider = "google" | "apple" | "discord";
 
+function isNextRedirect(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "digest" in err &&
+    typeof (err as { digest: unknown }).digest === "string" &&
+    (err as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
 // OAuth Icons - slightly larger for icon-only buttons
 const GoogleIcon = () => (
   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,17 +63,36 @@ interface OAuthButtonProps {
   icon: React.ReactNode;
   isLoading: boolean;
   isDisabled: boolean;
+  comingSoon?: boolean;
   onClick: () => void;
 }
 
-function OAuthButton({ label, icon, isLoading, isDisabled, onClick }: OAuthButtonProps) {
+function OAuthButton({
+  label,
+  icon,
+  isLoading,
+  isDisabled,
+  comingSoon,
+  onClick,
+}: OAuthButtonProps) {
+  const ariaLabel = comingSoon
+    ? `Sign in with ${label} (coming soon)`
+    : isLoading
+      ? `Signing in with ${label}...`
+      : `Sign in with ${label}`;
+
   return (
     <button
       type="button"
-      className="flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] disabled:opacity-50 transition-colors p-1"
+      className={
+        comingSoon
+          ? "flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] opacity-40 cursor-not-allowed p-1"
+          : "flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--border)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] disabled:opacity-50 transition-colors p-1"
+      }
       onClick={onClick}
-      disabled={isDisabled}
-      aria-label={isLoading ? `Signing in with ${label}...` : `Sign in with ${label}`}
+      disabled={!comingSoon && isDisabled}
+      aria-disabled={comingSoon || undefined}
+      aria-label={ariaLabel}
       aria-busy={isLoading}
     >
       {isLoading ? (
@@ -83,7 +112,15 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
   const [loadingButton, setLoadingButton] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const handleOAuth = (provider: OAuthProvider, label: string) => {
+  const handleOAuth = (provider: OAuthProvider, label: string, comingSoon?: boolean) => {
+    if (comingSoon) {
+      toast(`${label} Sign In is coming soon — sign in with Google or Discord for now.`, {
+        duration: 4000,
+        icon: "🚧",
+      });
+      return;
+    }
+
     setLoadingButton(label);
 
     startTransition(async () => {
@@ -98,6 +135,7 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
           setLoadingButton(null);
         }
       } catch (error) {
+        if (isNextRedirect(error)) throw error;
         console.error(`OAuth error for ${provider}:`, error);
         const errorMessage =
           error instanceof Error
@@ -112,9 +150,14 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
     });
   };
 
-  const providers: Array<{ provider: OAuthProvider; label: string; icon: React.ReactNode }> = [
+  const providers: Array<{
+    provider: OAuthProvider;
+    label: string;
+    icon: React.ReactNode;
+    comingSoon?: boolean;
+  }> = [
     { provider: "google", label: "Google", icon: <GoogleIcon /> },
-    { provider: "apple", label: "Apple", icon: <AppleIcon /> },
+    { provider: "apple", label: "Apple", icon: <AppleIcon />, comingSoon: true },
     { provider: "discord", label: "Discord", icon: <DiscordIcon /> },
   ];
 
@@ -122,7 +165,7 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
 
   return (
     <div className="flex items-center justify-center gap-2">
-      {providers.map(({ provider, label, icon }) => (
+      {providers.map(({ provider, label, icon, comingSoon }) => (
         <OAuthButton
           key={label}
           provider={provider}
@@ -130,7 +173,8 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
           icon={icon}
           isLoading={loadingButton === label}
           isDisabled={isAnyLoading}
-          onClick={() => handleOAuth(provider, label)}
+          comingSoon={comingSoon}
+          onClick={() => handleOAuth(provider, label, comingSoon)}
         />
       ))}
     </div>
