@@ -27,6 +27,7 @@ Complete route structure and page hierarchy for BackRow application.
 
 **Layout**: Marketing layout (no sidebar, no dashboard padding)
 
+- `/acknowledgments` - Third-party data providers, sign-in providers, and external services attribution
 - `/blog` - Blog page
 - `/contact` - Contact page (public form, layered rate limit)
 - `/cookie-settings` - Cookie consent management (CCPA)
@@ -168,7 +169,7 @@ write-path posture in `docs/security.md`.
 
 ### Brand assets
 
-- `/api/brand/wordmark` - Wordmark SVG renderer
+- `/api/brand/wordmark` - Wordmark PNG renderer via `@vercel/og` (Righteous TTF + primary color). For email templates that can't tolerate dynamic-route flakiness, serve the pre-rendered `public/wordmark.png` instead — regenerate with `bun run wordmark:render` (`scripts/render-wordmark.mjs`).
 
 ### Clubs
 
@@ -286,8 +287,8 @@ Counts derive from `find src/app -name 'page.tsx'` and
 | ------------------ | ------- |
 | Root               | 1       |
 | Auth               | 5       |
-| Marketing          | 10      |
+| Marketing          | 11      |
 | Welcome / callback | 1       |
 | Dashboard          | 62      |
 | API routes         | 25      |
-| **Total**          | **104** |
+| **Total**          | **105** |

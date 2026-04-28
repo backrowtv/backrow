@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { AuthApiError } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require authentication - redirect to sign-in if not authenticated.
@@ -48,16 +49,20 @@ export async function updateSession(request: NextRequest) {
   // Use getUser() which sends a request to Supabase Auth to validate and refresh the token.
   // This is critical for ensuring the session is valid after login redirect.
   //
-  // If the refresh token is stale or revoked (e.g., a recent signOut elsewhere),
-  // Supabase throws AuthApiError. Treat that as "no user" — clearing the cookie
-  // would require a response we don't have here yet. The next request will see
-  // updated cookie state once the failure surfaces in a user-facing flow.
+  // Narrow tolerance: only AuthApiError (stale/revoked refresh token, e.g., a
+  // recent signOut in another tab) is treated as "no user". Anything else
+  // (network, env misconfig, Supabase outage) re-throws so we fail loudly
+  // instead of silently degrading every signed-in user to anonymous.
   let user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"] = null;
   try {
     const result = await supabase.auth.getUser();
     user = result.data.user;
   } catch (err) {
-    console.warn("[middleware] auth.getUser failed; treating as anonymous:", err);
+    if (err instanceof AuthApiError) {
+      console.warn("[middleware] auth.getUser AuthApiError; treating as anonymous:", err.message);
+    } else {
+      throw err;
+    }
   }
 
   const pathname = request.nextUrl.pathname;

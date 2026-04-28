@@ -8,9 +8,9 @@ import { consumeRedirectCookie, isValidRedirect } from "@/lib/auth/redirect";
 /**
  * OAuth Callback Handler
  *
- * Handles OAuth redirects from all providers (Google, Meta, Twitter, Apple, Discord)
- * Also handles magic link authentication
- * Creates/updates user in database and redirects to dashboard
+ * Handles OAuth redirects (Google, Discord; Apple coming soon) and magic-link /
+ * email-confirmation flows. Creates/updates the user in the database and
+ * redirects to the destination from the `next` param or the redirect cookie.
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);

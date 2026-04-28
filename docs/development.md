@@ -143,9 +143,9 @@ Settings pages use `useAutoSaveForm` + `AutoSaveButton` (introduced in
 the server and surfaces success / error inline.
 
 - **Hook:** `src/hooks/useAutoSaveForm.ts`. Input: `{ values, save,
-  debounceMs?, enabled?, onError?, onSuccess? }`. Returns `{ state: 'idle'
-  | 'dirty' | 'saving' | 'saved' | 'error', isDirty, lastSavedAt, error,
-  flush }`. Debounces `save(values)` by default **800ms** after the last
+debounceMs?, enabled?, onError?, onSuccess? }`. Returns `{ state: 'idle'
+| 'dirty' | 'saving' | 'saved' | 'error', isDirty, lastSavedAt, error,
+flush }`. Debounces `save(values)` by default **800ms** after the last
   change, no-ops when values are unchanged, and coalesces concurrent calls
   behind an in-flight flag so the caller never double-saves.
 - **Button:** `src/components/ui/AutoSaveButton.tsx` renders the state
@@ -165,21 +165,45 @@ instead of a manual submit button — the hook handles the subtle cases
 (double-save, unmount during save, error rollback) that would otherwise
 ship as bugs.
 
+## Authentication
+
+### OAuth providers
+
+Live: **Google**, **Discord**. **Apple** is rendered as a visibly-disabled button with a "coming soon" toast (pending Apple Developer Program enrollment). Provider configuration — client IDs, client secrets, redirect URLs — lives in **Supabase Dashboard → Authentication → Providers**, not in `.env`. The repo only references the provider keys (`google` / `discord` / `apple`) when calling `supabase.auth.signInWithOAuth({ provider })` from `src/app/actions/auth-oauth.ts`.
+
+To wire a new provider: enable it in Supabase Dashboard, paste the client ID/secret there, add the provider key to `OAuthProvider` in `src/components/auth/OAuthButtons.tsx`, and add a button. No env changes required.
+
+### Auth callback determinism
+
+`src/app/auth/callback/route.ts` calls `supabase.auth.signOut()` **before** `exchangeCodeForSession()`. This is intentional: when a user signed in as Account B clicks a confirmation/magic link issued to Account A, the previous session's cookies are sent on the callback. `exchangeCodeForSession` is supposed to overwrite them, but the resulting cookie state can be ambiguous in some clients — observed in production as the user remaining on Account B while Account A's email got confirmed but no sign-in occurred.
+
+Tradeoff: if the subsequent code-exchange fails (transient network, Supabase service stutter), the user is now signed out of their working session and lands on `/sign-in?error=...`. Acceptable — the alternative was a silent half-state. Don't remove the `signOut()` without re-validating the cross-account flow.
+
+### Middleware tolerance for stale refresh tokens
+
+`src/lib/supabase/middleware.ts` calls `supabase.auth.getUser()` on every request. When a refresh token is stale or revoked (e.g., the user signed out in another tab while the original tab still held the old cookie), Supabase throws `AuthApiError`. The middleware narrowly catches **only** `AuthApiError` and treats that case as anonymous — the next user-facing flow surfaces the failure as a normal sign-in redirect. Other exceptions (network, env misconfig, Supabase outage) re-throw so we fail loudly instead of silently degrading every signed-in user to anonymous and serving the wrong layout.
+
+If you add new error-handling paths to the middleware, preserve the narrow `instanceof AuthApiError` check.
+
+### Email templates and the wordmark
+
+Email branding (welcome, invite, notification, plus the 6 Supabase auth flows) renders the BackRow wordmark from a static `public/wordmark.png` — not the dynamic `/api/brand/wordmark` route. The static path bypasses Gmail's image proxy edge cases, deployment-protection blocking server-to-server fetches, and Satori's WOFF2 limitation. See `docs/email-templates.md` for the dual source-of-truth pattern (the repo HTML must be pasted into Supabase Dashboard for changes to take effect).
+
 ## Username lifecycle
 
 Usernames are tracked across three columns on `public.users`:
 
-| Column                       | Set by                                            | Purpose                                                                                            |
-| ---------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `username`                   | signup / username picker / admin                  | Canonical handle (unique, case-insensitive index).                                                 |
-| `username_auto_derived`      | signup (true for OAuth), welcome picker (→ false) | Distinguishes "we auto-generated this" (OAuth shim) from "the user chose this" (first commitment). |
-| `username_last_changed_at`   | every explicit change                             | Base for the cooldown calculation.                                                                 |
+| Column                     | Set by                                            | Purpose                                                                                            |
+| -------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `username`                 | signup / username picker / admin                  | Canonical handle (unique, case-insensitive index).                                                 |
+| `username_auto_derived`    | signup (true for OAuth), welcome picker (→ false) | Distinguishes "we auto-generated this" (OAuth shim) from "the user chose this" (first commitment). |
+| `username_last_changed_at` | every explicit change                             | Base for the cooldown calculation.                                                                 |
 
 ### Flow
 
 1. **Email signup** — username is set atomically with the auth row
    (`1631284`). `username_auto_derived = false`, `username_last_changed_at =
-   now()`. The `/welcome/username` interstitial does **not** re-fire.
+now()`. The `/welcome/username` interstitial does **not** re-fire.
 2. **OAuth signup** — username is derived from the OAuth identity email /
    name. `username_auto_derived = true`. On first sign-in the middleware
    routes the user to `/welcome/username` so they pick a real one; picking

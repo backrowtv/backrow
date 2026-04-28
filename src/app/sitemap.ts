@@ -50,6 +50,12 @@ function staticEntries(): SitemapEntry[] {
       changeFrequency: "yearly",
       priority: 0.2,
     },
+    {
+      url: absoluteUrl("/acknowledgments"),
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
   ];
 }
 

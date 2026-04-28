@@ -72,7 +72,24 @@ Spec:
 - BackRow wordmark: **Righteous** font (`--font-brand`), color `#6B9B6B` (primary). The `BrandWordmark` / `BrandLockup` exports enforce this — never inline the wordmark.
 - Poster thumbnails: **always `aspect-[2/3]`**. Use `PosterThumb` which derives height from width. Never hard-code a non-2:3 size.
 - Font loader is shared in `src/lib/seo/og-fonts.ts`. `renderOg(jsx)` wraps `ImageResponse` and injects Righteous when the fetch succeeds (falls back gracefully).
+- **Font format must be TTF, not WOFF2.** `@vercel/og`'s underlying Satori renderer rejects WOFF2 (`Unsupported OpenType signature wOF2`) and silently falls back to a sans-serif. Keep the font at `public/fonts/Righteous-Regular.ttf` and read with `readFile(join(process.cwd(), "public/fonts/Righteous-Regular.ttf"))` — that path pattern is what `@vercel/nft` traces into the function bundle.
 - Runtime: Fluid Compute (default). **Do not add `runtime = 'edge'`** — Edge is deprecated for functions on Vercel.
+
+## Brand wordmark
+
+Two delivery paths share the same Righteous TTF + primary color render:
+
+- **Dynamic** — `src/app/api/brand/wordmark/route.tsx` returns a PNG via `@vercel/og`. Use this for ad-hoc consumers (anywhere you can tolerate a function invocation per request).
+- **Static** — `public/wordmark.png` is a pre-rendered PNG, committed to the repo. All 6 Supabase auth email templates and the React Email layout reference `https://backrow.tv/wordmark.png` directly. The static path avoids every email-image-proxy and Satori edge case (Gmail re-fetching, deployment-protection blocking server-to-server fetches, build-time prerender of a route that depends on the live deploy).
+
+When the Righteous font or wordmark color changes, regenerate the static PNG:
+
+```bash
+bun run wordmark:render        # runs scripts/render-wordmark.mjs
+git add public/wordmark.png
+```
+
+The script reads `public/fonts/Righteous-Regular.ttf` and writes the PNG via the same `ImageResponse` machinery the API route uses.
 
 ## Sitemap
 

@@ -289,9 +289,28 @@ export async function updateMemberPreference(clubId: string, key: string, value:
 
   const current = (membership.preferences as Record<string, unknown>) || {};
 
+  // One-time migration: when a member with the legacy `hide_club_card` key
+  // touches a per-viewport hide toggle for the first time, lift the legacy
+  // value into whichever viewport key isn't being written, then drop the
+  // legacy key. After this, both viewports have explicit booleans and the
+  // read-time fallback (`hide_club_card_*` ?? `hide_club_card`) is no longer
+  // needed for this member.
+  let nextPrefs: Record<string, unknown>;
+  const isHideCardKey = key === "hide_club_card_desktop" || key === "hide_club_card_mobile";
+  if (isHideCardKey && "hide_club_card" in current) {
+    const otherKey =
+      key === "hide_club_card_desktop" ? "hide_club_card_mobile" : "hide_club_card_desktop";
+    const otherValue = otherKey in current ? current[otherKey] : current.hide_club_card;
+    const rest: Record<string, unknown> = { ...current };
+    delete rest.hide_club_card;
+    nextPrefs = { ...rest, [key]: value, [otherKey]: otherValue };
+  } else {
+    nextPrefs = { ...current, [key]: value };
+  }
+
   const { error } = await supabase
     .from("club_members")
-    .update({ preferences: { ...current, [key]: value } })
+    .update({ preferences: nextPrefs })
     .eq("club_id", clubId)
     .eq("user_id", user.id);
 

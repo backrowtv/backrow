@@ -35,6 +35,7 @@
     "delete-test-users": "tsx scripts/delete-test-users.ts",
     "db:gen-types": "supabase gen types typescript --project-id nxpeptgrhbveqphwwowj > src/lib/supabase/database.types.ts",
     "test:rls": "bun run supabase/tests/run-rls-tests.ts",
+    "wordmark:render": "node scripts/render-wordmark.mjs",
     "prepare": "husky install"
   },
   "dependencies": {

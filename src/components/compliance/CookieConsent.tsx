@@ -38,7 +38,7 @@ export function CookieConsent() {
   };
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-50 p-4 pointer-events-none">
+    <div className="fixed bottom-0 inset-x-0 z-[60] p-4 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-4 pointer-events-none">
       <div className="max-w-lg mx-auto pointer-events-auto">
         <div className="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl shadow-lg p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">

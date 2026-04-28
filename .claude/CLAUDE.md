@@ -22,6 +22,9 @@
 
 - **ALWAYS** use `supabase.auth.getUser()` in server components — **NEVER** `getSession()` (security risk)
 - **ALWAYS** `await` dynamic APIs in Next.js 16: `params`, `searchParams`, `cookies()`, `headers()`
+- **OAuth providers live:** Google + Discord. Apple is rendered visibly disabled with a "coming soon" toast. Provider config (client IDs/secrets) lives in **Supabase Dashboard → Authentication → Providers**, not `.env`. See `docs/development.md#authentication`.
+- **Auth callback signs out before exchange.** `src/app/auth/callback/route.ts` calls `supabase.auth.signOut()` before `exchangeCodeForSession()` to make cross-account magic-link clicks deterministic. Don't remove without re-validating the cross-account flow.
+- **Middleware narrowly tolerates `AuthApiError`.** `src/lib/supabase/middleware.ts` catches only `AuthApiError` (stale refresh token) and re-throws everything else. Don't widen the catch.
 
 ### Database
 
@@ -123,6 +126,8 @@ If it's not working: run `claude plugin install supabase@claude-plugins-official
 - Metadata fetchers use `createPublicClient` (anon, cookie-less) wrapped with `React.cache()` in `src/lib/seo/fetchers.ts` — never double-fetch from the page body.
 - OG images use the shared helper in `src/lib/seo/og-template.tsx`. Never inline the font loader or wordmark markup.
 - Movie poster thumbnails in OG stay `aspect-[2/3]`. BackRow wordmark uses Righteous + primary color.
+- **Font format is TTF, not WOFF2.** Satori (the renderer behind `@vercel/og`) rejects WOFF2 silently and falls back to sans-serif. `public/fonts/Righteous-Regular.ttf` is the canonical font; loaded via `readFile(join(process.cwd(), ...))` so `@vercel/nft` traces it into the bundle.
+- **Email wordmark is the static `public/wordmark.png`,** not the dynamic `/api/brand/wordmark` route. Regenerate with `bun run wordmark:render` after a font/color change. See `docs/email-templates.md`.
 - Canonical URLs: build with `absoluteUrl()` from `src/lib/seo/absolute-url.ts`. No trailing slash.
 - Private content is never sitemap'd. See `docs/seo.md` for full inclusion rules.
 
@@ -232,6 +237,9 @@ bun run lint             # Run ESLint
 bun run test             # Vitest unit (cache/ — no DB)
 bun run test:integration # Vitest integration (actions/ — needs seeded DB)
 bun run test:e2e         # Playwright (E2E against PLAYWRIGHT_BASE_URL or localhost)
+bun run wordmark:render  # Regenerate public/wordmark.png from the Righteous TTF
 bun install              # Install dependencies
 lsof -ti:3000 | xargs kill -9  # Kill dev server
 ```
+
+**Editing Supabase auth email templates** (the 6 HTML files under `src/lib/email/templates/supabase-auth/`) requires manually pasting the new HTML into Supabase Dashboard → Authentication → Email Templates after merging — the dashboard copy is what Supabase serves, not the repo copy. Full workflow: `docs/email-templates.md`.
