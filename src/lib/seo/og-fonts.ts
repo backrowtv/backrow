@@ -1,29 +1,26 @@
-// Righteous WOFF2 lives in /public/fonts/ on production. We fetch it from
-// production by absolute URL so this works identically in production and in
-// every Vercel preview deployment (preview deployments are SSO-protected,
-// so server-to-server fetches to the *preview's own* origin fail — fetching
-// from the public production origin sidesteps that entirely).
-//
-// Trade-off: a preview branch that introduces a NEW font version won't
-// render that new version until the change reaches production. For now we
-// only have one Righteous variant, so this is fine.
-//
-// Previously this fetched from `fonts.gstatic.com`, but Google rotated the
-// URL hash and the fetch silently 404'd — every wordmark/OG image rendered
-// as the sans-serif fallback. Hosting in-repo removes that dependency.
+import { RIGHTEOUS_WOFF2_BASE64 } from "./righteous-base64";
 
-const FONT_URL = "https://backrow.tv/fonts/Righteous-Regular.woff2";
+// Righteous WOFF2 is inlined as base64 in `righteous-base64.ts` and decoded
+// here. We tried fetching it from Google's CDN (URL rotated → 404),
+// bundling it via `import.meta.url` (bundler tracing was inconsistent),
+// fetching `https://backrow.tv/fonts/...` (build-time prerender baked a
+// 500), and fs.readFile (URL class identity mismatch). Inlining is the
+// only approach that works on every runtime, in build, in preview, and
+// in production without ceremony. ~16KB cost.
+
+let cachedBuffer: ArrayBuffer | null = null;
 
 export async function loadRighteous(): Promise<ArrayBuffer | null> {
+  if (cachedBuffer) return cachedBuffer;
   try {
-    const response = await fetch(FONT_URL);
-    if (!response.ok) {
-      console.error(`[og-fonts] Failed to load Righteous: HTTP ${response.status}`);
-      return null;
-    }
-    return await response.arrayBuffer();
+    const binary = atob(RIGHTEOUS_WOFF2_BASE64);
+    const buffer = new ArrayBuffer(binary.length);
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < binary.length; i++) view[i] = binary.charCodeAt(i);
+    cachedBuffer = buffer;
+    return buffer;
   } catch (err) {
-    console.error("[og-fonts] Failed to load Righteous:", err);
+    console.error("[og-fonts] Failed to decode inlined Righteous:", err);
     return null;
   }
 }
