@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { connection } from "next/server";
 import { loadRighteous } from "@/lib/seo/og-fonts";
 
 // Email clients (Gmail especially) strip @font-face rules, so we can't rely
@@ -7,19 +8,18 @@ import { loadRighteous } from "@/lib/seo/og-fonts";
 // aggressive caching so email client image proxies don't hit the function
 // repeatedly.
 
-// Force runtime rendering. With cacheComponents enabled, Next.js attempts to
-// prerender this route at build time. Inside the build, fetching the font
-// from `https://backrow.tv/fonts/...` rejects because the production deploy
-// isn't live yet (chicken-and-egg) — and the rejection bakes a 500 into the
-// route. Forcing dynamic rendering means every request runs the function
-// fresh, where the self-fetch always succeeds.
-export const dynamic = "force-dynamic";
-
 const WIDTH = 600;
 const HEIGHT = 160;
 const PRIMARY = "#6B9B6B";
 
 export async function GET() {
+  // Opt out of prerender. With cacheComponents enabled, Next.js otherwise
+  // tries to prerender this route at build time and bakes the result of a
+  // self-fetch to backrow.tv — but the production deployment isn't live
+  // during the build, so the fetch rejects mid-prerender and the failure
+  // gets baked in. `await connection()` is the cacheComponents-compatible
+  // way to mark the route as fully runtime-rendered.
+  await connection();
   const righteous = await loadRighteous();
 
   const element = (
