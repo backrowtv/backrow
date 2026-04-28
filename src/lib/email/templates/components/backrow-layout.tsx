@@ -1,4 +1,4 @@
-import { Html, Head, Body, Container, Section, Text, Link, Preview } from "react-email";
+import { Html, Head, Body, Container, Section, Img, Text, Link, Preview } from "react-email";
 import * as React from "react";
 
 interface BackRowEmailLayoutProps {
@@ -10,21 +10,20 @@ interface BackRowEmailLayoutProps {
 export function BackRowEmailLayout({ preview, unsubscribeUrl, children }: BackRowEmailLayoutProps) {
   return (
     <Html>
-      <Head>
-        {/* Righteous font loaded only for the logo — not applied globally */}
-        {}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `@font-face { font-family: 'Righteous'; font-style: normal; font-weight: 400; src: url('https://fonts.gstatic.com/s/righteous/v17/1cXxaUPXBpj2rGoU7C9WiHGF.woff2') format('woff2'); }`,
-          }}
-        />
-      </Head>
+      <Head />
       {preview && <Preview>{preview}</Preview>}
       <Body style={body}>
         <Container style={container}>
-          {/* Header */}
+          {/* Header — wordmark served as PNG by /api/brand/wordmark so Gmail
+              and other clients that strip @font-face still render Righteous. */}
           <Section style={header}>
-            <Text style={logo}>BackRow</Text>
+            <Img
+              src="https://backrow.tv/api/brand/wordmark?v=2"
+              alt="BackRow"
+              width={150}
+              height={40}
+              style={logo}
+            />
           </Section>
 
           {/* Content */}
@@ -69,11 +68,12 @@ const header: React.CSSProperties = {
 };
 
 const logo: React.CSSProperties = {
-  fontFamily: "'Righteous', Arial, sans-serif",
-  color: "#6B9B6B",
-  fontSize: "18px",
-  margin: "0",
-  fontWeight: 600,
+  display: "block",
+  height: "40px",
+  width: "auto",
+  border: 0,
+  outline: "none",
+  textDecoration: "none",
 };
 
 const content: React.CSSProperties = {
