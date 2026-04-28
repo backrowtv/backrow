@@ -208,7 +208,13 @@ export default async function ClubPage({ params }: ClubPageProps) {
   const isAdmin = membership?.role === "producer" || membership?.role === "director";
   const memberPrefs = (membership?.preferences as Record<string, unknown>) || {};
   const cardCollapsed = memberPrefs.card_collapsed === true;
-  const hideClubCard = memberPrefs.hide_club_card === true;
+  // Per-viewport preference. Falls back to the legacy unified `hide_club_card`
+  // when a viewport-specific value hasn't been set yet, so existing members
+  // keep their current behavior until they touch the toggles.
+  const hideClubCardDesktop =
+    (memberPrefs.hide_club_card_desktop ?? memberPrefs.hide_club_card) === true;
+  const hideClubCardMobile =
+    (memberPrefs.hide_club_card_mobile ?? memberPrefs.hide_club_card) === true;
 
   // Fetch additional data (including favorite check) in parallel
   const now = new Date().toISOString();
@@ -567,7 +573,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
               {/* Left Sidebar - Desktop Only */}
               <aside className="hidden lg:block lg:col-span-3 space-y-4">
                 {/* Club Card */}
-                {!hideClubCard && (
+                {!hideClubCardDesktop && (
                   <UnifiedClubCard
                     club={{
                       id: club.id,
@@ -641,7 +647,7 @@ export default async function ClubPage({ params }: ClubPageProps) {
               {/* Main Column - Deadlines & Content */}
               <div className="lg:col-span-6 space-y-4 lg:space-y-6 min-w-0">
                 {/* Mobile Club Header */}
-                {!hideClubCard && (
+                {!hideClubCardMobile && (
                   <div className="lg:hidden">
                     <UnifiedClubCard
                       club={{
