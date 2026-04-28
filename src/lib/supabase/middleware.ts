@@ -47,9 +47,18 @@ export async function updateSession(request: NextRequest) {
   // IMPORTANT: Do NOT use getSession() here - it doesn't revalidate the Auth token.
   // Use getUser() which sends a request to Supabase Auth to validate and refresh the token.
   // This is critical for ensuring the session is valid after login redirect.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  //
+  // If the refresh token is stale or revoked (e.g., a recent signOut elsewhere),
+  // Supabase throws AuthApiError. Treat that as "no user" — clearing the cookie
+  // would require a response we don't have here yet. The next request will see
+  // updated cookie state once the failure surfaces in a user-facing flow.
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"] = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (err) {
+    console.warn("[middleware] auth.getUser failed; treating as anonymous:", err);
+  }
 
   const pathname = request.nextUrl.pathname;
 
