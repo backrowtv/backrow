@@ -7,6 +7,14 @@ import { loadRighteous } from "@/lib/seo/og-fonts";
 // aggressive caching so email client image proxies don't hit the function
 // repeatedly.
 
+// Force runtime rendering. With cacheComponents enabled, Next.js attempts to
+// prerender this route at build time. Inside the build, fetching the font
+// from `https://backrow.tv/fonts/...` rejects because the production deploy
+// isn't live yet (chicken-and-egg) — and the rejection bakes a 500 into the
+// route. Forcing dynamic rendering means every request runs the function
+// fresh, where the self-fetch always succeeds.
+export const dynamic = "force-dynamic";
+
 const WIDTH = 600;
 const HEIGHT = 160;
 const PRIMARY = "#6B9B6B";
