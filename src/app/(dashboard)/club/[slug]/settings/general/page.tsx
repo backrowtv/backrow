@@ -89,14 +89,19 @@ export default async function GeneralSettingsPage({ params }: GeneralSettingsPag
 
     const preferences = (membership.preferences as Record<string, unknown>) || {};
     const defaultRubricId = (preferences.default_rubric_id as string | null) || null;
-    const hideClubCard = preferences.hide_club_card === true;
+    // Per-viewport prefs with fall-back to the legacy unified `hide_club_card`.
+    const hideClubCardDesktop =
+      (preferences.hide_club_card_desktop ?? preferences.hide_club_card) === true;
+    const hideClubCardMobile =
+      (preferences.hide_club_card_mobile ?? preferences.hide_club_card) === true;
     const disableSpoilerWarnings = preferences.disable_spoiler_warnings === true;
 
     personalizationData = {
       profile,
       rubrics,
       defaultRubricId,
-      hideClubCard,
+      hideClubCardDesktop,
+      hideClubCardMobile,
       disableSpoilerWarnings,
       membership,
     };
@@ -170,7 +175,8 @@ export default async function GeneralSettingsPage({ params }: GeneralSettingsPag
               >
                 <ClubDashboardPreferences
                   clubId={clubId}
-                  initialShowClubCard={!personalizationData.hideClubCard}
+                  initialShowClubCardDesktop={!personalizationData.hideClubCardDesktop}
+                  initialShowClubCardMobile={!personalizationData.hideClubCardMobile}
                   initialShowSpoilerWarnings={!personalizationData.disableSpoilerWarnings}
                 />
               </SettingsSection>

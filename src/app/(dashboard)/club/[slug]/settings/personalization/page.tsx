@@ -79,7 +79,12 @@ export default async function PersonalizationSettingsPage({
   // Get preferences from club_members preferences
   const preferences = (membership.preferences as Record<string, unknown>) || {};
   const defaultRubricId = (preferences.default_rubric_id as string | null) || null;
-  const hideClubCard = preferences.hide_club_card === true;
+  // Fall back to the legacy unified `hide_club_card` until the user touches
+  // a viewport-specific toggle, so we don't quietly flip behavior for them.
+  const hideClubCardDesktop =
+    (preferences.hide_club_card_desktop ?? preferences.hide_club_card) === true;
+  const hideClubCardMobile =
+    (preferences.hide_club_card_mobile ?? preferences.hide_club_card) === true;
   const disableSpoilerWarnings = preferences.disable_spoiler_warnings === true;
 
   return (
@@ -113,7 +118,8 @@ export default async function PersonalizationSettingsPage({
           {/* Dashboard & Discussion Preferences */}
           <ClubDashboardPreferences
             clubId={clubId}
-            initialShowClubCard={!hideClubCard}
+            initialShowClubCardDesktop={!hideClubCardDesktop}
+            initialShowClubCardMobile={!hideClubCardMobile}
             initialShowSpoilerWarnings={!disableSpoilerWarnings}
           />
         </div>

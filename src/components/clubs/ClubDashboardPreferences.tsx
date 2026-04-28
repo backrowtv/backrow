@@ -11,33 +11,40 @@ import { SlidersHorizontal } from "@phosphor-icons/react";
 
 interface ClubDashboardPreferencesProps {
   clubId: string;
-  initialShowClubCard: boolean;
+  initialShowClubCardDesktop: boolean;
+  initialShowClubCardMobile: boolean;
   initialShowSpoilerWarnings: boolean;
 }
 
 export function ClubDashboardPreferences({
   clubId,
-  initialShowClubCard,
+  initialShowClubCardDesktop,
+  initialShowClubCardMobile,
   initialShowSpoilerWarnings,
 }: ClubDashboardPreferencesProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [showClubCard, setShowClubCard] = useState(initialShowClubCard);
+  const [showClubCardDesktop, setShowClubCardDesktop] = useState(initialShowClubCardDesktop);
+  const [showClubCardMobile, setShowClubCardMobile] = useState(initialShowClubCardMobile);
   const [showSpoilerWarnings, setShowSpoilerWarnings] = useState(initialShowSpoilerWarnings);
 
-  const handleShowClubCardChange = (next: boolean) => {
-    const previous = showClubCard;
-    setShowClubCard(next);
+  const handleClubCardChange = (viewport: "desktop" | "mobile", next: boolean) => {
+    const setter = viewport === "desktop" ? setShowClubCardDesktop : setShowClubCardMobile;
+    const previous = viewport === "desktop" ? showClubCardDesktop : showClubCardMobile;
+    const key = viewport === "desktop" ? "hide_club_card_desktop" : "hide_club_card_mobile";
+
+    setter(next);
     startTransition(async () => {
-      const result = await updateMemberPreference(clubId, "hide_club_card", !next);
+      const result = await updateMemberPreference(clubId, key, !next);
       if ("error" in result && result.error) {
-        setShowClubCard(previous);
+        setter(previous);
         toast.error(result.error);
-      } else {
-        toast.success(next ? "Club ID card shown" : "Club ID card hidden");
-        // Drop the client router cache so the dashboard reflects the change on next visit.
-        router.refresh();
+        return;
       }
+      toast.success(
+        next ? `Club ID card shown on ${viewport}` : `Club ID card hidden on ${viewport}`
+      );
+      router.refresh();
     });
   };
 
@@ -66,14 +73,27 @@ export function ClubDashboardPreferences({
       </CardHeader>
       <CardContent>
         <SettingsRow
-          label="Show club ID card on dashboard"
-          description="The card in the sidebar with the club avatar, description, and stats."
-          htmlFor="showClubCard"
+          label="Show club ID card on desktop"
+          description="The card in the desktop sidebar with the club avatar, description, and stats."
+          htmlFor="showClubCardDesktop"
         >
           <Switch
-            id="showClubCard"
-            checked={showClubCard}
-            onCheckedChange={handleShowClubCardChange}
+            id="showClubCardDesktop"
+            checked={showClubCardDesktop}
+            onCheckedChange={(next) => handleClubCardChange("desktop", next)}
+            disabled={isPending}
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          label="Show club ID card on mobile"
+          description="The card at the top of the dashboard when viewing on a phone."
+          htmlFor="showClubCardMobile"
+        >
+          <Switch
+            id="showClubCardMobile"
+            checked={showClubCardMobile}
+            onCheckedChange={(next) => handleClubCardChange("mobile", next)}
             disabled={isPending}
           />
         </SettingsRow>
