@@ -32,6 +32,14 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
+  // Sign out any existing session before exchanging the code. Without this,
+  // a user signed in as Account B who clicks a confirmation/magic link for
+  // Account A can end up with ambiguous cookie state — and in some clients
+  // never actually completes the sign-in as Account A. Clearing first makes
+  // the flow deterministic: the new session always reflects whoever the link
+  // was issued to.
+  await supabase.auth.signOut();
+
   // Exchange code for session
   const { data: authData, error: authError } = await supabase.auth.exchangeCodeForSession(code);
 
