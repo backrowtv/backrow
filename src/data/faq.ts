@@ -561,9 +561,9 @@ export const faqCategories: FAQCategory[] = [
       },
       {
         id: "social-links",
-        question: "Can I link my Letterboxd / IMDb / Trakt accounts?",
+        question: "Can I show my Letterboxd / IMDb / Trakt accounts?",
         answer:
-          "Yes. Your ID card supports links to Letterboxd, IMDb, Trakt, TMDB, YouTube, X, Instagram, Reddit, Discord, and TikTok — each with its own visibility toggle so you can hide any you don't want public.",
+          "Yes — paste the URLs and your ID card displays clickable links to Letterboxd, IMDb, Trakt, TMDB, YouTube, X, Instagram, Reddit, Discord, and TikTok. Nothing is actually connected; no data syncs. Each link has its own visibility toggle.",
         priority: 3,
         showOnLanding: false,
         keywords: ["letterboxd", "imdb", "trakt", "social", "links"],
