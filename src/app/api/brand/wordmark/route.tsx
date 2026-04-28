@@ -1,14 +1,9 @@
 import { ImageResponse } from "next/og";
 import { loadRighteous } from "@/lib/seo/og-fonts";
 
-// Email clients (Gmail especially) strip @font-face rules, so we can't rely
-// on Righteous loading inside a Supabase auth email. This route renders the
-// BackRow wordmark as a PNG using the real Righteous font and serves it with
-// aggressive caching so email client image proxies don't hit the function
-// repeatedly.
-//
-// loadRighteous is now synchronous (decodes a base64 string), so this route
-// safely prerenders at build time — no fetch, no race, no failure modes.
+// Renders the BackRow wordmark as a PNG using the real Righteous font.
+// Emails reference the static /wordmark.png directly (faster, no function
+// invocation), so this route is now used only for ad-hoc consumers.
 
 const WIDTH = 600;
 const HEIGHT = 160;

@@ -1,26 +1,28 @@
-import { RIGHTEOUS_WOFF2_BASE64 } from "./righteous-base64";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
-// Righteous WOFF2 is inlined as base64 in `righteous-base64.ts` and decoded
-// here. We tried fetching it from Google's CDN (URL rotated → 404),
-// bundling it via `import.meta.url` (bundler tracing was inconsistent),
-// fetching `https://backrow.tv/fonts/...` (build-time prerender baked a
-// 500), and fs.readFile (URL class identity mismatch). Inlining is the
-// only approach that works on every runtime, in build, in preview, and
-// in production without ceremony. ~16KB cost.
+// Righteous TTF lives at public/fonts/Righteous-Regular.ttf. We load it via
+// `readFile(join(process.cwd(), ...))` — the pattern documented in the
+// Next.js OG-image docs. @vercel/nft traces this and bundles the file with
+// the function automatically.
+//
+// IMPORTANT: next/og (Satori) does NOT support WOFF2. Only TTF, OTF, or
+// (legacy) WOFF. We previously had a WOFF2 here and it silently failed
+// to parse, killing the route at request time with a "failed to pipe
+// response" runtime error.
+
+const FONT_PATH = join(process.cwd(), "public/fonts/Righteous-Regular.ttf");
 
 let cachedBuffer: ArrayBuffer | null = null;
 
 export async function loadRighteous(): Promise<ArrayBuffer | null> {
   if (cachedBuffer) return cachedBuffer;
   try {
-    const binary = atob(RIGHTEOUS_WOFF2_BASE64);
-    const buffer = new ArrayBuffer(binary.length);
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < binary.length; i++) view[i] = binary.charCodeAt(i);
-    cachedBuffer = buffer;
-    return buffer;
+    const buffer = await readFile(FONT_PATH);
+    cachedBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    return cachedBuffer;
   } catch (err) {
-    console.error("[og-fonts] Failed to decode inlined Righteous:", err);
+    console.error(`[og-fonts] readFile failed for ${FONT_PATH}:`, err);
     return null;
   }
 }

@@ -18,7 +18,7 @@ export function BackRowEmailLayout({ preview, unsubscribeUrl, children }: BackRo
               and other clients that strip @font-face still render Righteous. */}
           <Section style={header}>
             <Img
-              src="https://backrow.tv/api/brand/wordmark?v=2"
+              src="https://backrow.tv/wordmark.png"
               alt="BackRow"
               width={150}
               height={40}
