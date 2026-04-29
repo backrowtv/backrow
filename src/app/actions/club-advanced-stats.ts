@@ -60,10 +60,13 @@ export async function getClubAdvancedStats(clubId: string): Promise<GetClubAdvan
       Promise.resolve(null),
     ]);
 
-    const festivals = festivalsResult.data || [];
-    const completedFestivals = festivals.filter((f) => f.status === "completed");
-    const festivalIds = festivals.map((f) => f.id);
-    const completedFestivalIds = completedFestivals.map((f) => f.id);
+    // Only include completed festivals in stats — in-progress festivals have
+    // partial data that would skew aggregates.
+    const allFestivals = festivalsResult.data || [];
+    const completedFestivals = allFestivals.filter((f) => f.status === "completed");
+    const festivals = completedFestivals;
+    const festivalIds = completedFestivals.map((f) => f.id);
+    const completedFestivalIds = festivalIds;
 
     if (festivalIds.length === 0) {
       return { data: emptyStats() };

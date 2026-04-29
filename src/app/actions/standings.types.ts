@@ -16,4 +16,5 @@ export interface StandingsEntry {
   win_rate: number;
   avg_nomination_rating: number;
   nomination_guesses: number;
+  nomination_guesses_total: number;
 }

@@ -14,6 +14,10 @@ import {
   MovieCarousel,
   type CarouselMovie,
 } from "@/components/festivals";
+import {
+  MemberWatchProgress,
+  type MemberWatchProgressEntry,
+} from "@/components/festivals/display/MemberWatchProgress";
 import { MoviePodium } from "@/components/results/MoviePodium";
 import { RatingsTab } from "@/components/results/RatingsTab";
 import { GuessesTab } from "@/components/results/GuessesTab";
@@ -192,6 +196,7 @@ interface FestivalPageClientProps {
   }>;
   privateNotes: PrivateNote[];
   festivalNotes: FestivalNote[];
+  memberWatchProgress?: MemberWatchProgressEntry[];
   autoAdvance?: boolean;
   revealSettings?: {
     type: "automatic" | "manual";
@@ -238,6 +243,7 @@ export function FestivalPageClient({
   resultsMembers,
   privateNotes,
   festivalNotes,
+  memberWatchProgress = [],
   autoAdvance = false,
   revealSettings,
 }: FestivalPageClientProps) {
@@ -548,6 +554,16 @@ export function FestivalPageClient({
                       guessingEnabled={guessingEnabled}
                       privateNotes={privateNotes}
                       clubSlug={clubSlug}
+                    />
+                  </div>
+                )}
+
+                {memberWatchProgress.length > 0 && movieCount > 0 && (
+                  <div className="lg:col-span-12">
+                    <MemberWatchProgress
+                      members={memberWatchProgress}
+                      totalMovies={movieCount}
+                      excludeUserId={userId}
                     />
                   </div>
                 )}

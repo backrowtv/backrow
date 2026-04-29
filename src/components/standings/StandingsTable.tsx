@@ -306,14 +306,16 @@ export function StandingsTable({ entries, currentUserId }: StandingsTableProps) 
                   {entry.avg_nomination_rating > 0 ? (
                     <NumberFlow
                       value={entry.avg_nomination_rating}
-                      format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
+                      format={{ minimumFractionDigits: 1, maximumFractionDigits: 1 }}
                     />
                   ) : (
                     "-"
                   )}
                 </td>
-                <td className={`${cell} text-right text-[var(--text-secondary)]`}>
-                  <NumberFlow value={entry.nomination_guesses} />
+                <td className={`${cell} text-right text-[var(--text-secondary)] tabular-nums`}>
+                  {entry.nomination_guesses_total > 0
+                    ? `${entry.nomination_guesses}/${entry.nomination_guesses_total}`
+                    : "-"}
                 </td>
               </tr>
             );

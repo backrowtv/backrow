@@ -1,36 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, FilmReel } from "@phosphor-icons/react/dist/ssr";
+import { Trophy } from "@phosphor-icons/react/dist/ssr";
 import { resolveClub } from "@/lib/clubs/resolveClub";
 import { ClubNavigation } from "@/components/clubs/ClubNavigation";
-import { DateDisplay } from "@/components/ui/date-display";
 import { ClubChallengesSection } from "@/components/badges/ClubChallengesSection";
 import { getClubBadgeData } from "@/app/actions/club-badges";
+import { FestivalWinnersList, type FestivalWinner } from "@/components/clubs/FestivalWinnersList";
 import type { FestivalResults } from "@/types/festival-results";
 
 interface ClubDisplayCasePageProps {
   params: Promise<{ slug: string }>;
-}
-
-interface FestivalWinner {
-  festivalId: string;
-  festivalSlug: string | null;
-  festivalTheme: string;
-  resultsDate: string | null;
-  winner: {
-    userId: string;
-    userName: string;
-    avatarUrl: string | null;
-  };
-  winningMovie: {
-    tmdbId: number | null;
-    title: string | null;
-    posterPath: string | null;
-    averageRating: number;
-  } | null;
 }
 
 // Fetch festival winners
@@ -38,14 +18,13 @@ async function getFestivalWinners(
   supabase: Awaited<ReturnType<typeof createClient>>,
   clubId: string
 ): Promise<FestivalWinner[]> {
-  // Get completed festivals
+  // Get completed festivals (no hard cap — pagination happens client-side after 5)
   const { data: festivals } = await supabase
     .from("festivals")
     .select("id, slug, theme, results_date")
     .eq("club_id", clubId)
     .eq("status", "completed")
-    .order("results_date", { ascending: false })
-    .limit(10);
+    .order("results_date", { ascending: false });
 
   if (!festivals || festivals.length === 0) {
     return [];
@@ -137,75 +116,6 @@ async function getFestivalWinners(
   return winners;
 }
 
-// Winner Card Component — clean list-style layout
-function WinnerCard({ winner, clubSlug }: { winner: FestivalWinner; clubSlug: string }) {
-  const festivalLink = `/club/${clubSlug}/festival/${winner.festivalSlug || winner.festivalId}`;
-  const posterUrl = winner.winningMovie?.posterPath || null;
-
-  return (
-    <Link href={festivalLink} className="block group">
-      <div className="flex gap-4 p-4 rounded-lg bg-[var(--surface-1)] border border-[var(--border)] hover:border-[var(--primary)]/30 transition-colors">
-        {/* Movie Poster */}
-        {posterUrl ? (
-          <div className="relative w-14 flex-shrink-0 rounded overflow-hidden bg-[var(--surface-2)] aspect-[2/3]">
-            <Image
-              src={posterUrl}
-              alt={winner.winningMovie?.title || "Movie"}
-              fill
-              className="object-cover"
-              sizes="56px"
-            />
-          </div>
-        ) : (
-          <div className="w-14 flex-shrink-0 rounded bg-[var(--surface-2)] flex items-center justify-center aspect-[2/3]">
-            <FilmReel className="h-5 w-5 text-[var(--text-muted)]" />
-          </div>
-        )}
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">
-                {winner.festivalTheme}
-              </h3>
-              {winner.resultsDate && (
-                <p className="text-xs text-[var(--text-muted)]">
-                  <DateDisplay date={winner.resultsDate} format="date" />
-                </p>
-              )}
-            </div>
-            {winner.winningMovie && (
-              <div className="text-right flex-shrink-0">
-                <div
-                  className="text-base font-bold"
-                  style={{ color: "var(--club-accent, var(--primary))" }}
-                >
-                  {winner.winningMovie.averageRating.toFixed(1)}
-                </div>
-                <div className="text-[10px] text-[var(--text-muted)]">avg rating</div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-2 flex items-center gap-2">
-            <Trophy className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-            <span className="text-xs text-[var(--text-secondary)]">{winner.winner.userName}</span>
-            {winner.winningMovie?.title && (
-              <>
-                <span className="text-xs text-[var(--text-muted)]">·</span>
-                <span className="text-xs text-[var(--text-muted)] truncate">
-                  {winner.winningMovie.title}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export default async function ClubDisplayCasePage({ params }: ClubDisplayCasePageProps) {
   const identifier = (await params).slug;
   const supabase = await createClient();
@@ -288,11 +198,7 @@ export default async function ClubDisplayCasePage({ params }: ClubDisplayCasePag
               </CardHeader>
               <CardContent>
                 {winners.length > 0 ? (
-                  <div className="space-y-2">
-                    {winners.map((winner) => (
-                      <WinnerCard key={winner.festivalId} winner={winner} clubSlug={clubSlug} />
-                    ))}
-                  </div>
+                  <FestivalWinnersList winners={winners} clubSlug={clubSlug} />
                 ) : (
                   <div className="py-8 text-center">
                     <Trophy

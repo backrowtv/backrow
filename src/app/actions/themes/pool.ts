@@ -94,22 +94,8 @@ export async function addTheme(prevState: unknown, formData: FormData) {
     };
   }
 
-  // Check if theme already exists (case-sensitive unique per club)
-  const { data: existingTheme, error: existingThemeError } = await supabase
-    .from("theme_pool")
-    .select("id")
-    .eq("club_id", clubId)
-    .eq("theme_name", themeName.trim())
-    .eq("is_used", false)
-    .maybeSingle();
-
-  if (existingThemeError) {
-    return { error: existingThemeError.message };
-  }
-
-  if (existingTheme) {
-    return { error: "This theme already exists in the pool" };
-  }
+  // Duplicates are allowed: two members independently suggesting the same theme
+  // is signal, not a conflict. The DB UNIQUE constraint was dropped in 0016.
 
   // Add theme and return the inserted row with the author joined so the client
   // can render it immediately without a fallback-avatar flash.
@@ -302,19 +288,7 @@ export async function updateTheme(themeId: string, newName: string, clubId: stri
     return { success: true }; // No change needed
   }
 
-  // Check if theme name already exists (case-sensitive unique per club)
-  const { data: existingTheme } = await supabase
-    .from("theme_pool")
-    .select("id")
-    .eq("club_id", clubId)
-    .eq("theme_name", newName.trim())
-    .eq("is_used", false)
-    .neq("id", themeId) // Exclude current theme
-    .maybeSingle();
-
-  if (existingTheme) {
-    return { error: "This theme name already exists in the pool" };
-  }
+  // Duplicates are allowed across the pool — see migration 0016.
 
   // Update theme
   const { error } = await supabase

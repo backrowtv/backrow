@@ -116,6 +116,7 @@ export async function getSeasonStandings(
       wins: number;
       nomination_ratings: number[];
       correct_guesses: number;
+      total_guesses: number;
     }
   > = {};
 
@@ -156,6 +157,7 @@ export async function getSeasonStandings(
           wins: 0,
           nomination_ratings: [],
           correct_guesses: 0,
+          total_guesses: 0,
         };
       }
 
@@ -194,6 +196,22 @@ export async function getSeasonStandings(
       if (rating.user_id && userStats[rating.user_id]) {
         const key = `${rating.festival_id}-${rating.nomination_id}-${rating.user_id}`;
         userStats[rating.user_id].movies_rated.add(key);
+      }
+    });
+  }
+
+  // Total guesses per user (denominator for the "X/Y" fraction display).
+  // nomination_guesses.guesses is a JSONB object keyed by nomination_id; key count = guesses cast.
+  const { data: guessRecords } = await supabase
+    .from("nomination_guesses")
+    .select("user_id, guesses")
+    .in("festival_id", festivalIds);
+
+  if (guessRecords) {
+    guessRecords.forEach((g) => {
+      if (g.user_id && userStats[g.user_id] && g.guesses) {
+        const count = Object.keys(g.guesses as Record<string, string>).length;
+        userStats[g.user_id].total_guesses += count;
       }
     });
   }
@@ -273,6 +291,7 @@ export async function getSeasonStandings(
       win_rate: Math.round(winRate * 10) / 10,
       avg_nomination_rating: Math.round(avgNominationRating * 10) / 10,
       nomination_guesses: stats.correct_guesses,
+      nomination_guesses_total: stats.total_guesses,
     };
   });
 
@@ -385,6 +404,7 @@ export async function getLifetimeStandings(
       wins: number;
       nomination_ratings: number[];
       correct_guesses: number;
+      total_guesses: number;
     }
   > = {};
 
@@ -425,6 +445,7 @@ export async function getLifetimeStandings(
           wins: 0,
           nomination_ratings: [],
           correct_guesses: 0,
+          total_guesses: 0,
         };
       }
 
@@ -464,6 +485,22 @@ export async function getLifetimeStandings(
       if (rating.user_id && userStats[rating.user_id]) {
         const key = `${rating.festival_id}-${rating.nomination_id}-${rating.user_id}`;
         userStats[rating.user_id].movies_rated.add(key);
+      }
+    });
+  }
+
+  // Total guesses per user (denominator for the "X/Y" fraction display).
+  // nomination_guesses.guesses is a JSONB object keyed by nomination_id; key count = guesses cast.
+  const { data: guessRecords } = await supabase
+    .from("nomination_guesses")
+    .select("user_id, guesses")
+    .in("festival_id", festivalIds);
+
+  if (guessRecords) {
+    guessRecords.forEach((g) => {
+      if (g.user_id && userStats[g.user_id] && g.guesses) {
+        const count = Object.keys(g.guesses as Record<string, string>).length;
+        userStats[g.user_id].total_guesses += count;
       }
     });
   }
@@ -552,6 +589,7 @@ export async function getLifetimeStandings(
       win_rate: Math.round(winRate * 10) / 10,
       avg_nomination_rating: Math.round(avgNominationRating * 10) / 10,
       nomination_guesses: stats.correct_guesses,
+      nomination_guesses_total: stats.total_guesses,
     };
   });
 

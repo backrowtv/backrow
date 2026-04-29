@@ -1,7 +1,8 @@
 "use client";
 
 import { updateClub } from "@/app/actions/clubs";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,12 +17,16 @@ interface ClubNameFormProps {
 type FormState = { error?: string; success?: boolean } | null;
 
 export function ClubNameForm({ clubId, currentName }: ClubNameFormProps) {
+  const router = useRouter();
   const [name, setName] = useState(currentName);
   const [state, formAction, isPending] = useActionState<FormState, FormData>(updateClub, null);
 
-  if (state && "success" in state && state.success) {
-    toast.success("Club name updated");
-  }
+  useEffect(() => {
+    if (state && "success" in state && state.success) {
+      toast.success("Club name updated");
+      router.refresh();
+    }
+  }, [state, router]);
 
   return (
     <Card>

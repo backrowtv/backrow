@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -255,6 +255,8 @@ function MovieRow({ movie, guessingEnabled, existingNote, onNoteUpdated }: Movie
   );
 }
 
+const INITIAL_VISIBLE_MOVIES = 10;
+
 export function FestivalProgressChecklist({
   carouselMovies,
   totalMovies,
@@ -265,13 +267,20 @@ export function FestivalProgressChecklist({
   privateNotes = [],
 }: FestivalProgressChecklistProps) {
   const router = useRouter();
+  const [showAll, setShowAll] = useState(false);
 
   // Create lookup for private notes by tmdb_id
-  const notesMap = new Map(privateNotes.map((note) => [note.tmdb_id, note]));
+  const notesMap = useMemo(
+    () => new Map(privateNotes.map((note) => [note.tmdb_id, note])),
+    [privateNotes]
+  );
 
   // Calculate progress percentages
   const watchedPercent = totalMovies > 0 ? (watchedCount / totalMovies) * 100 : 0;
   const ratedPercent = totalMovies > 0 ? (ratedCount / totalMovies) * 100 : 0;
+
+  const visibleMovies = showAll ? carouselMovies : carouselMovies.slice(0, INITIAL_VISIBLE_MOVIES);
+  const hasMore = carouselMovies.length > INITIAL_VISIBLE_MOVIES;
 
   if (totalMovies === 0) return null;
 
@@ -325,7 +334,7 @@ export function FestivalProgressChecklist({
 
         {/* Movie Checklist */}
         <div className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--surface-0)]">
-          {carouselMovies.map((movie) => (
+          {visibleMovies.map((movie) => (
             <MovieRow
               key={movie.id}
               movie={movie}
@@ -335,6 +344,17 @@ export function FestivalProgressChecklist({
             />
           ))}
         </div>
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            className="w-full text-center text-xs font-medium py-2 px-4 rounded-md bg-[var(--surface-1)] border border-[var(--border)] hover:border-[var(--primary)]/30 transition-colors text-[var(--text-secondary)]"
+          >
+            {showAll
+              ? "Show fewer"
+              : `Show all ${carouselMovies.length} movies (${carouselMovies.length - INITIAL_VISIBLE_MOVIES} more)`}
+          </button>
+        )}
       </CardContent>
     </Card>
   );

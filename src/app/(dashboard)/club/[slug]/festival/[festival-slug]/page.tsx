@@ -260,7 +260,9 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
       .eq("festival_id", festivalId),
     supabase
       .from("club_members")
-      .select("user_id, role, users:user_id(id, display_name, username, avatar_url)")
+      .select(
+        "user_id, role, club_display_name, users:user_id(id, display_name, username, avatar_url, avatar_icon, avatar_color_index, avatar_border_color_index)"
+      )
       .eq("club_id", clubId),
     // Nominations with movie and user data
     supabase
@@ -342,6 +344,57 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
       avatar_url: userData?.avatar_url || null,
     };
   });
+
+  // Member watch progress (count of festival movies each member has watched).
+  // Only the count is exposed — never which specific movies.
+  const memberWatchProgress: Array<{
+    userId: string;
+    displayName: string;
+    avatarUrl: string | null;
+    avatarIcon: string | null;
+    avatarColorIndex: number | null;
+    avatarBorderColorIndex: number | null;
+    watchedCount: number;
+  }> = [];
+  if (membersResult.data && membersResult.data.length > 0 && nominationsData.data) {
+    const allTmdbIds = (nominationsData.data || []).map((n) => n.tmdb_id);
+    const allMemberIds = membersResult.data.map((m) => m.user_id);
+    if (allTmdbIds.length > 0 && allMemberIds.length > 0) {
+      const { data: watchRows } = await supabase
+        .from("watch_history")
+        .select("user_id, tmdb_id")
+        .in("user_id", allMemberIds)
+        .in("tmdb_id", allTmdbIds);
+      const counts = new Map<string, number>();
+      (watchRows || []).forEach((w) => {
+        if (!w.user_id) return;
+        counts.set(w.user_id, (counts.get(w.user_id) || 0) + 1);
+      });
+      for (const m of membersResult.data) {
+        const userData = Array.isArray(m.users) ? m.users[0] : m.users;
+        const userRow = userData as
+          | {
+              display_name?: string | null;
+              avatar_url?: string | null;
+              avatar_icon?: string | null;
+              avatar_color_index?: number | null;
+              avatar_border_color_index?: number | null;
+            }
+          | null
+          | undefined;
+        const memberRow = m as { club_display_name?: string | null };
+        memberWatchProgress.push({
+          userId: m.user_id,
+          displayName: memberRow.club_display_name || userRow?.display_name || "Unknown",
+          avatarUrl: userRow?.avatar_url ?? null,
+          avatarIcon: userRow?.avatar_icon ?? null,
+          avatarColorIndex: userRow?.avatar_color_index ?? null,
+          avatarBorderColorIndex: userRow?.avatar_border_color_index ?? null,
+          watchedCount: counts.get(m.user_id) || 0,
+        });
+      }
+    }
+  }
 
   // Process nominations data
   const nominations = (nominationsData.data || []).map((nom) => {
@@ -792,6 +845,7 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
             resultsMembers={resultsMembers}
             privateNotes={privateNotes}
             festivalNotes={festivalNotes}
+            memberWatchProgress={memberWatchProgress}
             autoAdvance={isAutoAdvance}
             revealSettings={{
               type: (clubSettings?.results_reveal_type as "automatic" | "manual") ?? "manual",

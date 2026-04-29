@@ -252,8 +252,9 @@ export function FestivalResultsModal({
 
   // Determine which tabs to show
   const showRatingsTab = displaySettings.clubRatingsEnabled;
-  const showGuessesTab =
-    displaySettings.nominationGuessingEnabled && displaySettings.blindNominationsEnabled;
+  // Mirror the festival page (page.tsx): showing guesses doesn't require nominations
+  // to have been blind during the festival. The data exists; let it render.
+  const showGuessesTab = displaySettings.nominationGuessingEnabled;
 
   // Build festival URL for external link
   const festivalUrl =

@@ -64,8 +64,9 @@ export function ClubImageryForm({
   useEffect(() => {
     if (state && "success" in state && state.success) {
       toast.success("Club picture updated");
+      router.refresh();
     }
-  }, [state]);
+  }, [state, router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

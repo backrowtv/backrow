@@ -164,7 +164,7 @@ export function FestivalCarouselWrapper({
   const festivalUrl = `/club/${clubSlug}/festival/${festivalSlug}`;
 
   return (
-    <div className="space-y-4 overflow-hidden">
+    <div className="space-y-4">
       {/* Header Section */}
       <div className="text-center">
         {/* 1. Festival Title - TOP */}
