@@ -306,7 +306,7 @@ export function StandingsTable({ entries, currentUserId }: StandingsTableProps) 
                   {entry.avg_nomination_rating > 0 ? (
                     <NumberFlow
                       value={entry.avg_nomination_rating}
-                      format={{ minimumFractionDigits: 1, maximumFractionDigits: 1 }}
+                      format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
                     />
                   ) : (
                     "-"

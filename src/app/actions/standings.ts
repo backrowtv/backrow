@@ -289,7 +289,7 @@ export async function getSeasonStandings(
       festivals_attended: festivalsAttended,
       wins: stats.wins,
       win_rate: Math.round(winRate * 10) / 10,
-      avg_nomination_rating: Math.round(avgNominationRating * 10) / 10,
+      avg_nomination_rating: Math.round(avgNominationRating * 100) / 100,
       nomination_guesses: stats.correct_guesses,
       nomination_guesses_total: stats.total_guesses,
     };
@@ -587,7 +587,7 @@ export async function getLifetimeStandings(
       festivals_attended: festivalsAttended,
       wins: stats.wins,
       win_rate: Math.round(winRate * 10) / 10,
-      avg_nomination_rating: Math.round(avgNominationRating * 10) / 10,
+      avg_nomination_rating: Math.round(avgNominationRating * 100) / 100,
       nomination_guesses: stats.correct_guesses,
       nomination_guesses_total: stats.total_guesses,
     };

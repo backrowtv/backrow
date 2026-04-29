@@ -120,8 +120,9 @@ export async function calculateResults(festivalId: string) {
     if (nomRatings.length > 0) {
       const sum = nomRatings.reduce((a, b) => a + b, 0);
       const avg = sum / nomRatings.length;
-      // Round to one decimal place
-      nominationAverages[nom.id] = Math.round(avg * 10) / 10;
+      // Round to two decimal places — averages-of-averages produce real
+      // 2-decimal values; truncating to 1 decimal hid signal in standings.
+      nominationAverages[nom.id] = Math.round(avg * 100) / 100;
     } else {
       nominationAverages[nom.id] = 0;
     }
@@ -410,8 +411,9 @@ export async function calculateResults(festivalId: string) {
       .map((r) => Number(r.rating));
     const avgRatingGiven =
       userRatingValues.length > 0
-        ? Math.round((userRatingValues.reduce((a, b) => a + b, 0) / userRatingValues.length) * 10) /
-          10
+        ? Math.round(
+            (userRatingValues.reduce((a, b) => a + b, 0) / userRatingValues.length) * 100
+          ) / 100
         : null;
 
     return {
