@@ -2,7 +2,7 @@
  * Type definitions for discussion threads and comments
  */
 
-export type DiscussionTagType = "movie" | "actor" | "director" | "composer" | "festival";
+export type DiscussionTagType = "movie" | "person" | "festival";
 
 export interface DiscussionThreadTag {
   id: string;
@@ -132,7 +132,7 @@ export interface DiscussionVote {
 export interface TagInput {
   tag_type: DiscussionTagType;
   tmdb_id?: number; // For movies
-  person_tmdb_id?: number; // For actors/directors/composers
+  person_tmdb_id?: number; // For people (actors, directors, composers, writers, etc.)
   festival_id?: string; // For festivals
 }
 

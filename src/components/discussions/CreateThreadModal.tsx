@@ -18,8 +18,6 @@ import {
   MagnifyingGlass,
   CircleNotch,
   Tag,
-  MusicNote,
-  Megaphone,
   CalendarBlank,
 } from "@phosphor-icons/react/dist/ssr";
 import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
@@ -82,20 +80,10 @@ const TAG_TYPE_CONFIG: Record<
     icon: <FilmReel className="w-3 h-3" />,
     color: "bg-[var(--info)] text-white border-[var(--info)]",
   },
-  actor: {
-    label: "Actor",
+  person: {
+    label: "Person",
     icon: <User className="w-3 h-3" />,
     color: "bg-[var(--accent)] text-white border-[var(--accent)]",
-  },
-  director: {
-    label: "Director",
-    icon: <Megaphone className="w-3 h-3" />,
-    color: "bg-[var(--warning)] text-white border-[var(--warning)]",
-  },
-  composer: {
-    label: "Composer",
-    icon: <MusicNote className="w-3 h-3" />,
-    color: "bg-[var(--success)] text-white border-[var(--success)]",
   },
   festival: {
     label: "Festival",
@@ -181,22 +169,13 @@ export function CreateThreadModal({
     searchTimer.current = setTimeout(async () => {
       setIsSearchingOther(true);
       try {
-        if (["actor", "director", "composer"].includes(searchMode)) {
+        if (searchMode === "person") {
           const response = await fetch(
             `/api/tmdb/search-people?q=${encodeURIComponent(searchQuery)}`
           );
           const data = await response.json();
           if (response.ok) {
-            const departmentMap: Record<string, string[]> = {
-              actor: ["Acting"],
-              director: ["Directing"],
-              composer: ["Sound", "Music"],
-            };
-            const validDepartments = departmentMap[searchMode];
-            const filtered = (data.results || []).filter((p: PersonSearchResult) =>
-              validDepartments.includes(p.known_for_department)
-            );
-            setPersonResults(filtered.slice(0, 8));
+            setPersonResults((data.results || []).slice(0, 8));
           }
         } else if (searchMode === "festival") {
           const response = await fetch(
@@ -248,20 +227,15 @@ export function CreateThreadModal({
     setSearchMode(null);
   };
 
-  const addPersonTag = (person: PersonSearchResult, personType: DiscussionTagType) => {
+  const addPersonTag = (person: PersonSearchResult) => {
     // Check if already added
-    if (
-      selectedTags.some(
-        (t) =>
-          ["actor", "director", "composer"].includes(t.tag_type) && t.person_tmdb_id === person.id
-      )
-    ) {
+    if (selectedTags.some((t) => t.tag_type === "person" && t.person_tmdb_id === person.id)) {
       return;
     }
     setSelectedTags((prev) => [
       ...prev,
       {
-        tag_type: personType,
+        tag_type: "person",
         person_tmdb_id: person.id,
         display_name: person.name,
         image_url: person.profile_path
@@ -443,7 +417,7 @@ export function CreateThreadModal({
                       setSearchQuery(e.target.value);
                     }
                   }}
-                  placeholder={`Search for ${searchMode === "actor" ? "an actor" : `a ${searchMode}`}...`}
+                  placeholder={`Search for a ${searchMode === "person" ? "person (actor, director, etc.)" : searchMode}...`}
                   className="w-full h-9 pl-9 pr-3 rounded-md border text-base md:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none search-input-debossed"
                 />
                 {(searchMode === "movie" ? movieSearch.isSearching : isSearchingOther) && (
@@ -466,40 +440,46 @@ export function CreateThreadModal({
               )}
 
               {/* Person Results */}
-              {["actor", "director", "composer"].includes(searchMode) &&
-                personResults.length > 0 && (
-                  <div className="max-h-[200px] overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--background)]">
-                    {personResults.map((person) => (
-                      <button
-                        key={person.id}
-                        type="button"
-                        onClick={() => addPersonTag(person, searchMode as DiscussionTagType)}
-                        className="w-full flex items-center gap-3 p-2 hover:bg-[var(--surface-1)] transition-colors text-left border-b border-[var(--border)] last:border-b-0"
-                      >
-                        <div className="relative w-8 h-8 rounded-full overflow-hidden bg-[var(--surface-2)] flex-shrink-0">
-                          {person.profile_path ? (
-                            <Image
-                              src={`https://image.tmdb.org/t/p/w92${person.profile_path}`}
-                              alt={person.name}
-                              fill
-                              className="object-cover"
-                              sizes="32px"
-                              placeholder="blur"
-                              blurDataURL={getTMDBBlurDataURL()}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <User className="w-3 h-3 text-[var(--text-muted)]" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-sm text-[var(--text-primary)] truncate">
+              {searchMode === "person" && personResults.length > 0 && (
+                <div className="max-h-[200px] overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                  {personResults.map((person) => (
+                    <button
+                      key={person.id}
+                      type="button"
+                      onClick={() => addPersonTag(person)}
+                      className="w-full flex items-center gap-3 p-2 hover:bg-[var(--surface-1)] transition-colors text-left border-b border-[var(--border)] last:border-b-0"
+                    >
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden bg-[var(--surface-2)] flex-shrink-0">
+                        {person.profile_path ? (
+                          <Image
+                            src={`https://image.tmdb.org/t/p/w92${person.profile_path}`}
+                            alt={person.name}
+                            fill
+                            className="object-cover"
+                            sizes="32px"
+                            placeholder="blur"
+                            blurDataURL={getTMDBBlurDataURL()}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <User className="w-3 h-3 text-[var(--text-muted)]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="text-sm text-[var(--text-primary)] truncate">
                           {person.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                        </div>
+                        {person.known_for_department && (
+                          <div className="text-xs text-[var(--text-muted)] truncate">
+                            {person.known_for_department}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Festival Results */}
               {searchMode === "festival" && festivalResults.length > 0 && (
@@ -530,8 +510,7 @@ export function CreateThreadModal({
                 (searchMode !== "movie" &&
                   searchQuery.length >= 2 &&
                   !isSearchingOther &&
-                  ((["actor", "director", "composer"].includes(searchMode!) &&
-                    personResults.length === 0) ||
+                  ((searchMode === "person" && personResults.length === 0) ||
                     (searchMode === "festival" && festivalResults.length === 0)))) && (
                 <p className="text-xs text-[var(--text-muted)] px-1">No results found</p>
               )}

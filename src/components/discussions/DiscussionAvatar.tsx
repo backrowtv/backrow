@@ -138,9 +138,7 @@ export function getDiscussionAvatarData(
         type: "movie",
         imageUrl: tag.movie?.poster_url,
       };
-    case "actor":
-    case "director":
-    case "composer":
+    case "person":
       return {
         type: "person",
         imageUrl: tag.person?.profile_path,

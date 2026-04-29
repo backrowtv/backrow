@@ -324,7 +324,7 @@ export async function createThread(
           return { error: `Failed to fetch movie data: ${cacheResult.error}` };
         }
       }
-      if (["actor", "director", "composer"].includes(tag.tag_type) && tag.person_tmdb_id) {
+      if (tag.tag_type === "person" && tag.person_tmdb_id) {
         const cacheResult = await cachePerson(tag.person_tmdb_id);
         if ("error" in cacheResult) {
           return { error: `Failed to fetch person data: ${cacheResult.error}` };
@@ -353,8 +353,7 @@ export async function createThread(
       const singleTag = tags[0];
       if (singleTag.tag_type === "movie") derivedThreadType = "movie";
       else if (singleTag.tag_type === "festival") derivedThreadType = "festival";
-      else if (["actor", "director", "composer"].includes(singleTag.tag_type))
-        derivedThreadType = "person";
+      else if (singleTag.tag_type === "person") derivedThreadType = "person";
     } else if (threadType) {
       // Use legacy threadType if provided
       derivedThreadType = threadType;
@@ -395,9 +394,7 @@ export async function createThread(
         thread_id: thread.id,
         tag_type: tag.tag_type,
         tmdb_id: tag.tag_type === "movie" ? tag.tmdb_id : null,
-        person_tmdb_id: ["actor", "director", "composer"].includes(tag.tag_type)
-          ? tag.person_tmdb_id
-          : null,
+        person_tmdb_id: tag.tag_type === "person" ? tag.person_tmdb_id : null,
         festival_id: tag.tag_type === "festival" ? tag.festival_id : null,
       }));
 

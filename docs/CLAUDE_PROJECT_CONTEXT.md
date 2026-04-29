@@ -208,7 +208,7 @@ Authoritative list lives in `docs/backrow-site-map.md`. Summary:
 
 - **discussion_threads** - Discussion threads within clubs (with slugs)
 - **discussion_comments** - Comments on discussions
-- **discussion_thread_tags** - Multi-entity tagging (movies, actors, directors, festivals)
+- **discussion_thread_tags** - Multi-entity tagging (movies, people, festivals). The `person` tag type covers anyone in TMDB — actors, directors, writers, composers, etc.
 - **private_notes** - Personal movie notes (multiple per movie allowed)
 - **activity_log** - Club activity events
 - **notifications** - User notifications

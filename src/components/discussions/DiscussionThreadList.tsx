@@ -14,8 +14,6 @@ import {
   FilmReel,
   User,
   CalendarBlank,
-  MusicNote,
-  Megaphone,
   Funnel,
   Eye,
   CheckCircle,
@@ -44,20 +42,10 @@ const TAG_TYPE_CONFIG: Record<
     icon: <FilmReel className="w-3 h-3" />,
     color: "bg-[var(--info)] text-white border-[var(--info)]",
   },
-  actor: {
-    label: "Actors",
+  person: {
+    label: "People",
     icon: <User className="w-3 h-3" />,
     color: "bg-[var(--accent)] text-white border-[var(--accent)]",
-  },
-  director: {
-    label: "Directors",
-    icon: <Megaphone className="w-3 h-3" />,
-    color: "bg-[var(--warning)] text-white border-[var(--warning)]",
-  },
-  composer: {
-    label: "Composers",
-    icon: <MusicNote className="w-3 h-3" />,
-    color: "bg-[var(--success)] text-white border-[var(--success)]",
   },
   festival: {
     label: "Festivals",
@@ -74,9 +62,7 @@ const FILTER_OPTIONS: Array<{
 }> = [
   { value: "all", label: "All", icon: <Funnel className="w-3 h-3" /> },
   { value: "movie", label: "Movies", icon: <FilmReel className="w-3 h-3" /> },
-  { value: "actor", label: "Actors", icon: <User className="w-3 h-3" /> },
-  { value: "director", label: "Directors", icon: <Megaphone className="w-3 h-3" /> },
-  { value: "composer", label: "Composers", icon: <MusicNote className="w-3 h-3" /> },
+  { value: "person", label: "People", icon: <User className="w-3 h-3" /> },
   { value: "festival", label: "Festivals", icon: <CalendarBlank className="w-3 h-3" /> },
 ];
 
@@ -249,7 +235,7 @@ function getTagDisplayInfo(tag: DiscussionThreadTag): { name: string; imageUrl?:
       imageUrl: tag.movie.poster_url,
     };
   }
-  if (["actor", "director", "composer"].includes(tag.tag_type) && tag.person) {
+  if (tag.tag_type === "person" && tag.person) {
     return {
       name: tag.person.name,
       imageUrl: tag.person.profile_url,
@@ -261,7 +247,12 @@ function getTagDisplayInfo(tag: DiscussionThreadTag): { name: string; imageUrl?:
   return { name: "Unknown" };
 }
 
-function ThreadListItem({ thread, clubSlug, spoilerState, isEndlessFestival }: ThreadListItemProps) {
+function ThreadListItem({
+  thread,
+  clubSlug,
+  spoilerState,
+  isEndlessFestival,
+}: ThreadListItemProps) {
   const router = useRouter();
   const [showGate, setShowGate] = React.useState(false);
   const [actionInProgress, setActionInProgress] = React.useState<string | null>(null);
@@ -354,11 +345,7 @@ function ThreadListItem({ thread, clubSlug, spoilerState, isEndlessFestival }: T
     }
 
     // Single person tag
-    if (
-      singleTag &&
-      ["actor", "director", "composer"].includes(singleTag.tag_type) &&
-      singleTag.person
-    ) {
+    if (singleTag && singleTag.tag_type === "person" && singleTag.person) {
       return (
         <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--surface-2)]">
           {singleTag.person.profile_url ? (
@@ -414,7 +401,9 @@ function ThreadListItem({ thread, clubSlug, spoilerState, isEndlessFestival }: T
   const showThumbnail = hasTags || hasLegacyMovie || hasLegacyPerson;
 
   // Strip legacy "Discussion" / "Festival Discussion:" prefix from auto-created titles
-  const displayTitle = thread.title.replace(/^(Festival Discussion:\s*|Discussion[:\s]+)/i, "").trim();
+  const displayTitle = thread.title
+    .replace(/^(Festival Discussion:\s*|Discussion[:\s]+)/i, "")
+    .trim();
 
   // Filter out movie tags from badge display when poster is shown
   let displayTags = hasMoviePoster ? tags.filter((t) => t.tag_type !== "movie") : [...tags];

@@ -63,7 +63,7 @@ export async function addTagToThread(
         return { error: `Failed to fetch movie data: ${cacheResult.error}` };
       }
     }
-    if (["actor", "director", "composer"].includes(tag.tag_type) && tag.person_tmdb_id) {
+    if (tag.tag_type === "person" && tag.person_tmdb_id) {
       const cacheResult = await cachePerson(tag.person_tmdb_id);
       if ("error" in cacheResult) {
         return { error: `Failed to fetch person data: ${cacheResult.error}` };
@@ -77,9 +77,7 @@ export async function addTagToThread(
         thread_id: threadId,
         tag_type: tag.tag_type,
         tmdb_id: tag.tag_type === "movie" ? tag.tmdb_id : null,
-        person_tmdb_id: ["actor", "director", "composer"].includes(tag.tag_type)
-          ? tag.person_tmdb_id
-          : null,
+        person_tmdb_id: tag.tag_type === "person" ? tag.person_tmdb_id : null,
         festival_id: tag.tag_type === "festival" ? tag.festival_id : null,
       })
       .select()

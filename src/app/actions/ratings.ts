@@ -6,6 +6,7 @@ import { logMemberActivity } from "@/lib/activity/logger";
 import { normalizeRating, INTERNAL_RATING_SCALE } from "@/lib/ratings/normalize";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { markMovieWatched } from "@/app/actions/endless-festival/watch-history";
+import { isEndlessFestivalClub } from "@/app/actions/endless-festival/data";
 
 // Shape returned for `festivals!inner(status, theme)` joins on the `ratings` table.
 // PostgREST models embedded relations as nullable even when `!inner` guarantees the row,
@@ -68,8 +69,9 @@ export async function createRating(prevState: unknown, formData: FormData) {
     }
   }
 
-  // Check if this is an endless festival (status === 'watching')
-  const isEndlessFestival = festival.status === "watching";
+  // Source of truth: clubs.festival_type. Standard festivals also use status === "watching"
+  // during the watch_rate phase, so the status alone is not enough to distinguish modes.
+  const isEndlessFestival = await isEndlessFestivalClub(festival.club_id);
 
   // Determine if this rating should sync to the global generic_ratings table.
   // Only themed standard festivals keep ratings separate.

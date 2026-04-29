@@ -64,14 +64,7 @@ export const DeleteAnnouncementSchema = z.object({
 // Discussion Thread Schemas
 // =============================================================================
 
-export const ThreadTagTypeSchema = z.enum([
-  "movie",
-  "actor",
-  "director",
-  "composer",
-  "festival",
-  "general",
-]);
+export const ThreadTagTypeSchema = z.enum(["movie", "person", "festival"]);
 
 export const TagInputSchema = z.object({
   tag_type: ThreadTagTypeSchema,

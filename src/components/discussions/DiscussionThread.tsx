@@ -91,7 +91,7 @@ function getTagDisplayInfo(tag: DiscussionThreadTag): {
       href: `/movies/${tag.movie.tmdb_id}`,
     };
   }
-  if (["actor", "director", "composer"].includes(tag.tag_type) && tag.person) {
+  if (tag.tag_type === "person" && tag.person) {
     return {
       name: tag.person.name,
       imageUrl: tag.person.profile_url,
@@ -243,11 +243,7 @@ export function DiscussionThread({
     }
 
     // Single person tag: show profile pic
-    if (
-      singleTag &&
-      ["actor", "director", "composer"].includes(singleTag.tag_type) &&
-      singleTag.person
-    ) {
+    if (singleTag && singleTag.tag_type === "person" && singleTag.person) {
       return (
         <Link href={singleTagInfo?.href || "#"} className="flex-shrink-0 group">
           <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-[var(--surface-2)] shadow-sm ring-1 ring-[var(--border)] group-hover:ring-[var(--club-accent,var(--primary))] transition-colors">
@@ -358,7 +354,10 @@ export function DiscussionThread({
                 disabled={!!spoilerAction}
                 onClick={async () => {
                   setSpoilerAction("watched");
-                  await markMovieWatched(spoilerState.movieTmdbId!);
+                  await markMovieWatched(spoilerState.movieTmdbId!, {
+                    clubId: thread.club_id,
+                    discussionId: thread.id,
+                  });
                   setSpoilerDismissed(true);
                   setSpoilerAction(null);
                   router.refresh();

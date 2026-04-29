@@ -84,7 +84,7 @@ export default async function DiscussPage({ params, searchParams }: DiscussPageP
   // Parse filter, page, and size from search params
   const filterParam = resolvedSearchParams.filter;
   const activeFilter: DiscussionTagType | "all" =
-    filterParam && ["movie", "actor", "director", "composer", "festival"].includes(filterParam)
+    filterParam && ["movie", "person", "festival"].includes(filterParam)
       ? (filterParam as DiscussionTagType)
       : "all";
   const currentPage = Math.max(1, parseInt(resolvedSearchParams.page || "1", 10));

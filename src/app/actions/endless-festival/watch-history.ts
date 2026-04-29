@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
 import { logMemberActivity } from "@/lib/activity/logger";
-import { invalidateMovie } from "@/lib/cache/invalidate";
+import { invalidateMovie, invalidateDiscussion } from "@/lib/cache/invalidate";
 
 /**
  * Mark a movie as watched (adds to watch_history)
@@ -13,7 +13,12 @@ import { invalidateMovie } from "@/lib/cache/invalidate";
  */
 export async function markMovieWatched(
   tmdbId: number,
-  context?: { clubId?: string; clubSlug?: string; festivalId?: string }
+  context?: {
+    clubId?: string;
+    clubSlug?: string;
+    festivalId?: string;
+    discussionId?: string;
+  }
 ): Promise<{ success: boolean } | { error: string }> {
   const supabase = await createClient();
 
@@ -170,6 +175,13 @@ export async function markMovieWatched(
   }
 
   invalidateMovie(tmdbId);
+
+  // Discussion threads cache the spoiler-gate state under their own tag.
+  // When the user marks a movie as watched from a discussion page, bust the
+  // discussion's cache so the gate disappears on the next render.
+  if (context?.discussionId && context?.clubId) {
+    invalidateDiscussion(context.discussionId, context.clubId);
+  }
 
   return { success: true };
 }
