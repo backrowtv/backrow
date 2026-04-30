@@ -11,6 +11,7 @@ export interface ModalProps {
   title?: string;
   description?: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl" | "full";
+  titleAlign?: "left" | "center";
 }
 
 export function Modal({
@@ -20,6 +21,7 @@ export function Modal({
   title,
   description,
   size = "md",
+  titleAlign = "left",
 }: ModalProps) {
   const modalRef = React.useRef<HTMLDivElement>(null);
   const previousActiveElement = React.useRef<HTMLElement | null>(null);
@@ -126,29 +128,61 @@ export function Modal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          {(title || description) && (
-            <div className="flex items-start justify-between p-4 border-b border-[var(--border)] flex-shrink-0">
-              <div className="flex-1 pr-4">
-                {title && (
-                  <h2 id="modal-title" className="text-lg font-semibold text-[var(--text-primary)]">
-                    {title}
-                  </h2>
-                )}
+          {(title || description) &&
+            (titleAlign === "center" ? (
+              <div className="p-4 border-b border-[var(--border)] flex-shrink-0">
+                <div className="relative flex items-center justify-center min-h-8">
+                  {title && (
+                    <h2
+                      id="modal-title"
+                      className="text-lg font-semibold text-[var(--text-primary)] text-center"
+                    >
+                      {title}
+                    </h2>
+                  )}
+                  <button
+                    onClick={() => onOpenChange(false)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                    aria-label="Close modal"
+                  >
+                    <X className="h-5 w-5" weight="bold" />
+                  </button>
+                </div>
                 {description && (
-                  <p id="modal-description" className="mt-1 text-sm text-[var(--text-secondary)]">
+                  <div id="modal-description" className="mt-3 text-sm text-[var(--text-secondary)]">
                     {description}
-                  </p>
+                  </div>
                 )}
               </div>
-              <button
-                onClick={() => onOpenChange(false)}
-                className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                aria-label="Close modal"
-              >
-                <X className="h-5 w-5" weight="bold" />
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-start justify-between p-4 border-b border-[var(--border)] flex-shrink-0">
+                <div className="flex-1 pr-4">
+                  {title && (
+                    <h2
+                      id="modal-title"
+                      className="text-lg font-semibold text-[var(--text-primary)]"
+                    >
+                      {title}
+                    </h2>
+                  )}
+                  {description && (
+                    <div
+                      id="modal-description"
+                      className="mt-1 text-sm text-[var(--text-secondary)]"
+                    >
+                      {description}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  aria-label="Close modal"
+                >
+                  <X className="h-5 w-5" weight="bold" />
+                </button>
+              </div>
+            ))}
 
           {/* Content - scrollable */}
           <div

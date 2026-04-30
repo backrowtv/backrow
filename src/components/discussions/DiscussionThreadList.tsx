@@ -31,6 +31,7 @@ import type {
 import { revealThreadSpoilers } from "@/app/actions/discussions";
 import { markMovieWatched } from "@/app/actions/endless-festival/watch-history";
 import { stripHtml } from "@/lib/text/formatting";
+import toast from "react-hot-toast";
 
 // Tag type config for display - using design system colors
 const TAG_TYPE_CONFIG: Record<
@@ -287,11 +288,19 @@ function ThreadListItem({
     e.stopPropagation();
     if (!spoilerState?.movieTmdbId || actionInProgress) return;
     setActionInProgress("watched");
-    await markMovieWatched(spoilerState.movieTmdbId);
-    setShowGate(false);
-    setActionInProgress(null);
-    router.push(threadUrl);
-    router.refresh();
+    try {
+      const result = await markMovieWatched(spoilerState.movieTmdbId);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      setShowGate(false);
+      router.push(threadUrl);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't mark as watched");
+    } finally {
+      setActionInProgress(null);
+    }
   };
 
   const handleOverride = async (e: React.MouseEvent) => {
@@ -299,10 +308,19 @@ function ThreadListItem({
     e.stopPropagation();
     if (actionInProgress) return;
     setActionInProgress("override");
-    await revealThreadSpoilers(thread.id);
-    setShowGate(false);
-    setActionInProgress(null);
-    router.push(threadUrl);
+    try {
+      const result = await revealThreadSpoilers(thread.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      setShowGate(false);
+      router.push(threadUrl);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't open thread");
+    } finally {
+      setActionInProgress(null);
+    }
   };
 
   // Determine thumbnail to show — movie posters take priority and span full card height

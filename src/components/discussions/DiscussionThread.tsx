@@ -59,6 +59,7 @@ import {
   revealThreadSpoilers,
 } from "@/app/actions/discussions";
 import { markMovieWatched } from "@/app/actions/endless-festival/watch-history";
+import toast from "react-hot-toast";
 import type {
   DiscussionThread as ThreadType,
   DiscussionComment as CommentType,
@@ -354,13 +355,22 @@ export function DiscussionThread({
                 disabled={!!spoilerAction}
                 onClick={async () => {
                   setSpoilerAction("watched");
-                  await markMovieWatched(spoilerState.movieTmdbId!, {
-                    clubId: thread.club_id,
-                    discussionId: thread.id,
-                  });
-                  setSpoilerDismissed(true);
-                  setSpoilerAction(null);
-                  router.refresh();
+                  try {
+                    const result = await markMovieWatched(spoilerState.movieTmdbId!, {
+                      clubId: thread.club_id,
+                      discussionId: thread.id,
+                    });
+                    if ("error" in result) {
+                      toast.error(result.error);
+                      return;
+                    }
+                    setSpoilerDismissed(true);
+                    router.refresh();
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Couldn't mark as watched");
+                  } finally {
+                    setSpoilerAction(null);
+                  }
                 }}
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
@@ -373,9 +383,19 @@ export function DiscussionThread({
               disabled={!!spoilerAction}
               onClick={async () => {
                 setSpoilerAction("override");
-                await revealThreadSpoilers(thread.id);
-                setSpoilerDismissed(true);
-                setSpoilerAction(null);
+                try {
+                  const result = await revealThreadSpoilers(thread.id);
+                  if ("error" in result) {
+                    toast.error(result.error);
+                    return;
+                  }
+                  setSpoilerDismissed(true);
+                  router.refresh();
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Couldn't open thread");
+                } finally {
+                  setSpoilerAction(null);
+                }
               }}
             >
               <Eye className="w-4 h-4 mr-1" />

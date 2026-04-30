@@ -142,7 +142,7 @@ function PodiumPosition({
 
       {/* Nominator name */}
       <p
-        className="text-xs font-medium mb-3 text-center truncate max-w-[100px]"
+        className="text-xs font-medium mb-3 text-center truncate max-w-[80px] sm:max-w-[100px]"
         style={{ color: "var(--text-secondary)" }}
       >
         {movie.nominator_name}
@@ -153,7 +153,7 @@ function PodiumPosition({
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: delay + 0.3, duration: 0.4 }}
-        className={`relative ${position === 1 ? "w-28 h-[168px]" : position === 2 ? "w-24 h-36" : "w-20 h-[120px]"} rounded-lg overflow-hidden shadow-xl`}
+        className={`relative ${position === 1 ? "w-20 h-[120px] sm:w-28 sm:h-[168px]" : position === 2 ? "w-16 h-24 sm:w-24 sm:h-36" : "w-14 h-[84px] sm:w-20 sm:h-[120px]"} rounded-lg overflow-hidden shadow-xl`}
         style={{
           boxShadow:
             position === 1
@@ -192,7 +192,7 @@ function PodiumPosition({
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
         transition={{ delay: delay + 0.1, duration: 0.4, ease: "easeOut" }}
-        className={`${config.height} ${position === 1 ? "w-32" : position === 2 ? "w-28" : "w-24"} mt-3 rounded-t-lg flex flex-col items-center justify-start pt-3 origin-bottom`}
+        className={`${config.height} ${position === 1 ? "w-24 sm:w-32" : position === 2 ? "w-20 sm:w-28" : "w-[72px] sm:w-24"} mt-3 rounded-t-lg flex flex-col items-center justify-start pt-3 origin-bottom`}
         style={{
           backgroundColor: config.bgColor,
           boxShadow: "inset 0 2px 4px rgba(255, 255, 255, 0.1)",
@@ -232,7 +232,7 @@ function PodiumPosition({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: delay + 0.5 }}
-        className={`mt-3 text-center font-medium leading-tight line-clamp-2 ${position === 1 ? "text-sm w-[140px]" : "text-xs w-[120px]"}`}
+        className={`mt-3 text-center font-medium leading-tight line-clamp-2 ${position === 1 ? "text-sm w-[100px] sm:w-[140px]" : "text-xs w-[90px] sm:w-[120px]"}`}
         style={{ color: "var(--text-primary)" }}
       >
         {movie.movie_title}
@@ -371,7 +371,7 @@ export function MoviePodium({
       )}
 
       {/* Fixed-height podium container — prevents layout shift between pages */}
-      <div className="px-4 sm:px-12 h-[520px] flex flex-col justify-end overflow-visible">
+      <div className="px-2 sm:px-12 h-[520px] flex flex-col justify-end overflow-visible">
         <AnimatePresence mode="wait">
           {currentPage === 0 ? (
             // Top 3 Podium view
@@ -380,7 +380,7 @@ export function MoviePodium({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-end justify-center gap-4 pb-4"
+              className="flex items-end justify-center gap-2 sm:gap-4 pb-4"
             >
               {/* 2nd place */}
               {top3[1] && (

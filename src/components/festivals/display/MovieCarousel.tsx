@@ -390,7 +390,7 @@ function BottomSection({
           )}
         </h3>
         <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-          {[movie.certification, movie.year, formatRuntime(movie.runtime), movie.genres?.[0]]
+          {[movie.certification, movie.year, formatRuntime(movie.runtime)]
             .filter(Boolean)
             .join(" • ")}
         </p>

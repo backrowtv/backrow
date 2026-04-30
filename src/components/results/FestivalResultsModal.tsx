@@ -265,20 +265,25 @@ export function FestivalResultsModal({
       open={open}
       onOpenChange={onOpenChange}
       title="Festival Results"
+      titleAlign="center"
       description={
         festival ? (
-          <span className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 inline" style={{ color: "var(--primary)" }} />
-            <span>{festival.theme || "Festival"}</span>
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-3 flex flex-col gap-2 min-h-[3.5rem]">
+            <div className="flex items-start gap-2">
+              <Trophy
+                className="w-4 h-4 mt-0.5 flex-shrink-0"
+                style={{ color: "var(--primary)" }}
+              />
+              <span className="text-sm text-[var(--text-secondary)]">
+                {festival.theme || "Festival"}
+              </span>
+            </div>
             {festival.results_date && (
-              <>
-                <span style={{ color: "var(--text-muted)" }}>•</span>
-                <span>
-                  Completed <DateDisplay date={festival.results_date} format="date" />
-                </span>
-              </>
+              <div className="text-xs text-[var(--text-muted)] mt-auto self-end">
+                Completed <DateDisplay date={festival.results_date} format="date" />
+              </div>
             )}
-          </span>
+          </div>
         ) : undefined
       }
       size="lg"
@@ -345,6 +350,7 @@ export function FestivalResultsModal({
             value={resultsTab}
             onChange={setResultsTab}
             fullWidth
+            compact
           />
 
           <div className="mt-4">

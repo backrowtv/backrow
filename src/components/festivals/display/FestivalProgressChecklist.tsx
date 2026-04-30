@@ -20,6 +20,8 @@ import {
   CircleNotch,
   X,
   CaretDown,
+  CaretLeft,
+  CaretRight,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { createPrivateNote, updatePrivateNote } from "@/app/actions/notes";
@@ -255,7 +257,7 @@ function MovieRow({ movie, guessingEnabled, existingNote, onNoteUpdated }: Movie
   );
 }
 
-const INITIAL_VISIBLE_MOVIES = 10;
+const PAGE_SIZE = 5;
 
 export function FestivalProgressChecklist({
   carouselMovies,
@@ -267,7 +269,7 @@ export function FestivalProgressChecklist({
   privateNotes = [],
 }: FestivalProgressChecklistProps) {
   const router = useRouter();
-  const [showAll, setShowAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Create lookup for private notes by tmdb_id
   const notesMap = useMemo(
@@ -279,8 +281,9 @@ export function FestivalProgressChecklist({
   const watchedPercent = totalMovies > 0 ? (watchedCount / totalMovies) * 100 : 0;
   const ratedPercent = totalMovies > 0 ? (ratedCount / totalMovies) * 100 : 0;
 
-  const visibleMovies = showAll ? carouselMovies : carouselMovies.slice(0, INITIAL_VISIBLE_MOVIES);
-  const hasMore = carouselMovies.length > INITIAL_VISIBLE_MOVIES;
+  const totalPages = Math.max(1, Math.ceil(carouselMovies.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const visibleMovies = carouselMovies.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   if (totalMovies === 0) return null;
 
@@ -344,16 +347,32 @@ export function FestivalProgressChecklist({
             />
           ))}
         </div>
-        {hasMore && (
-          <button
-            type="button"
-            onClick={() => setShowAll((prev) => !prev)}
-            className="w-full text-center text-xs font-medium py-2 px-4 rounded-md bg-[var(--surface-1)] border border-[var(--border)] hover:border-[var(--primary)]/30 transition-colors text-[var(--text-secondary)]"
-          >
-            {showAll
-              ? "Show fewer"
-              : `Show all ${carouselMovies.length} movies (${carouselMovies.length - INITIAL_VISIBLE_MOVIES} more)`}
-          </button>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[var(--surface-1)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--primary)]/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Previous page"
+            >
+              <CaretLeft className="w-3 h-3" weight="bold" />
+              Prev
+            </button>
+            <span className="text-xs text-[var(--text-muted)] tabular-nums">
+              Page {safePage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[var(--surface-1)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--primary)]/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Next page"
+            >
+              Next
+              <CaretRight className="w-3 h-3" weight="bold" />
+            </button>
+          </div>
         )}
       </CardContent>
     </Card>

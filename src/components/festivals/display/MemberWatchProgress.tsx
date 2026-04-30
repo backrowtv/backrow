@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ClickableUserAvatar } from "@/components/ui/clickable-user-avatar";
 import { userToAvatarData } from "@/lib/avatar-helpers";
-import { Eye, Users } from "@phosphor-icons/react";
+import { Eye, Users, CaretLeft, CaretRight } from "@phosphor-icons/react";
 
 export interface MemberWatchProgressEntry {
   userId: string;
@@ -22,10 +22,9 @@ interface MemberWatchProgressProps {
   totalMovies: number;
   /** Hide this user from the list (typically the viewer themselves). */
   excludeUserId?: string | null;
-  initialVisible?: number;
 }
 
-const DEFAULT_VISIBLE = 5;
+const PAGE_SIZE = 5;
 
 /**
  * Shows each other club member's watched-count for this festival.
@@ -35,9 +34,8 @@ export function MemberWatchProgress({
   members,
   totalMovies,
   excludeUserId,
-  initialVisible = DEFAULT_VISIBLE,
 }: MemberWatchProgressProps) {
-  const [showAll, setShowAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const sorted = useMemo(() => {
     const filtered = excludeUserId ? members.filter((m) => m.userId !== excludeUserId) : members;
@@ -49,8 +47,9 @@ export function MemberWatchProgress({
 
   if (totalMovies === 0 || sorted.length === 0) return null;
 
-  const visible = showAll ? sorted : sorted.slice(0, initialVisible);
-  const hasMore = sorted.length > initialVisible;
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const visible = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <Card variant="default">
@@ -94,16 +93,32 @@ export function MemberWatchProgress({
             );
           })}
         </div>
-        {hasMore && (
-          <button
-            type="button"
-            onClick={() => setShowAll((prev) => !prev)}
-            className="w-full text-center text-xs font-medium py-2 px-4 rounded-md bg-[var(--surface-1)] border border-[var(--border)] hover:border-[var(--primary)]/30 transition-colors text-[var(--text-secondary)]"
-          >
-            {showAll
-              ? "Show fewer"
-              : `Show all ${sorted.length} members (${sorted.length - initialVisible} more)`}
-          </button>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[var(--surface-1)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--primary)]/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Previous page"
+            >
+              <CaretLeft className="w-3 h-3" weight="bold" />
+              Prev
+            </button>
+            <span className="text-xs text-[var(--text-muted)] tabular-nums">
+              Page {safePage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-md bg-[var(--surface-1)] border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--primary)]/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Next page"
+            >
+              Next
+              <CaretRight className="w-3 h-3" weight="bold" />
+            </button>
+          </div>
         )}
       </CardContent>
     </Card>

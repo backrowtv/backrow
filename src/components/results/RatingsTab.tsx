@@ -292,7 +292,7 @@ export function RatingsTab({ nominations, ratings, members }: RatingsTabProps) {
         <div className="flex items-center gap-3">
           <User className="w-5 h-5 shrink-0" style={{ color: "var(--text-muted)" }} />
           <Select value={selectedMemberId} onChange={handleSelectChange} className="flex-1">
-            <option value="">Select a member to view their ratings</option>
+            <option value="">Select a member</option>
             {memberSummaries.map((summary) => (
               <option key={summary.userId} value={summary.userId}>
                 {summary.userName} - {formatRatingDisplay(summary.averageRating)} avg (

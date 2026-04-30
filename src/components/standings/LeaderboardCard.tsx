@@ -85,16 +85,16 @@ export function LeaderboardCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-4">
-          <CardTitle className="text-base">{title}</CardTitle>
+        <div className="flex items-center gap-3 min-w-0">
+          <CardTitle className="text-base flex-1 min-w-0 truncate">{title}</CardTitle>
 
           {hasSeasonSelector && (
-            <div className="relative">
+            <div className="relative flex-shrink-0 min-w-0 max-w-[170px]">
               <select
                 value={selectedSeasonId}
                 onChange={(e) => setSelectedSeasonId(e.target.value)}
                 disabled={isPending}
-                className="appearance-none bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-1.5 pr-8 text-sm text-[var(--text-primary)] cursor-pointer hover:border-[var(--border-hover)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="appearance-none bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-1.5 pr-8 text-sm text-[var(--text-primary)] cursor-pointer hover:border-[var(--border-hover)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed w-full max-w-[170px] truncate text-ellipsis overflow-hidden"
               >
                 {seasons.map((season) => (
                   <option key={season.id} value={season.id} suppressHydrationWarning>
