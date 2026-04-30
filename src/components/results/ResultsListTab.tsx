@@ -36,33 +36,6 @@ interface ResultsListTabProps {
   pointsMap?: Record<string, number>;
 }
 
-function getRankBadgeStyle(rank: number) {
-  if (rank === 1) {
-    return {
-      bg: "var(--primary)",
-      text: "var(--text-primary)",
-      icon: Trophy,
-    };
-  } else if (rank === 2) {
-    return {
-      bg: "var(--surface-3)",
-      text: "var(--text-primary)",
-      icon: null,
-    };
-  } else if (rank === 3) {
-    return {
-      bg: "var(--surface-2)",
-      text: "var(--text-primary)",
-      icon: null,
-    };
-  }
-  return {
-    bg: "var(--surface-1)",
-    text: "var(--text-secondary)",
-    icon: null,
-  };
-}
-
 function MovieRow({
   movie,
   scoringEnabled,
@@ -74,54 +47,58 @@ function MovieRow({
   index: number;
   points?: number;
 }) {
-  const rankStyle = getRankBadgeStyle(movie.rank);
-  const RankIcon = rankStyle.icon;
+  const isWinner = movie.rank === 1;
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
-      className="flex items-center gap-3 p-3 rounded-lg border transition-colors hover:bg-[var(--surface-2)]"
+      className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border transition-colors hover:bg-[var(--surface-2)]"
       style={{
         backgroundColor: movie.rank <= 3 ? "var(--surface-1)" : "transparent",
-        borderColor: movie.rank === 1 ? "var(--primary)" : "var(--border)",
+        borderColor: isWinner ? "var(--primary)" : "var(--border)",
       }}
     >
-      {/* Rank badge */}
-      <div
-        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
-        style={{ backgroundColor: rankStyle.bg, color: rankStyle.text }}
-      >
-        {RankIcon ? <RankIcon className="w-4 h-4" /> : movie.rank}
-      </div>
-
-      {/* Movie poster */}
-      <div className="relative w-12 h-[72px] rounded overflow-hidden shrink-0">
+      {/* Movie poster with rank overlay */}
+      <div className="relative w-10 h-[60px] sm:w-11 sm:h-[66px] rounded overflow-hidden shrink-0">
         {movie.poster_url ? (
           <Image
             src={movie.poster_url}
             alt={movie.movie_title}
             fill
             className="object-cover"
-            sizes="48px"
+            sizes="44px"
           />
         ) : (
           <div
             className="w-full h-full flex items-center justify-center"
             style={{ backgroundColor: "var(--surface-2)" }}
           >
-            <FilmReel className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+            <FilmReel className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
           </div>
         )}
+        {/* Tiny rank badge in top-left corner */}
+        <div
+          className="absolute top-0 left-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-br-md"
+          style={{
+            backgroundColor: isWinner ? "var(--primary)" : "rgba(0,0,0,0.7)",
+            color: "var(--text-primary)",
+          }}
+        >
+          {isWinner ? <Trophy className="w-3 h-3" weight="fill" /> : movie.rank}
+        </div>
       </div>
 
       {/* Movie info */}
       <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm leading-tight" style={{ color: "var(--text-primary)" }}>
+        <h4
+          className="font-medium text-xs sm:text-sm leading-tight line-clamp-2"
+          style={{ color: "var(--text-primary)" }}
+        >
           {movie.movie_title}
         </h4>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-1.5 mt-1 min-w-0">
           <ClickableUserAvatar
             entity={userToAvatarData({
               avatar_url: movie.nominator_avatar || null,
@@ -131,35 +108,38 @@ function MovieRow({
             userId={movie.nominator_id}
             size="tiny"
           />
-          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+          <span className="text-[11px] truncate" style={{ color: "var(--text-secondary)" }}>
             {movie.nominator_name}
           </span>
         </div>
       </div>
 
-      {/* Rating */}
-      <div className="flex items-center gap-1 shrink-0">
-        <Star
-          className="w-4 h-4 fill-current"
-          style={{ color: movie.rank === 1 ? "var(--primary)" : "var(--text-muted)" }}
-        />
-        <span className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-          {formatRatingDisplay(movie.average_rating)}
-        </span>
-      </div>
-
-      {/* Points (if scoring enabled) */}
-      {scoringEnabled && points !== undefined && (
-        <div
-          className="text-sm font-medium shrink-0 px-2 py-1 rounded"
-          style={{
-            backgroundColor: movie.rank === 1 ? "var(--primary)" : "var(--surface-2)",
-            color: "var(--text-primary)",
-          }}
-        >
-          +{points.toFixed(1)} {points === 1 ? "pt" : "pts"}
+      {/* Rating + Points stacked vertically to save horizontal space */}
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        <div className="flex items-center gap-0.5">
+          <Star
+            className="w-3 h-3 fill-current"
+            style={{ color: isWinner ? "var(--primary)" : "var(--text-muted)" }}
+          />
+          <span
+            className="font-semibold text-xs tabular-nums"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {formatRatingDisplay(movie.average_rating)}
+          </span>
         </div>
-      )}
+        {scoringEnabled && points !== undefined && (
+          <div
+            className="text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded"
+            style={{
+              backgroundColor: isWinner ? "var(--primary)" : "var(--surface-2)",
+              color: "var(--text-primary)",
+            }}
+          >
+            +{points.toFixed(1)} {points === 1 ? "pt" : "pts"}
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -176,14 +156,12 @@ export function ResultsListTab({ movies, scoringEnabled = true, pointsMap }: Res
     <div className="space-y-4">
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wide"
+        className="flex items-center gap-2 sm:gap-3 px-2 py-2 text-[11px] font-medium uppercase tracking-wide"
         style={{ color: "var(--text-muted)" }}
       >
-        <div className="w-8 text-center">#</div>
-        <div className="w-12" /> {/* Poster space */}
+        <div className="w-10 sm:w-11" /> {/* Poster + rank space */}
         <div className="flex-1">Movie</div>
-        <div className="w-14 text-center">Rating</div>
-        {scoringEnabled && <div className="w-20 text-center">Points</div>}
+        <div className="text-right">Rating</div>
       </div>
 
       {/* Movie list */}
