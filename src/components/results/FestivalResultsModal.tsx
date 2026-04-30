@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Modal } from "@/components/ui/modal";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DateDisplay } from "@/components/ui/date-display";
 import { DebossedTabs } from "@/components/ui/debossed-tabs";
@@ -256,9 +255,10 @@ export function FestivalResultsModal({
   // to have been blind during the festival. The data exists; let it render.
   const showGuessesTab = displaySettings.nominationGuessingEnabled;
 
-  // Build festival URL for external link
-  const festivalUrl =
-    data?.clubSlug && festival?.slug ? `/club/${data.clubSlug}/festival/${festival.slug}` : null;
+  // Build festival URL for external link — falls back to festival ID when slug is null
+  const festivalUrl = data?.clubSlug
+    ? `/club/${data.clubSlug}/festival/${festival?.slug || festivalId}`
+    : null;
 
   return (
     <Modal
@@ -268,38 +268,37 @@ export function FestivalResultsModal({
       titleAlign="center"
       description={
         festival ? (
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-3 flex flex-col gap-2 min-h-[3.5rem]">
-            <div className="flex items-start gap-2">
-              <Trophy
-                className="w-4 h-4 mt-0.5 flex-shrink-0"
-                style={{ color: "var(--primary)" }}
-              />
-              <span className="text-sm text-[var(--text-secondary)]">
-                {festival.theme || "Festival"}
-              </span>
-            </div>
-            {festival.results_date && (
-              <div className="text-xs text-[var(--text-muted)] mt-auto self-end">
-                Completed <DateDisplay date={festival.results_date} format="date" />
-              </div>
+          <div className="flex flex-col gap-3">
+            {festivalUrl && (
+              <Link
+                href={festivalUrl}
+                className="inline-flex items-center gap-1 self-center text-xs font-medium text-[var(--primary)] hover:underline"
+              >
+                View festival page
+                <ArrowSquareOut className="w-3 h-3" weight="bold" />
+              </Link>
             )}
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-3 flex flex-col gap-2 min-h-[3.5rem]">
+              <div className="flex items-start gap-2">
+                <Trophy
+                  className="w-4 h-4 mt-0.5 flex-shrink-0"
+                  style={{ color: "var(--primary)" }}
+                />
+                <span className="text-sm text-[var(--text-secondary)]">
+                  {festival.theme || "Festival"}
+                </span>
+              </div>
+              {festival.results_date && (
+                <div className="text-xs text-[var(--text-muted)] mt-auto self-end">
+                  Completed <DateDisplay date={festival.results_date} format="date" />
+                </div>
+              )}
+            </div>
           </div>
         ) : undefined
       }
       size="lg"
     >
-      {/* Link to full festival page */}
-      {festivalUrl && (
-        <div className="mb-4">
-          <Link href={festivalUrl}>
-            <Button variant="outline" size="sm" className="w-full gap-2">
-              <ArrowSquareOut className="w-4 h-4" />
-              View Full Festival Page
-            </Button>
-          </Link>
-        </div>
-      )}
-
       {loading && (
         <div className="space-y-6">
           <Skeleton className="h-48 w-full" />
