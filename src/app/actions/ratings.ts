@@ -529,3 +529,83 @@ export async function deleteEndlessRating(festivalId: string, nominationId: stri
 
   return { success: true };
 }
+
+/**
+ * Cross-festival ratings for a movie — only the rows that are NOT covered by the
+ * global generic_ratings sync. Per project rules, endless festivals and non-themed
+ * standard festivals share one rating with `generic_ratings`; only themed standard
+ * festivals keep ratings scoped to that festival. So this returns the themed
+ * standard-festival ratings the current user has logged for the given tmdb_id —
+ * useful on the movie's detail page to show "you rated this for X theme in Y club"
+ * when the same movie has been nominated across multiple themed festivals.
+ */
+export type CrossFestivalRating = {
+  rating: number;
+  festivalId: string;
+  festivalSlug: string | null;
+  festivalTheme: string;
+  clubName: string;
+  clubSlug: string;
+  ratedAt: string;
+};
+
+export async function getCrossFestivalRatings(tmdbId: number): Promise<CrossFestivalRating[]> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  type Row = {
+    rating: number;
+    updated_at: string;
+    festival: {
+      id: string;
+      slug: string | null;
+      theme: string | null;
+      status: string;
+      club: { name: string; slug: string } | null;
+    } | null;
+    nomination: { tmdb_id: number | null } | null;
+  };
+
+  const { data, error } = await supabase
+    .from("ratings")
+    .select(
+      `
+      rating,
+      updated_at,
+      festival:festivals!inner(id, slug, theme, status, club:clubs!inner(name, slug)),
+      nomination:nominations!inner(tmdb_id)
+    `
+    )
+    .eq("user_id", user.id)
+    .eq("nominations.tmdb_id", tmdbId)
+    .returns<Row[]>();
+
+  if (error || !data) return [];
+
+  return data
+    .filter((r) => {
+      const fest = r.festival;
+      if (!fest || !fest.club) return false;
+      // Themed standard festivals only — endless and non-themed sync to generic_ratings,
+      // so they're already represented by the page's main rating display.
+      return fest.status !== "watching" && !!fest.theme;
+    })
+    .map((r) => {
+      const fest = r.festival!;
+      const club = fest.club!;
+      return {
+        rating: r.rating,
+        festivalId: fest.id,
+        festivalSlug: fest.slug,
+        festivalTheme: fest.theme!,
+        clubName: club.name,
+        clubSlug: club.slug,
+        ratedAt: r.updated_at,
+      };
+    })
+    .sort((a, b) => new Date(b.ratedAt).getTime() - new Date(a.ratedAt).getTime());
+}

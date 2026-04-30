@@ -320,7 +320,7 @@ function WatchRatePhase({
   clubSlug,
   nominations,
   userRatings,
-  currentUserId: _currentUserId,
+  currentUserId,
   onPrevPhase,
   onNextPhase,
   canGoPrev,
@@ -414,6 +414,7 @@ function WatchRatePhase({
           movies={carouselMovies}
           context="regular"
           clubSlug={clubSlug}
+          currentUserId={currentUserId}
           onPrevPhase={onPrevPhase}
           onNextPhase={onNextPhase}
           canGoPrev={canGoPrev}

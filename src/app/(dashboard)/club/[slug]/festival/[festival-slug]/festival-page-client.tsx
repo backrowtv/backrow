@@ -252,7 +252,6 @@ export function FestivalPageClient({
   const [isNominateModalOpen, setIsNominateModalOpen] = useState(false);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [selectedMovieId, setSelectedMovieId] = useState<string | null>(null);
-  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
   const [resultsTab, setResultsTab] = useState<string>("rankings");
 
   // Reveal replay state
@@ -443,6 +442,7 @@ export function FestivalPageClient({
           showViewModeToggle={carouselMovies.length > 2}
           storageKey={`festival-view-${festival.id}`}
           festivalTheme={festival.theme}
+          currentUserId={userId}
           onMarkWatched={handleMarkWatched}
           onRate={(movieId) => {
             setSelectedMovieId(movieId);
@@ -461,7 +461,7 @@ export function FestivalPageClient({
               <>
                 {/* Row 1: Your Nomination + Festival Overview */}
                 {userNomination && (
-                  <div className={`lg:col-span-8 ${isOverviewExpanded ? "lg:self-start" : ""}`}>
+                  <div className="lg:col-span-8 lg:self-start">
                     <YourNominationSection
                       nomination={userNomination}
                       festivalId={festival.id}
@@ -488,7 +488,6 @@ export function FestivalPageClient({
                     nominationDeadline={festival.nomination_deadline}
                     ratingDeadline={festival.rating_deadline}
                     currentPhase={festival.phase}
-                    onDetailsToggle={setIsOverviewExpanded}
                   />
                 </div>
 
@@ -570,7 +569,7 @@ export function FestivalPageClient({
 
                 {/* Row 1: Your Nomination + Festival Overview */}
                 {userNomination && (
-                  <div className={`lg:col-span-8 ${isOverviewExpanded ? "lg:self-start" : ""}`}>
+                  <div className="lg:col-span-8 lg:self-start">
                     <YourNominationSection
                       nomination={userNomination}
                       festivalId={festival.id}
@@ -597,7 +596,6 @@ export function FestivalPageClient({
                     nominationDeadline={festival.nomination_deadline}
                     ratingDeadline={festival.rating_deadline}
                     currentPhase={festival.phase}
-                    onDetailsToggle={setIsOverviewExpanded}
                   />
                 </div>
 

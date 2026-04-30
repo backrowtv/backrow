@@ -48,6 +48,7 @@ export function FestivalCarouselWrapper({
   guessingEnabled,
   isAdmin,
   isMember,
+  currentUserId,
   ratingSettings,
 }: FestivalCarouselWrapperProps) {
   const router = useRouter();
@@ -269,6 +270,7 @@ export function FestivalCarouselWrapper({
         movies={movies}
         context="regular"
         clubSlug={clubSlug}
+        currentUserId={currentUserId}
         isAdmin={isAdmin}
         onMarkWatched={isMember ? handleMarkWatched : undefined}
         onRate={isMember && ratingSettings.club_ratings_enabled ? handleRate : undefined}

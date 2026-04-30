@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Star, CircleNotch, Plus, Minus, Ticket } from "@phosphor-icons/react";
+import { Star, CircleNotch, Plus, Minus, Ticket, Trophy, Info } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { RatingModal } from "@/components/ratings/RatingModal";
@@ -17,6 +18,7 @@ import { formatRatingDisplay } from "@/lib/ratings/normalize";
 import { ManageThemeLinksModal } from "@/components/profile/ManageThemeLinksModal";
 import { useThemeLinking } from "@/components/profile/hooks/useThemeLinking";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCrossFestivalRatings, type CrossFestivalRating } from "@/app/actions/ratings";
 
 interface MovieActionsProps {
   tmdbId: number;
@@ -54,6 +56,9 @@ export function MovieActions({
   const [futureNomId, setFutureNomId] = useState<string | null>(null);
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [crossFestivalRatings, setCrossFestivalRatings] = useState<CrossFestivalRating[]>([]);
+  const [crossFestivalOpen, setCrossFestivalOpen] = useState(false);
+  const crossFestivalRef = useRef<HTMLDivElement>(null);
 
   // Theme linking for future nominations modal
   const { clubThemes, linkingLoading, handleNominate } = useThemeLinking(userId || "");
@@ -70,12 +75,17 @@ export function MovieActions({
       if (!user) return;
       setUserId(user.id);
 
-      // Fetch preferences, rubrics, and future nomination status in parallel
-      const [prefsResult, rubricsResult, futureNomResult] = await Promise.all([
+      // Fetch preferences, rubrics, future nomination status, and cross-festival
+      // ratings (themed-standard-festival ratings outside the global generic table)
+      // in parallel.
+      const [prefsResult, rubricsResult, futureNomResult, crossFestRatings] = await Promise.all([
         supabase.from("users").select("rating_preferences").eq("id", user.id).single(),
         supabase.from("user_rubrics").select("*").order("created_at", { ascending: false }),
         supabase.from("future_nomination_list").select("id").eq("tmdb_id", tmdbId).maybeSingle(),
+        getCrossFestivalRatings(tmdbId),
       ]);
+
+      setCrossFestivalRatings(crossFestRatings);
 
       if (prefsResult.data?.rating_preferences) {
         setRatingPreferences(prefsResult.data.rating_preferences as UserRatingPreferences);
@@ -103,6 +113,18 @@ export function MovieActions({
 
     fetchPreferencesAndRubrics();
   }, [tmdbId]);
+
+  // Click-outside dismiss for the cross-festival popover.
+  useEffect(() => {
+    if (!crossFestivalOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (crossFestivalRef.current && !crossFestivalRef.current.contains(e.target as Node)) {
+        setCrossFestivalOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [crossFestivalOpen]);
 
   const handleToggleWatched = useCallback(async () => {
     setIsWatchedLoading(true);
@@ -360,36 +382,89 @@ export function MovieActions({
       </button>
 
       {/* Rating Card */}
-      <button
-        onClick={() => setRatingModalOpen(true)}
-        disabled={isRatingLoading}
-        title={userRating !== null ? "Update rating" : "Rate this movie"}
-        className={cn(
-          "flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg font-medium transition-colors min-w-[72px] min-h-[72px] aspect-square overflow-hidden",
-          userRating !== null
-            ? "bg-[var(--surface-2)]/60 text-[var(--text-primary)] border border-[var(--border)]/50 hover:border-[var(--primary)]/50"
-            : "bg-[var(--surface-2)]/60 text-[var(--text-secondary)] border border-[var(--border)]/50 hover:border-[var(--primary)]/50 hover:text-[var(--primary)]",
-          "disabled:opacity-50 disabled:cursor-not-allowed"
-        )}
-      >
-        {isRatingLoading ? (
-          <CircleNotch className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
-        ) : userRating !== null ? (
-          <span className="flex items-baseline tabular-nums">
-            <span className="text-2xl lg:text-3xl font-bold leading-none">
-              {formatRatingDisplay(userRating)}
+      <div className="relative" ref={crossFestivalRef}>
+        <button
+          onClick={() => setRatingModalOpen(true)}
+          disabled={isRatingLoading}
+          title={userRating !== null ? "Update rating" : "Rate this movie"}
+          className={cn(
+            "flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg font-medium transition-colors min-w-[72px] min-h-[72px] aspect-square overflow-hidden w-full h-full",
+            userRating !== null
+              ? "bg-[var(--surface-2)]/60 text-[var(--text-primary)] border border-[var(--border)]/50 hover:border-[var(--primary)]/50"
+              : "bg-[var(--surface-2)]/60 text-[var(--text-secondary)] border border-[var(--border)]/50 hover:border-[var(--primary)]/50 hover:text-[var(--primary)]",
+            "disabled:opacity-50 disabled:cursor-not-allowed"
+          )}
+        >
+          {isRatingLoading ? (
+            <CircleNotch className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" />
+          ) : userRating !== null ? (
+            <span className="flex items-baseline tabular-nums">
+              <span className="text-2xl lg:text-3xl font-bold leading-none">
+                {formatRatingDisplay(userRating)}
+              </span>
+              <span className="text-[10px] lg:text-xs opacity-40 font-medium self-end mb-0.5 ml-px">
+                /10
+              </span>
             </span>
-            <span className="text-[10px] lg:text-xs opacity-40 font-medium self-end mb-0.5 ml-px">
-              /10
-            </span>
-          </span>
-        ) : (
+          ) : (
+            <>
+              <Star className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="text-[10px] lg:text-xs">Rate</span>
+            </>
+          )}
+        </button>
+
+        {/* Cross-festival ratings indicator — only when 2+ themed-festival ratings exist.
+            The page's main rating display already covers global / endless / non-themed
+            ratings; this surfaces the per-themed-festival ratings that don't sync there. */}
+        {crossFestivalRatings.length >= 2 && (
           <>
-            <Star className="w-4 h-4 lg:w-5 lg:h-5" />
-            <span className="text-[10px] lg:text-xs">Rate</span>
+            <button
+              type="button"
+              onClick={() => setCrossFestivalOpen((o) => !o)}
+              aria-label={`See ${crossFestivalRatings.length} festival ratings for this movie`}
+              aria-expanded={crossFestivalOpen}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--primary)]/50 transition-colors"
+            >
+              <Info className="w-3 h-3" weight="fill" />
+            </button>
+            {crossFestivalOpen && (
+              <div className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg p-2">
+                <div className="px-2 py-1.5 text-xs font-semibold text-[var(--text-muted)] flex items-center gap-1.5">
+                  <Trophy className="w-3.5 h-3.5" weight="fill" />
+                  Festival ratings
+                </div>
+                <ul className="space-y-0.5">
+                  {crossFestivalRatings.map((r) => {
+                    const festPath = r.festivalSlug ?? r.festivalId;
+                    return (
+                      <li key={`${r.festivalId}-${r.ratedAt}`}>
+                        <Link
+                          href={`/club/${r.clubSlug}/festival/${festPath}`}
+                          className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-[var(--surface-2)] transition-colors"
+                          onClick={() => setCrossFestivalOpen(false)}
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-xs font-medium text-[var(--text-primary)] truncate">
+                              {r.festivalTheme}
+                            </span>
+                            <span className="block text-[10px] text-[var(--text-muted)] truncate">
+                              {r.clubName}
+                            </span>
+                          </span>
+                          <span className="text-sm font-semibold tabular-nums text-[var(--text-primary)]">
+                            {formatRatingDisplay(r.rating)}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
           </>
         )}
-      </button>
+      </div>
 
       {/* Rating Modal */}
       <RatingModal

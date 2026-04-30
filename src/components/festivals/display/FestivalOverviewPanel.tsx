@@ -30,7 +30,6 @@ interface FestivalOverviewPanelProps {
   nominationDeadline?: string | null;
   ratingDeadline?: string | null;
   currentPhase?: FestivalPhase;
-  onDetailsToggle?: (isOpen: boolean) => void;
 }
 
 export function FestivalOverviewPanel({
@@ -46,7 +45,6 @@ export function FestivalOverviewPanel({
   nominationDeadline,
   ratingDeadline,
   currentPhase,
-  onDetailsToggle,
 }: FestivalOverviewPanelProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -115,11 +113,6 @@ export function FestivalOverviewPanel({
   const deadlineInfo = getDeadlineInfo();
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
-  const handleDetailsToggle = (open: boolean) => {
-    setIsDetailsOpen(open);
-    onDetailsToggle?.(open);
-  };
 
   return (
     <Card variant="default" className="h-full">
@@ -217,7 +210,7 @@ export function FestivalOverviewPanel({
       </CardContent>
 
       {/* Collapsible details below poster */}
-      <Collapsible open={isDetailsOpen} onOpenChange={handleDetailsToggle}>
+      <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <CollapsibleTrigger asChild>
           <div className="flex items-center justify-center gap-1.5 py-1 cursor-pointer hover:bg-[var(--surface-2)] transition-colors border-t border-[var(--border)]">
             <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">

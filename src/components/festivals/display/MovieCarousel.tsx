@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   Check,
   Star,
+  Trophy,
   Users,
   SquaresFour,
   Slideshow,
@@ -81,6 +82,8 @@ interface MovieCarouselProps {
   storageKey?: string;
   detailsUrl?: string;
   festivalTheme?: string | null;
+  /** Current user's ID — used to detect own nominations and adjust the rate affordance accordingly */
+  currentUserId?: string | null;
   onActiveIndexChange?: (index: number) => void;
 }
 
@@ -143,7 +146,6 @@ const PosterSlide = memo(function PosterSlide({
             <FilmReel className="w-12 h-12" style={{ color: "var(--text-muted)" }} />
           </div>
         )}
-
       </div>
     </div>
   );
@@ -339,6 +341,7 @@ interface BottomSectionProps {
   showRating: boolean;
   detailsUrl?: string;
   festivalTheme?: string | null;
+  currentUserId?: string | null;
 }
 
 function BottomSection({
@@ -352,7 +355,10 @@ function BottomSection({
   showRating,
   detailsUrl,
   festivalTheme,
+  currentUserId,
 }: BottomSectionProps) {
+  const isStandardFestival = context === "regular";
+  const isOwnNomination = !!currentUserId && movie.nominator?.id === currentUserId;
   // Format runtime
   const formatRuntime = (minutes: number | null): string | null => {
     if (!minutes) return null;
@@ -446,19 +452,46 @@ function BottomSection({
           </Button>
         )}
 
-        {/* Rate button - star centered at 1/3, text centered at 2/3 */}
-        {showRating && onRate && (
+        {/* Rate affordance — three states:
+            1. Standard festival + user's own nomination → "Your Pick" badge (no rate UI; you can't rate yourself)
+            2. Standard festival → Trophy + amber/gold (this rating counts toward standings)
+            3. Endless festival → Star + default style (personal rating, no competition) */}
+        {showRating && isStandardFestival && isOwnNomination ? (
+          <div
+            className="w-[112px] h-9 flex items-center justify-center gap-1.5 rounded-md text-xs font-medium"
+            style={{
+              backgroundColor: "var(--surface-2)",
+              color: "var(--warning)",
+              border: "1px solid var(--warning)",
+            }}
+          >
+            <Trophy className="w-3.5 h-3.5" weight="fill" />
+            Your Pick
+          </div>
+        ) : showRating && onRate ? (
           <Button
             variant={movie.isRated ? "primary" : "outline"}
             size="sm"
-            className="w-[112px] gap-0 px-0 relative overflow-hidden"
+            className={cn(
+              "w-[112px] gap-0 px-0 relative overflow-hidden",
+              isStandardFestival &&
+                !movie.isRated &&
+                "!border-[var(--warning)] !text-[var(--warning)] hover:!bg-[var(--warning)]/10",
+              isStandardFestival &&
+                movie.isRated &&
+                "!bg-[var(--warning)] !border-[var(--warning)] !text-white"
+            )}
             onClick={() => onRate(movie.id)}
           >
             <span
               className="absolute flex items-center justify-center gap-0.5"
               style={{ left: "33.3%", transform: "translateX(-50%)" }}
             >
-              <Star className="w-4 h-4" weight={movie.isRated ? "fill" : "regular"} />
+              {isStandardFestival ? (
+                <Trophy className="w-4 h-4" weight={movie.isRated ? "fill" : "regular"} />
+              ) : (
+                <Star className="w-4 h-4" weight={movie.isRated ? "fill" : "regular"} />
+              )}
               {festivalTheme && (
                 <span title={`Rated for: ${festivalTheme}`}>
                   <Tag className="w-3 h-3 opacity-70" weight="fill" />
@@ -480,7 +513,7 @@ function BottomSection({
             {/* Invisible spacer to maintain button height */}
             <span className="invisible">Rate</span>
           </Button>
-        )}
+        ) : null}
       </div>
 
       {/* View Festival Details link */}
@@ -522,6 +555,7 @@ export function MovieCarousel({
   storageKey,
   detailsUrl,
   festivalTheme,
+  currentUserId,
   onActiveIndexChange,
 }: MovieCarouselProps) {
   const router = useRouter();
@@ -948,6 +982,7 @@ export function MovieCarousel({
             showRating={showRating}
             detailsUrl={detailsUrl}
             festivalTheme={festivalTheme}
+            currentUserId={currentUserId}
           />
         )}
       </div>
