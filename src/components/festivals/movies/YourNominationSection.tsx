@@ -345,14 +345,6 @@ export function YourNominationSection({
                       </span>
                     </div>
                   )}
-                  {movieDetails.vote_average != null && movieDetails.vote_average > 0 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-[9px] text-[var(--text-muted)]">Rating</span>
-                      <span className="text-[11px] font-medium text-[var(--text-primary)]">
-                        ★ {movieDetails.vote_average.toFixed(1)}
-                      </span>
-                    </div>
-                  )}
                   {movieDetails.budget != null && movieDetails.budget > 0 && (
                     <div className="flex items-center gap-1">
                       <span className="text-[9px] text-[var(--text-muted)]">Budget</span>
@@ -680,8 +672,13 @@ export function FestivalPrivateNotes({ festivalId, initialNotes }: FestivalPriva
                           {note.note}
                         </p>
                         <div className="flex items-center justify-between mt-1.5">
-                          <p className="text-[8px] text-[var(--text-muted)]" suppressHydrationWarning>
-                            {new Date(note.updated_at || note.created_at || "").toLocaleDateString()}
+                          <p
+                            className="text-[8px] text-[var(--text-muted)]"
+                            suppressHydrationWarning
+                          >
+                            {new Date(
+                              note.updated_at || note.created_at || ""
+                            ).toLocaleDateString()}
                           </p>
                           <div className="flex gap-1">
                             <Button

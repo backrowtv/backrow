@@ -441,7 +441,6 @@ export function FestivalPageClient({
           showGuessNominator={guessingEnabled}
           showViewModeToggle={carouselMovies.length > 2}
           storageKey={`festival-view-${festival.id}`}
-          festivalTheme={festival.theme}
           currentUserId={userId}
           onMarkWatched={handleMarkWatched}
           onRate={(movieId) => {

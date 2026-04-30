@@ -253,8 +253,6 @@ export function MoviePool({
           setOptimisticMovies((prev) => prev.filter((m) => m.id !== movie.id));
           router.refresh();
           onPoolChanged?.();
-        } else {
-          toast.success(result.voted ? "Vote added!" : "Vote removed");
         }
       }
     });

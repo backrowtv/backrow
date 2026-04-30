@@ -20,7 +20,6 @@ import {
   Plus,
   CheckCircle,
   XCircle,
-  Tag,
 } from "@phosphor-icons/react";
 import { RatingDisplay } from "@/components/ratings/RatingDisplay";
 import { cn } from "@/lib/utils";
@@ -81,7 +80,6 @@ interface MovieCarouselProps {
   showViewModeToggle?: boolean;
   storageKey?: string;
   detailsUrl?: string;
-  festivalTheme?: string | null;
   /** Current user's ID — used to detect own nominations and adjust the rate affordance accordingly */
   currentUserId?: string | null;
   onActiveIndexChange?: (index: number) => void;
@@ -340,7 +338,6 @@ interface BottomSectionProps {
   showGuessNominator: boolean;
   showRating: boolean;
   detailsUrl?: string;
-  festivalTheme?: string | null;
   currentUserId?: string | null;
 }
 
@@ -354,7 +351,6 @@ function BottomSection({
   showGuessNominator,
   showRating,
   detailsUrl,
-  festivalTheme,
   currentUserId,
 }: BottomSectionProps) {
   const isStandardFestival = context === "regular";
@@ -457,17 +453,15 @@ function BottomSection({
             2. Standard festival → Trophy + amber/gold (this rating counts toward standings)
             3. Endless festival → Star + default style (personal rating, no competition) */}
         {showRating && isStandardFestival && isOwnNomination ? (
-          <div
-            className="w-[112px] h-9 flex items-center justify-center gap-1.5 rounded-md text-xs font-medium"
-            style={{
-              backgroundColor: "var(--surface-2)",
-              color: "var(--warning)",
-              border: "1px solid var(--warning)",
-            }}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled
+            className="w-[112px] gap-1.5 !border-[var(--warning)] !text-[var(--warning)] disabled:opacity-100 cursor-default"
           >
-            <Trophy className="w-3.5 h-3.5" weight="fill" />
-            Your Pick
-          </div>
+            <Trophy className="w-3.5 h-3.5 flex-shrink-0" weight="fill" />
+            <span>Your Pick</span>
+          </Button>
         ) : showRating && onRate ? (
           <Button
             variant={movie.isRated ? "primary" : "outline"}
@@ -491,11 +485,6 @@ function BottomSection({
                 <Trophy className="w-4 h-4" weight={movie.isRated ? "fill" : "regular"} />
               ) : (
                 <Star className="w-4 h-4" weight={movie.isRated ? "fill" : "regular"} />
-              )}
-              {festivalTheme && (
-                <span title={`Rated for: ${festivalTheme}`}>
-                  <Tag className="w-3 h-3 opacity-70" weight="fill" />
-                </span>
               )}
             </span>
             <span
@@ -554,7 +543,6 @@ export function MovieCarousel({
   showViewModeToggle = true,
   storageKey,
   detailsUrl,
-  festivalTheme,
   currentUserId,
   onActiveIndexChange,
 }: MovieCarouselProps) {
@@ -981,7 +969,6 @@ export function MovieCarousel({
             showGuessNominator={showGuessNominator}
             showRating={showRating}
             detailsUrl={detailsUrl}
-            festivalTheme={festivalTheme}
             currentUserId={currentUserId}
           />
         )}

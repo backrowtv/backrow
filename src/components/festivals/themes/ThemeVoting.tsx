@@ -74,7 +74,6 @@ export function ThemeVoting({ festivalId, themes, clubId: _clubId }: ThemeVoting
     if ("error" in result && result.error) {
       toast.error(result.error);
     } else {
-      toast.success("Vote recorded!");
       setUserVote(themeId);
       // Reload votes to get updated counts
       await loadVotes();
