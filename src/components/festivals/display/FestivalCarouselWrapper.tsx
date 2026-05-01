@@ -3,14 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { FlipCountdown } from "@/components/ui/flip-countdown";
 import { MovieCarousel, type CarouselMovie } from "./MovieCarousel";
 import { MovieGridModal } from "../modals/MovieGridModal";
 import { EndlessRatingModal } from "../endless/EndlessRatingModal";
 import { markMovieWatched, unmarkMovieWatched } from "@/app/actions/endless-festival";
 import { createRating, deleteEndlessRating } from "@/app/actions/ratings";
-import { advanceFestivalPhase, revertFestivalPhase } from "@/app/actions/festivals";
 import type { ClubRatingSettings } from "../endless/EndlessFestivalSection";
 import { formatRatingDisplay } from "@/lib/ratings/normalize";
 import { friendlyError } from "@/lib/errors/friendly-messages";
@@ -214,31 +212,6 @@ export function FestivalCarouselWrapper({
     router.push(`/club/${clubSlug}/festival/${festivalSlug}?guess=${movieId}`);
   };
 
-  // Handle phase navigation (admin only)
-  const handlePrevPhase = async () => {
-    startTransition(async () => {
-      const result = await revertFestivalPhase(festivalId);
-      if ("error" in result && result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Phase reverted");
-        router.refresh();
-      }
-    });
-  };
-
-  const handleNextPhase = async () => {
-    startTransition(async () => {
-      const result = await advanceFestivalPhase(festivalId);
-      if ("error" in result && result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("Phase advanced");
-        router.refresh();
-      }
-    });
-  };
-
   const festivalUrl = `/club/${clubSlug}/festival/${festivalSlug}`;
 
   return (
@@ -253,20 +226,10 @@ export function FestivalCarouselWrapper({
           {theme}
         </h2>
 
-        {/* 2. Phase Progress Breadcrumbs */}
+        {/* 2. Phase Progress Breadcrumbs — display only, NEVER interactive.
+            Phase advancement happens via FestivalPhaseBar's dropdown +
+            confirmation dialog. Do not re-add prev/next buttons here. */}
         <div className="flex items-center justify-center gap-3 text-xs mb-4">
-          {isAdmin && (
-            <button
-              onClick={handlePrevPhase}
-              disabled={isPending}
-              className="p-1 rounded transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--primary)]"
-              style={{ color: "var(--text-muted)" }}
-              title="Go to previous phase"
-            >
-              <CaretLeft className="h-4 w-4" />
-            </button>
-          )}
-
           <div className="flex items-center">
             <Link
               href={festivalUrl}
@@ -314,18 +277,6 @@ export function FestivalCarouselWrapper({
               Results
             </Link>
           </div>
-
-          {isAdmin && (
-            <button
-              onClick={handleNextPhase}
-              disabled={isPending}
-              className="p-1 rounded transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--primary)]"
-              style={{ color: "var(--text-muted)" }}
-              title="Go to next phase"
-            >
-              <CaretRight className="h-4 w-4" />
-            </button>
-          )}
         </div>
 
         {/* 3. Flip Countdown Timer */}
