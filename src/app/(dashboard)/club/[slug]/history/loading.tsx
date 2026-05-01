@@ -15,7 +15,7 @@ export default function HistoryLoading() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 border-b border-[var(--border)]">
+          <div className="flex gap-1 mb-6">
             {["Seasons", "Festivals", "Movies"].map((tab) => (
               <Skeleton key={tab} className="h-9 w-20 rounded-t-md" />
             ))}
@@ -24,10 +24,7 @@ export default function HistoryLoading() {
           {/* Content list */}
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]"
-              >
+              <div key={i} className="p-4 rounded-xl bg-[var(--surface-1)]">
                 <div className="flex items-center gap-3">
                   <Skeleton className="w-10 h-10 rounded-lg flex-shrink-0" />
                   <div className="flex-1">

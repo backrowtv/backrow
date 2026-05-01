@@ -16,8 +16,8 @@ export default function DisplayCaseLoading() {
 
           <div className="space-y-6">
             {/* Festival Winners Section */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-              <div className="p-4 border-b border-[var(--border)]">
+            <div className="rounded-xl bg-[var(--surface-1)]">
+              <div className="p-4">
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-5 w-5 rounded" />
                   <Skeleton className="h-5 w-36" />
@@ -26,7 +26,7 @@ export default function DisplayCaseLoading() {
               <div className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="rounded-lg border border-[var(--border)] p-4">
+                    <div key={i} className="rounded-lg bg-[var(--surface-2)] p-4">
                       <div className="flex gap-4">
                         <Skeleton className="w-16 h-24 rounded flex-shrink-0" />
                         <div className="flex-1 min-w-0">
@@ -52,8 +52,8 @@ export default function DisplayCaseLoading() {
             </div>
 
             {/* Challenges Section */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-              <div className="p-4 border-b border-[var(--border)]">
+            <div className="rounded-xl bg-[var(--surface-1)]">
+              <div className="p-4">
                 <Skeleton className="h-5 w-24" />
               </div>
               <div className="p-4 space-y-3">

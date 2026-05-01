@@ -15,7 +15,7 @@ export default function BlogLoading() {
 
           {/* Empty state card */}
           <div className="space-y-6 md:space-y-8">
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+            <div className="rounded-lg bg-[var(--surface-1)]">
               <div className="p-6">
                 <div className="flex flex-col items-center text-center py-8">
                   <Skeleton className="h-12 w-12 rounded-full mb-4" />

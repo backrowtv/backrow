@@ -7,7 +7,7 @@ export default function Loading() {
         <Skeleton className="h-6 w-24 mb-2" />
         <Skeleton className="h-4 w-44" />
       </div>
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
+      <div className="rounded-xl bg-[var(--surface-1)] p-5">
         <Skeleton className="h-5 w-28 mb-4" />
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (

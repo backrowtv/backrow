@@ -65,7 +65,7 @@ export function MovieDetailsPanel({
 
 function MovieDetailsSkeleton() {
   return (
-    <div className="space-y-6 mt-6 pt-6 border-t border-[var(--border)]">
+    <div className="space-y-6 mt-6 pt-6">
       {/* Overview skeleton */}
       <div>
         <Skeleton className="h-4 w-20 mb-2" />

@@ -31,7 +31,7 @@ export default function MarketingLoading() {
             <Skeleton className="h-5 w-96 max-w-full mb-8" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[1, 2].map((i) => (
-                <div key={i} className="rounded-xl border border-[var(--border)] p-5">
+                <div key={i} className="rounded-xl p-5">
                   <div className="flex items-center gap-3 mb-3">
                     <Skeleton className="w-10 h-10 rounded-lg" />
                     <Skeleton className="h-5 w-36" />
@@ -54,17 +54,11 @@ export default function MarketingLoading() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-5"
-                >
+                <div key={i} className="rounded-lg bg-[var(--surface-1)] p-5">
                   <Skeleton className="h-5 w-24 mb-3" />
                   <div className="space-y-1">
                     {[1, 2, 3].map((j) => (
-                      <div
-                        key={j}
-                        className="py-2 border-b border-[var(--border)]/50 last:border-0"
-                      >
+                      <div key={j} className="py-2">
                         <Skeleton className="h-4 w-full" />
                       </div>
                     ))}

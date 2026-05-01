@@ -17,7 +17,7 @@ export default function AccountSettingsLoading() {
         {/* AccountSettingsAccordion skeleton - 3 accordion sections */}
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-lg border border-[var(--border)]">
+            <div key={i} className="rounded-lg bg-[var(--surface-1)]">
               <div className="flex items-center justify-between p-4">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-4 w-4" />

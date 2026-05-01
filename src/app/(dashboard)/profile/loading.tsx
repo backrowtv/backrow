@@ -14,7 +14,7 @@ function SectionHeaderSkeleton({ labelWidth }: { labelWidth: string }) {
 
 function QuickLinkRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-1)]">
       <div className="flex-1 min-w-0 space-y-1">
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-3 w-48" />
@@ -44,7 +44,7 @@ export default function ProfileLoading() {
           </section>
 
           {/* Quick Links — real page renders 3 (Settings, Display Case, Stats) */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-[var(--border)]">
+          <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 mt-4">
             <QuickLinkRowSkeleton />
             <QuickLinkRowSkeleton />
             <QuickLinkRowSkeleton />

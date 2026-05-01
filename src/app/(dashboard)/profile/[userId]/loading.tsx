@@ -9,14 +9,14 @@ export default function UserProfileLoading() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-6">
             {/* Admin Notice Card */}
-            <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10">
+            <div className="rounded-lg bg-yellow-500/10">
               <div className="p-4">
                 <Skeleton className="h-4 w-80" />
               </div>
             </div>
 
             {/* Profile Header Card */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+            <div className="rounded-lg bg-[var(--surface-1)]">
               <div className="p-6">
                 <div className="flex items-start gap-6">
                   {/* Avatar xl size */}
@@ -49,7 +49,7 @@ export default function UserProfileLoading() {
             </div>
 
             {/* Club Memberships Card */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+            <div className="rounded-lg bg-[var(--surface-1)]">
               <div className="p-6 pb-0">
                 <Skeleton className="h-5 w-44" />
               </div>
@@ -74,7 +74,7 @@ export default function UserProfileLoading() {
             </div>
 
             {/* Favorites Card */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+            <div className="rounded-lg bg-[var(--surface-1)]">
               <div className="p-6 pb-0">
                 <Skeleton className="h-5 w-36" />
               </div>

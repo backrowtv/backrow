@@ -34,7 +34,7 @@ export default function ClubManagementLoading() {
             </section>
 
             {/* Word Blacklist */}
-            <section className="border-t border-[var(--border)] pt-6 space-y-4">
+            <section className="pt-6 mt-6 space-y-4">
               <Skeleton className="h-5 w-28" />
               <Skeleton className="h-3 w-64" />
               <Skeleton className="h-9 w-full rounded-md" />
@@ -46,27 +46,27 @@ export default function ClubManagementLoading() {
             </section>
 
             {/* Blocked Users */}
-            <section className="border-t border-[var(--border)] pt-6 space-y-4">
+            <section className="pt-6 mt-6 space-y-4">
               <Skeleton className="h-5 w-28" />
               <Skeleton className="h-3 w-64" />
               <Skeleton className="h-20 w-full rounded-lg" />
             </section>
 
             {/* Transfer Ownership */}
-            <section className="border-t border-[var(--border)] pt-6 space-y-4">
+            <section className="pt-6 mt-6 space-y-4">
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-9 w-full rounded-md" />
               <Skeleton className="h-9 w-32 rounded-md" />
             </section>
 
             {/* Archive Club */}
-            <section className="border-t border-[var(--border)] pt-6 space-y-4">
+            <section className="pt-6 mt-6 space-y-4">
               <Skeleton className="h-5 w-24" />
               <Skeleton className="h-9 w-32 rounded-md" />
             </section>
 
             {/* Delete Club */}
-            <section className="border-t border-[var(--border)] pt-6 space-y-4">
+            <section className="pt-6 mt-6 space-y-4">
               <Skeleton className="h-5 w-24" />
               <Skeleton className="h-9 w-32 rounded-md" />
             </section>

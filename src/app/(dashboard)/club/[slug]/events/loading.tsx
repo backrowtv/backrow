@@ -21,10 +21,7 @@ export default function EventsLoading() {
           <section className="mb-8">
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]"
-                >
+                <div key={i} className="p-4 rounded-xl bg-[var(--surface-1)]">
                   <div className="flex items-start gap-4">
                     <Skeleton className="w-12 h-12 rounded-lg flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -47,10 +44,7 @@ export default function EventsLoading() {
             <Skeleton className="h-4 w-24 mb-3" />
             <div className="space-y-2">
               {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="p-3 rounded-lg border border-[var(--border)] bg-[var(--surface-1)]"
-                >
+                <div key={i} className="p-3 rounded-lg bg-[var(--surface-1)]">
                   <div className="flex items-center gap-3">
                     <Skeleton className="w-10 h-10 rounded-lg flex-shrink-0" />
                     <div className="flex-1">

@@ -18,7 +18,7 @@ export default function ContinuedThreadLoading() {
           </div>
 
           {/* Comment card */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-3 sm:p-4">
+          <div className="rounded-lg bg-[var(--surface-1)] p-3 sm:p-4">
             {/* Anchor comment */}
             <div className="flex items-start gap-3 mb-4">
               <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
@@ -34,13 +34,13 @@ export default function ContinuedThreadLoading() {
             </div>
 
             {/* Reply actions */}
-            <div className="flex items-center gap-3 py-2 border-t border-[var(--border)] mb-4">
+            <div className="flex items-center gap-3 py-2 mt-3 mb-4">
               <Skeleton className="h-7 w-16 rounded-md" />
               <Skeleton className="h-7 w-16 rounded-md" />
             </div>
 
             {/* Child comments */}
-            <div className="space-y-3 pl-4 border-l-2 border-[var(--border)]">
+            <div className="space-y-3 pl-4">
               {[1, 2].map((i) => (
                 <div key={i} className="flex items-start gap-3">
                   <Skeleton className="w-7 h-7 rounded-full flex-shrink-0" />

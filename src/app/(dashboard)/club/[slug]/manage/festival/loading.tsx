@@ -22,7 +22,7 @@ export default function ManageFestivalLoading() {
           {/* Active Festival Section */}
           <section className="mb-6 space-y-4">
             {/* Festival Header Card */}
-            <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+            <div className="p-4 rounded-xl bg-[var(--surface-1)]">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -33,14 +33,14 @@ export default function ManageFestivalLoading() {
                 </div>
                 <Skeleton className="w-5 h-5 flex-shrink-0" />
               </div>
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--border)]">
+              <div className="flex items-center gap-4 mt-3 pt-3">
                 <Skeleton className="h-3.5 w-20" />
                 <Skeleton className="h-3.5 w-28" />
               </div>
             </div>
 
             {/* Phase Controls */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+            <div className="rounded-xl bg-[var(--surface-1)] p-4">
               <div className="flex items-center gap-3">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -54,7 +54,7 @@ export default function ManageFestivalLoading() {
           </section>
 
           {/* Festival Rules Settings */}
-          <section className="border-t border-[var(--border)] pt-6">
+          <section className="pt-6 mt-6">
             <Skeleton className="h-5 w-28 mb-4" />
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (

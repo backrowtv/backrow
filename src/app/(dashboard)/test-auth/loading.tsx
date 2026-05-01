@@ -4,7 +4,7 @@ export default function TestAuthLoading() {
   return (
     <div className="container mx-auto py-12 max-w-4xl space-y-6">
       {/* Authentication Section Card */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+      <div className="rounded-xl bg-[var(--surface-1)]">
         <div className="p-6 pb-4">
           <Skeleton className="h-6 w-56 mb-2" />
           <Skeleton className="h-4 w-80" />
@@ -31,7 +31,7 @@ export default function TestAuthLoading() {
       </div>
 
       {/* Quick Links Card */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+      <div className="rounded-xl bg-[var(--surface-1)]">
         <div className="p-6 pb-4">
           <Skeleton className="h-5 w-36" />
         </div>
@@ -45,7 +45,7 @@ export default function TestAuthLoading() {
       </div>
 
       {/* Test Resources Card */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
+      <div className="rounded-xl bg-[var(--surface-1)]">
         <div className="p-6 pb-4">
           <Skeleton className="h-5 w-32 mb-2" />
           <Skeleton className="h-4 w-72" />

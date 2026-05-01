@@ -13,7 +13,7 @@ export default function TimelineLoading() {
         {/* TimelineContainer -> TimelineView */}
         <div className="space-y-6">
           {/* Tabs - debossed tab bar matching TimelineView */}
-          <div className="rounded-lg overflow-hidden h-8 border border-[var(--border)] bg-[var(--surface-1)]">
+          <div className="rounded-lg overflow-hidden h-8 bg-[var(--surface-1)]">
             <div className="flex items-center h-full">
               <Skeleton className="h-6 w-1/2 mx-[2px] rounded-md" />
               <Skeleton className="h-6 w-1/2 mx-[2px] rounded-md" />

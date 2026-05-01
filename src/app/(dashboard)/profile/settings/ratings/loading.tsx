@@ -17,7 +17,7 @@ export default function RatingSettingsLoading() {
         {/* PersonalRubricsForm skeleton */}
         <div className="space-y-6">
           {/* Rating preferences section */}
-          <div className="p-4 rounded-lg border border-[var(--border)]">
+          <div className="p-4 rounded-lg bg-[var(--surface-1)]">
             <Skeleton className="h-5 w-36 mb-4" />
             <div className="space-y-3">
               {[1, 2].map((i) => (
@@ -30,13 +30,13 @@ export default function RatingSettingsLoading() {
           </div>
 
           {/* Rubric categories */}
-          <div className="p-4 rounded-lg border border-[var(--border)]">
+          <div className="p-4 rounded-lg bg-[var(--surface-1)]">
             <Skeleton className="h-5 w-32 mb-4" />
             <div className="space-y-3">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-2)]"
                 >
                   <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
                   <div className="flex-1">

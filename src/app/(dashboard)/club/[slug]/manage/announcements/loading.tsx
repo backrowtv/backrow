@@ -21,7 +21,7 @@ export default function AnnouncementsLoading() {
 
           <div className="space-y-6">
             {/* Editor area */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+            <div className="rounded-xl bg-[var(--surface-1)] p-4">
               <div className="flex gap-2 mb-3">
                 <Skeleton className="h-8 w-20 rounded-md" />
                 <Skeleton className="h-8 w-20 rounded-md" />
@@ -33,10 +33,10 @@ export default function AnnouncementsLoading() {
             {/* Recent Announcements */}
             <div className="space-y-4">
               <Skeleton className="h-4 w-40" />
-              <div className="border border-[var(--border)] rounded-lg p-4">
+              <div className="bg-[var(--surface-1)] rounded-lg p-4">
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="py-3 border-b border-[var(--border)] last:border-b-0">
+                    <div key={i} className="py-3">
                       <Skeleton className="h-4 w-full mb-2" />
                       <Skeleton className="h-3 w-3/4 mb-1" />
                       <Skeleton className="h-3 w-20" />

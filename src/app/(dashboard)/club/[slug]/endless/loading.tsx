@@ -20,7 +20,7 @@ export default function EndlessLoading() {
         </div>
 
         {/* Selected movie detail card */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+        <div className="rounded-xl bg-[var(--surface-1)] p-4">
           <div className="flex gap-4">
             <Skeleton className="w-24 aspect-[2/3] rounded-lg flex-shrink-0" />
             <div className="flex-1 space-y-2">
@@ -35,7 +35,7 @@ export default function EndlessLoading() {
         </div>
 
         {/* Member panel */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+        <div className="rounded-xl bg-[var(--surface-1)] p-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-4" />
@@ -43,7 +43,7 @@ export default function EndlessLoading() {
         </div>
 
         {/* Discussion section */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+        <div className="rounded-xl bg-[var(--surface-1)] p-4">
           <Skeleton className="h-5 w-28 mb-3" />
           <div className="space-y-3">
             {[1, 2].map((i) => (

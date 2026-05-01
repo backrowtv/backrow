@@ -23,8 +23,8 @@ export default function SeasonDetailLoading() {
 
           {/* Season Information Card */}
           <div className="mb-6">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)]">
-              <div className="p-4 border-b border-[var(--border)]">
+            <div className="rounded-xl bg-[var(--surface-1)]">
+              <div className="p-4">
                 <Skeleton className="h-5 w-36" />
               </div>
               <div className="p-4">
@@ -48,10 +48,7 @@ export default function SeasonDetailLoading() {
           {/* Festival grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4"
-              >
+              <div key={i} className="rounded-xl bg-[var(--surface-1)] p-4">
                 <div className="flex items-start gap-3">
                   <Skeleton className="w-16 h-24 rounded-lg flex-shrink-0" />
                   <div className="flex-1">

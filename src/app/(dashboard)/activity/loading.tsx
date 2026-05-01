@@ -16,7 +16,7 @@ export default function ActivityLoading() {
         </div>
 
         {/* Activity Feed - matches NewActivityItem layout */}
-        <div className="divide-y divide-[var(--border)]" style={{ minHeight: "794px" }}>
+        <div className="space-y-2" style={{ minHeight: "794px" }}>
           {Array.from({ length: 15 }, (_, i) => i + 1).map((i) => (
             <div key={i} className="flex items-center gap-2.5 py-2 px-2 h-[52px] overflow-hidden">
               {/* Display image - fixed 28px width container */}

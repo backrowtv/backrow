@@ -10,7 +10,7 @@ import { UpcomingDatesSkeleton } from "@/components/calendar/CollapsibleUpcoming
 
 function QuickLinkRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-1)]">
       <Skeleton className="w-9 h-9 rounded-lg flex-shrink-0" />
       <div className="flex-1 space-y-1">
         <Skeleton className="h-4 w-16" />
@@ -53,7 +53,7 @@ export default function ClubLoading() {
               <ClubResourcesSkeleton className="lg:hidden" />
 
               {/* Quick Links: Settings + optional Manage (show 2 as common case) */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-[var(--border)]">
+              <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 mt-4">
                 <QuickLinkRowSkeleton />
                 <QuickLinkRowSkeleton />
               </section>

@@ -7,7 +7,7 @@ export default function SignInLoading() {
       style={{ backgroundColor: "var(--background)" }}
     >
       <div className="w-full max-w-[450px]">
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+        <div className="rounded-lg bg-[var(--surface-1)]">
           {/* CardHeader */}
           <div className="text-center space-y-1 px-4 sm:px-6 pt-5 pb-2">
             <Skeleton className="h-7 w-40 mx-auto" />

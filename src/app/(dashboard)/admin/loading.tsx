@@ -6,7 +6,7 @@ export default function AdminLoading() {
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6 space-y-4">
         <Skeleton className="h-7 w-32" />
         <Skeleton className="h-4 w-80" />
-        <div className="border-b border-[var(--border)] flex gap-4 pb-0">
+        <div className="flex gap-4 pb-0">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-9 w-24" />
           ))}

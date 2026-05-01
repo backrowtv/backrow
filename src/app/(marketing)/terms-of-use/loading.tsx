@@ -27,7 +27,7 @@ export default function TermsOfUseLoading() {
 
           {/* Remaining sections with border-t */}
           {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-            <section key={i} className="space-y-3 border-t border-[var(--border)] pt-6">
+            <section key={i} className="space-y-3 pt-6 mt-6">
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />

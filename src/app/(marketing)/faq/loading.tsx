@@ -11,7 +11,7 @@ export default function FAQLoading() {
         </div>
 
         {/* Quick links to categories */}
-        <nav className="mb-8 pb-6 border-b border-[var(--border)]">
+        <nav className="mb-8 pb-6">
           <div className="flex flex-wrap gap-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Skeleton key={i} className="h-7 w-24 rounded-full" />
@@ -27,9 +27,9 @@ export default function FAQLoading() {
                 <Skeleton className="h-5 w-36 mb-1" />
                 <Skeleton className="h-3 w-56" />
               </div>
-              <div className="space-y-1 border-t border-[var(--border)]">
+              <div className="space-y-1">
                 {[1, 2, 3, 4].map((item) => (
-                  <div key={item} className="py-3 border-b border-[var(--border)]/50 last:border-0">
+                  <div key={item} className="py-3">
                     <div className="flex items-center justify-between">
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-4 w-4 flex-shrink-0 ml-4" />
@@ -42,7 +42,7 @@ export default function FAQLoading() {
         </div>
 
         {/* Still have questions CTA */}
-        <div className="mt-12 pt-8 border-t border-[var(--border)] text-center">
+        <div className="mt-12 pt-8 text-center">
           <Skeleton className="h-4 w-36 mx-auto mb-3" />
           <Skeleton className="h-4 w-24 mx-auto" />
         </div>

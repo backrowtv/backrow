@@ -7,7 +7,7 @@ export default function CreateClubLoading() {
       <div className="relative z-10 pt-16 sm:pt-24 pb-12 px-4 sm:px-6">
         <div className="max-w-xl mx-auto">
           {/* ClubCreationWizard skeleton */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-6 space-y-6">
+          <div className="rounded-lg bg-[var(--surface-1)] p-6 space-y-6">
             {/* Step indicator */}
             <div className="flex items-center justify-center gap-2 mb-4">
               {[1, 2, 3, 4, 5].map((i) => (

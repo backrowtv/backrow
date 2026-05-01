@@ -20,12 +20,9 @@ export default function FeedbackLoading() {
         </div>
 
         {/* Content */}
-        <div
-          className="rounded-lg border"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-1)" }}
-        >
+        <div className="rounded-lg bg-[var(--surface-1)]">
           {/* Header */}
-          <div className="px-4 py-3 border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Skeleton className="h-4 w-24" />
@@ -36,7 +33,7 @@ export default function FeedbackLoading() {
           </div>
 
           {/* Items */}
-          <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="px-3 py-3">
                 <div className="flex items-start gap-3">
@@ -66,16 +63,13 @@ export default function FeedbackLoading() {
           </div>
 
           {/* Add form */}
-          <div className="border-t px-3 py-3" style={{ borderColor: "var(--border)" }}>
+          <div className="px-3 py-3">
             <Skeleton className="h-9 w-full rounded-md" />
           </div>
         </div>
 
         {/* Guidelines */}
-        <div
-          className="mt-8 p-4 rounded-lg border"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-1)" }}
-        >
+        <div className="mt-8 p-4 rounded-lg bg-[var(--surface-1)]">
           <Skeleton className="h-4 w-40 mb-2" />
           <div className="space-y-1.5">
             <Skeleton className="h-3 w-full" />

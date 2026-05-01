@@ -17,7 +17,7 @@ export default function NotificationSettingsLoading() {
         {/* NotificationSettingsForm skeleton */}
         <div className="space-y-6">
           {/* Master toggle */}
-          <div className="flex items-center justify-between p-4 rounded-lg border border-[var(--border)]">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-1)]">
             <div>
               <Skeleton className="h-4 w-32 mb-1" />
               <Skeleton className="h-3 w-48" />

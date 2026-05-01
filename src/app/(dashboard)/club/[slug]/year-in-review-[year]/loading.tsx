@@ -23,10 +23,7 @@ export default function YearInReviewLoading() {
               {/* Stats row */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 text-center"
-                  >
+                  <div key={i} className="rounded-xl bg-[var(--surface-1)] p-4 text-center">
                     <Skeleton className="h-8 w-12 mx-auto mb-2" />
                     <Skeleton className="h-3 w-20 mx-auto" />
                   </div>
@@ -34,7 +31,7 @@ export default function YearInReviewLoading() {
               </div>
 
               {/* Top Genres */}
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+              <div className="rounded-xl bg-[var(--surface-1)] p-4">
                 <Skeleton className="h-5 w-28 mb-4" />
                 <div className="flex flex-wrap gap-2">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -44,7 +41,7 @@ export default function YearInReviewLoading() {
               </div>
 
               {/* Top Rated Movies */}
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+              <div className="rounded-xl bg-[var(--surface-1)] p-4">
                 <Skeleton className="h-5 w-36 mb-4" />
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -58,7 +55,7 @@ export default function YearInReviewLoading() {
               </div>
 
               {/* Most Active Members */}
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+              <div className="rounded-xl bg-[var(--surface-1)] p-4">
                 <Skeleton className="h-5 w-40 mb-4" />
                 <div className="space-y-3">
                   {[1, 2, 3, 4, 5].map((i) => (

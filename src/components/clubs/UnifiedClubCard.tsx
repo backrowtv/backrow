@@ -246,20 +246,16 @@ export function UnifiedClubCardSkeleton({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] flex flex-col",
+        "relative overflow-hidden rounded-xl bg-[var(--card)] flex flex-col",
         className
       )}
       aria-hidden="true"
     >
-      {/* Header band — rendered as a dim Skeleton instead of a saturated
-          primary-color gradient so the placeholder doesn't read as
-          "real content with visual weight". */}
-      <Skeleton className="h-16 w-full rounded-none" />
-      {/* Avatar overlap */}
+      {/* Header band */}
+      <Skeleton className="h-16 w-full rounded-md" />
+      {/* Avatar overlap — no ring; same-tone fuzzy fill blends naturally */}
       <div className="flex justify-center -mt-7 relative z-10">
-        <div className="ring-[3px] ring-[var(--card)] rounded-full">
-          <Skeleton className="w-14 h-14 rounded-full" />
-        </div>
+        <Skeleton className="w-14 h-14 rounded-full" />
       </div>
       {/* Content area */}
       <div className="flex-1 flex flex-col items-center px-4 pt-2 pb-3">
@@ -278,8 +274,8 @@ export function UnifiedClubCardSkeleton({
           </>
         )}
       </div>
-      {/* Stats bar */}
-      <div className="flex items-center border-t border-[var(--border)] divide-x divide-[var(--border)]">
+      {/* Stats bar — gap-only, no dividers */}
+      <div className="flex items-center gap-1 mt-2 px-2 pb-2">
         {[0, 1, 2].map((i) => (
           <div key={i} className="flex-1 flex items-center justify-center gap-1.5 py-2.5">
             <Skeleton className="w-3.5 h-3.5 rounded-sm" />

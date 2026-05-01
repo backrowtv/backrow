@@ -1071,17 +1071,6 @@ html {
   }
 }
 
-@keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite linear;
-  background: linear-gradient(to right, var(--surface-1) 0%, var(--surface-3) 20%, var(--surface-1) 40%, var(--surface-1) 100%);
-  background-size: 1000px 100%;
-}
-
 /* Toast animations */
 @keyframes toast-enter {
   from { opacity: 0; transform: translateX(100%); }
@@ -1244,18 +1233,29 @@ html {
    ============================================ */
 
 .skeleton {
-  /* Blend halfway between card surface and surface-2 so skeletons sit
-     softly on top of cards/backgrounds instead of punching through. */
-  background: color-mix(in srgb, var(--surface-1) 55%, var(--surface-2) 45%);
-  animation: skeleton-pulse 3s var(--easing-smooth) infinite;
-  border-radius: 4px;
+  /* Diagonal soft gradient with a slowly-traveling middle stop. The gradient
+     stops are subtle blends of the surface tokens so the shape reads as a
+     fuzzy ghost rather than a precise filled rectangle. */
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--surface-1) 60%, var(--surface-2) 40%) 0%,
+    color-mix(in srgb, var(--surface-1) 35%, var(--surface-3) 65%) 50%,
+    color-mix(in srgb, var(--surface-1) 60%, var(--surface-2) 40%) 100%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 3.2s ease-in-out infinite;
+
+  /* Edge feathering — every shape's bounds fuzz by ~2px so adjacent or
+     overlapping skeletons blend instead of meeting at a hard seam. */
+  filter: blur(1px);
+
+  border-radius: 8px;
+  will-change: background-position;
 }
 
-@keyframes skeleton-pulse {
-  /* Shallower, dimmer pulse — duller visual rhythm, easier on the eye. */
-  0% { opacity: 0.45; }
-  50% { opacity: 0.2; }
-  100% { opacity: 0.45; }
+@keyframes skeleton-shimmer {
+  0%, 100% { background-position: 100% 0; }
+  50%      { background-position: -100% 0; }
 }
 
 /* Skeleton fade-out when content loads */

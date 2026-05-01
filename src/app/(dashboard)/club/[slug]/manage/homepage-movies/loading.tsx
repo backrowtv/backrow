@@ -22,7 +22,7 @@ export default function HomepageMoviesLoading() {
           {/* Content */}
           <div className="space-y-6">
             {/* Featured Movies Section */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+            <div className="rounded-xl bg-[var(--surface-1)] p-4">
               <Skeleton className="h-5 w-32 mb-4" />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -35,7 +35,7 @@ export default function HomepageMoviesLoading() {
             </div>
 
             {/* Throwback Movies Section */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
+            <div className="rounded-xl bg-[var(--surface-1)] p-4">
               <Skeleton className="h-5 w-36 mb-4" />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[1, 2, 3].map((i) => (

@@ -18,7 +18,7 @@ export default function GeneralSettingsLoading() {
         {/* Settings Sections */}
         <div className="space-y-1">
           {/* Club Profile Section */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+          <div className="rounded-lg bg-[var(--surface-1)]">
             <div className="flex items-center gap-3 p-4 cursor-pointer">
               <Skeleton className="w-5 h-5 rounded" />
               <div className="flex-1">
@@ -27,7 +27,7 @@ export default function GeneralSettingsLoading() {
               </div>
               <Skeleton className="w-4 h-4" />
             </div>
-            <div className="p-4 border-t border-[var(--border)]">
+            <div className="p-4">
               <div className="space-y-4">
                 <div>
                   <Skeleton className="h-3.5 w-20 mb-2" />

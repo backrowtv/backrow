@@ -18,7 +18,7 @@ export default function NotificationsSettingsLoading() {
         {/* Notification toggles */}
         <div className="space-y-6">
           {/* Master toggle */}
-          <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between py-3">
             <div>
               <Skeleton className="h-4 w-40 mb-1" />
               <Skeleton className="h-3 w-48" />

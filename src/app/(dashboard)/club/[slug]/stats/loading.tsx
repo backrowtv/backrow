@@ -16,7 +16,7 @@ export default function StatsLoading() {
 
           <div className="space-y-6">
             {/* Season Leaderboard */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
+            <div className="rounded-xl bg-[var(--surface-1)] overflow-hidden">
               <div className="p-4 pb-3">
                 <div className="flex items-center justify-between gap-4">
                   <Skeleton className="h-5 w-40" />
@@ -40,7 +40,7 @@ export default function StatsLoading() {
             </div>
 
             {/* Lifetime Leaderboard */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
+            <div className="rounded-xl bg-[var(--surface-1)] overflow-hidden">
               <div className="p-4 pb-3">
                 <Skeleton className="h-5 w-40" />
               </div>

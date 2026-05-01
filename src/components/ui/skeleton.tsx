@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 
 // Skeleton system - single source of truth for loading placeholders.
 //
-// Rendering:
-// - `pulse` variant adds the `.skeleton` class from globals.css, which sets
-//   `background: var(--surface-2)` + a 2.5s opacity pulse. Animation duration,
-//   easing, and color all live in CSS — do NOT duplicate them as inline styles.
-// - `wave` variant uses the `.animate-shimmer` class (gradient sweep).
-// - `none` variant renders a static `var(--surface-2)` fill with no animation.
+// Visual style: every Skeleton renders the canonical `.skeleton` class
+// (defined in globals.css) — a soft moving gradient with feathered edges
+// (filter: blur). There is intentionally no animation/variant choice for the
+// fill: a single fuzzy style means overlapping skeletons blend smoothly
+// instead of meeting at hard seams. Callers control shape (text/circular/
+// rectangular) and size via Tailwind classes.
 //
 // Accessibility: skeletons are decorative by default (`aria-hidden="true"`).
 // For semantic "this region is loading" signaling, wrap a skeleton group in
@@ -16,47 +16,21 @@ import { cn } from "@/lib/utils";
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "text" | "circular" | "rectangular";
-  animation?: "pulse" | "wave" | "none";
 }
 
 const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
-  (
-    {
-      className,
-      variant = "rectangular",
-      animation = "pulse",
-      "aria-hidden": ariaHidden,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, variant = "rectangular", "aria-hidden": ariaHidden, ...props }, ref) => {
     const variantClasses = {
       text: "h-4 rounded",
       circular: "rounded-full",
       rectangular: "rounded-md",
     };
 
-    const animationClasses = {
-      pulse: "skeleton",
-      wave: "animate-shimmer",
-      none: "",
-    };
-
-    // The `.skeleton` + `.animate-shimmer` CSS classes each set their own
-    // background. Only the static `none` variant needs a baseline fill, and
-    // even then we keep it dim so it blends with surrounding cards.
-    const baseBackground = animation === "none" ? "bg-[var(--surface-2)] opacity-50" : "";
-
     return (
       <div
         ref={ref}
         aria-hidden={ariaHidden ?? true}
-        className={cn(
-          baseBackground,
-          variantClasses[variant],
-          animationClasses[animation],
-          className
-        )}
+        className={cn("skeleton", variantClasses[variant], className)}
         {...props}
       />
     );
@@ -125,23 +99,15 @@ export interface SkeletonListProps {
   count: number;
   /** Render function for each row. Receives the index. */
   renderItem: (index: number) => React.ReactNode;
-  /** Spacing class — either `space-y-*` or `divide-y …` (matches the two real patterns). */
+  /** Vertical spacing between rows (default space-y-3). */
   gap?: string;
-  /** When true, uses `divide-y divide-[var(--border)]` and ignores `gap`. */
-  divide?: boolean;
   className?: string;
 }
 
-/** Repeats a row N times with either `space-y` or `divide-y` separation. */
-function SkeletonList({
-  count,
-  renderItem,
-  gap = "space-y-2",
-  divide = false,
-  className,
-}: SkeletonListProps) {
+/** Repeats a row N times with vertical spacing. No dividers — soft skeletons should blend, not segment. */
+function SkeletonList({ count, renderItem, gap = "space-y-3", className }: SkeletonListProps) {
   return (
-    <div className={cn(divide ? "divide-y divide-[var(--border)]" : gap, className)}>
+    <div className={cn(gap, className)}>
       {Array.from({ length: count }).map((_, i) => (
         <React.Fragment key={i}>{renderItem(i)}</React.Fragment>
       ))}

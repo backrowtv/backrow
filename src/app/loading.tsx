@@ -26,7 +26,7 @@ export default function RootLoading() {
           <section className="space-y-1.5">
             <Skeleton className="h-4 w-40 mx-auto" />
             <div className="flex gap-4">
-              <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--card)] flex gap-4 flex-1">
+              <div className="p-4 rounded-xl bg-[var(--card)] flex gap-4 flex-1">
                 <SkeletonPoster size="sm" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-5 w-40" />

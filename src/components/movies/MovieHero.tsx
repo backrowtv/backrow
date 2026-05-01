@@ -31,7 +31,7 @@ export function MovieHeroSkeleton({
         <div className="max-w-3xl mx-auto w-full px-4 lg:px-6">
           <div className="flex gap-4 lg:gap-6 items-end">
             {/* Poster */}
-            <Skeleton className="w-[120px] lg:w-[160px] aspect-[2/3] rounded-lg flex-shrink-0 border border-white/10" />
+            <Skeleton className="w-[120px] lg:w-[160px] aspect-[2/3] rounded-lg flex-shrink-0" />
             {/* Info column */}
             <div className="flex-1 min-w-0 flex flex-col justify-between gap-1">
               {/* Title — two-line placeholder */}

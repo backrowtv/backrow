@@ -222,10 +222,7 @@ export function CollapsibleMoviePoolSkeleton({
   className?: string;
 }) {
   return (
-    <div
-      className={`border-t border-[var(--border)] pt-2 mt-2 ${className ?? ""}`}
-      aria-hidden="true"
-    >
+    <div className={`pt-2 mt-2 ${className ?? ""}`} aria-hidden="true">
       <div className="w-full flex items-center justify-between py-2 gap-2">
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-24" />

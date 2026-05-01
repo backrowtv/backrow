@@ -6,7 +6,7 @@ export default function ForgotPasswordLoading() {
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: "var(--background)" }}
     >
-      <div className="w-full max-w-[450px] rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+      <div className="w-full max-w-[450px] rounded-lg bg-[var(--surface-1)]">
         {/* CardHeader - text-center space-y-2 */}
         <div className="text-center space-y-2 p-6">
           <Skeleton className="h-12 w-12 mx-auto rounded-full" />

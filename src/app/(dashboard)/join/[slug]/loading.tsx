@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function JoinClubLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-8 text-center space-y-6">
+      <div className="max-w-md w-full rounded-xl bg-[var(--surface-1)] p-8 text-center space-y-6">
         {/* Club avatar */}
         <div className="flex justify-center">
           <Skeleton className="h-20 w-20 rounded-full" />

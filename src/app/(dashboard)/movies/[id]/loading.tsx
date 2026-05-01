@@ -43,7 +43,7 @@ export default function MovieDetailLoading() {
                     <Skeleton className="h-3 w-16" />
                     <Skeleton className="h-3 w-24" />
                   </div>
-                  {i < 2 && <div className="h-px bg-[var(--border)] mt-3" />}
+                  {i < 2 && <div className="mt-3" />}
                 </div>
               ))}
             </section>

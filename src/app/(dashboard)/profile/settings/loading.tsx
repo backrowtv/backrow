@@ -51,7 +51,7 @@ export default function SettingsLoading() {
         </div>
 
         {/* Settings Sub-pages */}
-        <div className="mt-6 pt-6 border-t border-[var(--border)]">
+        <div className="mt-6 pt-6">
           <div className="space-y-1">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3 -mx-3 rounded-lg">

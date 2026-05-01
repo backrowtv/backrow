@@ -561,7 +561,7 @@ function ActivitySkeleton() {
   return (
     <div className="space-y-2">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border)]">
+        <div key={i} className="p-3 rounded-xl bg-[var(--surface-1)]">
           <div className="flex items-center gap-3">
             <Skeleton className="h-8 w-8 rounded-full" />
             <div className="flex-1">
@@ -707,7 +707,7 @@ function MobileViewSkeleton() {
   return (
     <div className="space-y-6">
       {/* Hero skeleton */}
-      <div className="rounded-2xl bg-[var(--surface-1)] border border-[var(--border)] p-5">
+      <div className="rounded-2xl bg-[var(--surface-1)] p-5">
         <div className="flex items-center gap-4 mb-4">
           <Skeleton className="w-12 h-12 rounded-full" />
           <div className="flex-1">

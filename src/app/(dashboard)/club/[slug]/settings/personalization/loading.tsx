@@ -17,7 +17,7 @@ export default function PersonalizationSettingsLoading() {
 
         <div className="space-y-6">
           {/* Personalization Form */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-4 space-y-4">
+          <div className="rounded-lg bg-[var(--surface-1)] p-4 space-y-4">
             <Skeleton className="h-5 w-40 mb-2" />
             <div>
               <Skeleton className="h-3.5 w-28 mb-2" />
@@ -27,7 +27,7 @@ export default function PersonalizationSettingsLoading() {
           </div>
 
           {/* Rubric Selector */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)] p-4 space-y-4">
+          <div className="rounded-lg bg-[var(--surface-1)] p-4 space-y-4">
             <Skeleton className="h-5 w-32 mb-2" />
             <Skeleton className="h-3 w-56" />
             <div className="space-y-2">

@@ -8,7 +8,7 @@ export default function Loading() {
         <Skeleton className="h-4 w-52" />
       </div>
       {/* Admins card */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-5">
+      <div className="rounded-xl bg-[var(--surface-1)] p-5">
         <Skeleton className="h-5 w-28 mb-3" />
         <div className="space-y-2">
           {[1, 2].map((i) => (
@@ -17,8 +17,8 @@ export default function Loading() {
         </div>
       </div>
       {/* User table */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
-        <div className="p-4 border-b border-[var(--border)]">
+      <div className="rounded-xl bg-[var(--surface-1)] overflow-hidden">
+        <div className="p-4">
           <Skeleton className="h-9 w-full" />
         </div>
         <div className="p-4 space-y-2">

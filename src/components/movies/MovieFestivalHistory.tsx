@@ -206,7 +206,7 @@ function FestivalResultCard({ result }: { result: FestivalResult }) {
 // Loading skeleton
 function FestivalResultSkeleton() {
   return (
-    <Card className="bg-[var(--surface-1)] border-[var(--border)]">
+    <Card className="bg-[var(--surface-1)] border-0">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           <Skeleton className="w-12 h-12 rounded-full" />

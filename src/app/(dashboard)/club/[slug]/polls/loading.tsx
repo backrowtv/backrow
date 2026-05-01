@@ -21,10 +21,7 @@ export default function PollsLoading() {
           <section className="mb-8">
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-1)]"
-                >
+                <div key={i} className="p-4 rounded-xl bg-[var(--surface-1)]">
                   <div className="flex items-start gap-3 mb-3">
                     <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
                     <div className="flex-1">
@@ -47,10 +44,7 @@ export default function PollsLoading() {
             <Skeleton className="h-4 w-20 mb-3" />
             <div className="space-y-2">
               {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="p-3 rounded-lg border border-[var(--border)] bg-[var(--surface-1)]"
-                >
+                <div key={i} className="p-3 rounded-lg bg-[var(--surface-1)]">
                   <Skeleton className="h-3.5 w-48 mb-1" />
                   <Skeleton className="h-3 w-24" />
                 </div>

@@ -75,9 +75,9 @@ export function RecentActivitySkeleton({
         <Skeleton className="h-4 w-16" />
         <Skeleton className="h-4 w-8" />
       </div>
-      <div className="divide-y divide-[var(--border)] pt-1">
+      <div className="pt-1 space-y-2">
         {Array.from({ length: limit }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2.5 py-2.5 px-2">
+          <div key={i} className="flex items-center gap-2.5 py-2 px-2">
             <div className="w-7 flex-shrink-0 flex items-center justify-center">
               <Skeleton className="w-[19px] h-7 rounded-sm" />
             </div>

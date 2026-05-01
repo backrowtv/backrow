@@ -16,7 +16,7 @@ export default function SubscriptionsLoading() {
         </div>
 
         {/* Empty state card - matches p-8 rounded-lg border */}
-        <div className="p-8 rounded-lg border border-[var(--border)]">
+        <div className="p-8 rounded-lg bg-[var(--surface-1)]">
           <div className="flex flex-col items-center text-center">
             <Skeleton className="h-12 w-12 rounded-full mb-4" />
             <Skeleton className="h-6 w-32 mb-2" />

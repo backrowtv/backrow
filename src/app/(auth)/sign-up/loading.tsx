@@ -7,7 +7,7 @@ export default function SignUpLoading() {
       style={{ backgroundColor: "var(--background)" }}
     >
       <div className="w-full max-w-sm">
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+        <div className="rounded-lg bg-[var(--surface-1)]">
           {/* CardHeader */}
           <div className="text-center space-y-1 p-6 pb-2">
             <Skeleton className="h-6 w-32 mx-auto" />

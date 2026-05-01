@@ -34,7 +34,7 @@ export default function DisplayCaseLoading() {
           </section>
 
           {/* Challenges Section */}
-          <section className="border-t border-[var(--border)] pt-6">
+          <section className="pt-6 mt-6">
             {/* Header */}
             <div className="flex justify-between mb-4">
               <div className="flex items-baseline gap-2">
@@ -44,12 +44,12 @@ export default function DisplayCaseLoading() {
               <Skeleton className="h-7 w-32 rounded-md" />
             </div>
             {/* Stats row */}
-            <div className="pb-4 border-b border-[var(--border)]">
+            <div className="pb-4">
               <Skeleton className="h-3 w-72" />
             </div>
             {/* Badge categories */}
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="py-4 border-b border-[var(--border)] last:border-b-0">
+              <div key={i} className="py-4">
                 <div className="flex justify-between mb-3">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-3 w-8" />

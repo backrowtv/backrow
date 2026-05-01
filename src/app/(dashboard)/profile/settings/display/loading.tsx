@@ -15,7 +15,7 @@ export default function DisplaySettingsLoading() {
         </div>
 
         {/* Navigation section */}
-        <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border)]">
+        <div className="p-3 rounded-xl bg-[var(--surface-1)]">
           <Skeleton className="h-4 w-20 mb-2" />
           {/* Tabs placeholder */}
           <Skeleton className="h-9 w-full rounded-lg mb-3" />
@@ -31,7 +31,7 @@ export default function DisplaySettingsLoading() {
         </div>
 
         {/* Movie Page Links section */}
-        <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border)]">
+        <div className="p-3 rounded-xl bg-[var(--surface-1)]">
           <Skeleton className="h-4 w-28 mb-2" />
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -44,7 +44,7 @@ export default function DisplaySettingsLoading() {
         </div>
 
         {/* Discussions section */}
-        <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border)]">
+        <div className="p-3 rounded-xl bg-[var(--surface-1)]">
           <Skeleton className="h-4 w-24 mb-2" />
           <div className="space-y-2">
             {[1, 2].map((i) => (
@@ -57,7 +57,7 @@ export default function DisplaySettingsLoading() {
         </div>
 
         {/* Appearance section */}
-        <div className="p-3 rounded-xl bg-[var(--surface-1)] border border-[var(--border)]">
+        <div className="p-3 rounded-xl bg-[var(--surface-1)]">
           <Skeleton className="h-4 w-24 mb-2" />
 
           {/* Theme row */}
@@ -66,7 +66,7 @@ export default function DisplaySettingsLoading() {
             <Skeleton className="h-8 w-20 rounded-md" />
           </div>
 
-          <div className="border-t border-[var(--border)]" />
+          <div className="mt-2" />
 
           {/* Color theme selector */}
           <div className="py-2">
@@ -78,7 +78,7 @@ export default function DisplaySettingsLoading() {
             </div>
           </div>
 
-          <div className="border-t border-[var(--border)]" />
+          <div className="mt-2" />
 
           {/* Time format row */}
           <div className="flex items-center justify-between py-2">
@@ -89,7 +89,7 @@ export default function DisplaySettingsLoading() {
             </div>
           </div>
 
-          <div className="border-t border-[var(--border)]" />
+          <div className="mt-2" />
 
           {/* Date format row */}
           <div className="flex items-center justify-between py-2">

@@ -20,7 +20,7 @@ export default function ClubsLoading() {
 
           {/* Right side: View Toggle + Create Button */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center rounded-lg border border-[var(--border)] p-0.5">
+            <div className="flex items-center rounded-lg p-0.5">
               <Skeleton className="h-7 w-7 rounded-md" />
               <Skeleton className="h-7 w-7 rounded-md" />
             </div>
@@ -29,7 +29,7 @@ export default function ClubsLoading() {
         </div>
 
         {/* Club list items (list view default) - matches ClubListItem layout */}
-        <div className="divide-y divide-[var(--border)]">
+        <div className="space-y-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="py-5 px-4 md:py-6 md:px-5">
               <div className="flex items-start gap-4">

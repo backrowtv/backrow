@@ -19,10 +19,7 @@ export default function TestStylingLoading() {
           <Skeleton className="h-7 w-44 mb-4" />
           <div className="grid md:grid-cols-2 gap-6">
             {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="p-4 rounded-lg border border-[var(--border)] bg-[var(--surface-1)]"
-              >
+              <div key={i} className="p-4 rounded-lg bg-[var(--surface-1)]">
                 <div className="flex justify-between items-center mb-3">
                   <Skeleton className="h-5 w-40" />
                   <Skeleton className="h-6 w-24 rounded" />
@@ -44,10 +41,7 @@ export default function TestStylingLoading() {
           <Skeleton className="h-7 w-36 mb-4" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="p-3 rounded-lg border border-[var(--border)] bg-[var(--surface-1)]"
-              >
+              <div key={i} className="p-3 rounded-lg bg-[var(--surface-1)]">
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-3 w-32" />
               </div>
@@ -60,10 +54,7 @@ export default function TestStylingLoading() {
           <Skeleton className="h-7 w-28 mb-4" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="p-3 rounded-lg border border-[var(--border)] bg-[var(--surface-1)]"
-              >
+              <div key={i} className="p-3 rounded-lg bg-[var(--surface-1)]">
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-3 w-32" />
               </div>
@@ -74,7 +65,7 @@ export default function TestStylingLoading() {
         {/* Preview section */}
         <section className="mb-12">
           <Skeleton className="h-7 w-24 mb-4" />
-          <div className="p-6 rounded-lg border border-[var(--border)] bg-[var(--surface-1)]">
+          <div className="p-6 rounded-lg bg-[var(--surface-1)]">
             <Skeleton className="h-8 w-48 mb-3" />
             <Skeleton className="h-4 w-full mb-2" />
             <Skeleton className="h-4 w-3/4 mb-4" />

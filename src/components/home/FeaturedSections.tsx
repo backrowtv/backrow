@@ -504,7 +504,7 @@ export async function FeaturedClubSection() {
 
 function MovieCardSkeleton() {
   return (
-    <div className="rounded-xl overflow-hidden flex-1 border border-[var(--border)] bg-[var(--card)] shadow-lg">
+    <div className="rounded-xl overflow-hidden flex-1 bg-[var(--card)] shadow-lg">
       <div className="px-4 pt-3 pb-2">
         <Skeleton className="h-2 w-24" />
       </div>
@@ -534,7 +534,7 @@ export function FeaturedMovieSkeleton() {
 
 export function FeaturedClubSkeleton() {
   return (
-    <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)] shadow-lg">
+    <div className="rounded-xl overflow-hidden bg-[var(--card)] shadow-lg">
       <div className="px-4 pt-3 pb-2">
         <Skeleton className="h-2 w-20" />
       </div>

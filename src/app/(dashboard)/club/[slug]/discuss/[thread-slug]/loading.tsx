@@ -12,7 +12,7 @@ export default function ThreadLoading() {
           <Skeleton className="h-8 w-40 mb-4 rounded-md" />
 
           {/* Thread card */}
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-4 sm:p-6">
+          <div className="rounded-xl bg-[var(--surface-1)] p-4 sm:p-6">
             {/* Thread header */}
             <div className="flex items-start gap-3 mb-4">
               <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
@@ -35,7 +35,7 @@ export default function ThreadLoading() {
             </div>
 
             {/* Thread actions */}
-            <div className="flex items-center gap-3 py-3 border-t border-[var(--border)]">
+            <div className="flex items-center gap-3 py-3 mt-3">
               <Skeleton className="h-7 w-16 rounded-md" />
               <Skeleton className="h-7 w-16 rounded-md" />
             </div>
@@ -43,10 +43,7 @@ export default function ThreadLoading() {
             {/* Comments */}
             <div className="mt-4 space-y-4">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 pl-4 border-l-2 border-[var(--border)]"
-                >
+                <div key={i} className="flex items-start gap-3 pl-4">
                   <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
