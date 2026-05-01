@@ -12,6 +12,7 @@ import { logDualActivity } from "@/lib/activity/logger";
 import { ensureUser } from "@/lib/users/ensureUser";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
 import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
+import { writeClubLayoutCookie } from "@/lib/preferences/club-layout-cookie";
 import { checkAndAwardClubBadges } from "../club-badges";
 import type { MobileNavPreferences } from "@/lib/navigation-constants";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -317,6 +318,22 @@ export async function updateMemberPreference(clubId: string, key: string, value:
   if (error) return { error: error.message };
 
   invalidateMember(clubId, user.id);
+
+  // Mirror layout-affecting prefs into a path-scoped cookie so loading.tsx
+  // can skip skeletons for hidden sections without a DB read.
+  if (isHideCardKey) {
+    const { data: club } = await supabase
+      .from("clubs")
+      .select("slug")
+      .eq("id", clubId)
+      .maybeSingle();
+    if (club?.slug) {
+      await writeClubLayoutCookie(club.slug, {
+        idCardDesktop: nextPrefs.hide_club_card_desktop === true,
+        idCardMobile: nextPrefs.hide_club_card_mobile === true,
+      });
+    }
+  }
 
   return { success: true };
 }
