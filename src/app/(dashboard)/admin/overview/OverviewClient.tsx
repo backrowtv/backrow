@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { DateDisplay } from "@/components/ui/date-display";
 import {
   Sparkle,
@@ -89,6 +90,17 @@ export function OverviewClient({
   const [bgSuccess, setBgSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Homepage credit state
+  const [creditTitle, setCreditTitle] = useState(homepageBackground?.credit_title ?? "");
+  const [creditYear, setCreditYear] = useState(
+    homepageBackground?.credit_year ? String(homepageBackground.credit_year) : ""
+  );
+  const [creditStudio, setCreditStudio] = useState(homepageBackground?.credit_studio ?? "");
+  const [creditActor, setCreditActor] = useState(homepageBackground?.credit_actor ?? "");
+  const [creditError, setCreditError] = useState<string | null>(null);
+  const [creditSuccess, setCreditSuccess] = useState(false);
+  const [isSavingCredit, setIsSavingCredit] = useState(false);
+
   const handleBgUpload = async (file: File) => {
     setIsUploading(true);
     setBgError(null);
@@ -129,6 +141,45 @@ export function OverviewClient({
       setBgImageUrl("");
       setBgId("");
     });
+  };
+
+  const handleSaveCredit = async () => {
+    setCreditError(null);
+    if (!bgImageUrl) {
+      setCreditError("Upload a homepage image first.");
+      return;
+    }
+    setIsSavingCredit(true);
+    const yearNum = creditYear.trim() ? parseInt(creditYear, 10) : null;
+    if (creditYear.trim() && (Number.isNaN(yearNum) || yearNum! < 1880 || yearNum! > 2100)) {
+      setCreditError("Year must be a valid 4-digit year.");
+      setIsSavingCredit(false);
+      return;
+    }
+    const result = await upsertBackground({
+      entity_type: "site_page",
+      entity_id: "/",
+      image_url: bgImageUrl,
+      height_preset: homepageBackground?.height_preset || "default",
+      height_px: homepageBackground?.height_px ?? null,
+      opacity: homepageBackground?.opacity ?? 0.6,
+      object_position: homepageBackground?.object_position || "center center",
+      scale: homepageBackground?.scale ?? 1,
+      vignette_opacity: homepageBackground?.vignette_opacity ?? 0.4,
+      extend_past_content: homepageBackground?.extend_past_content ?? false,
+      credit_title: creditTitle.trim() || null,
+      credit_year: yearNum,
+      credit_studio: creditStudio.trim() || null,
+      credit_actor: creditActor.trim() || null,
+    });
+    setIsSavingCredit(false);
+    if (result.error) {
+      setCreditError(result.error);
+    } else {
+      if (result.data) setBgId(result.data.id);
+      setCreditSuccess(true);
+      setTimeout(() => setCreditSuccess(false), 3000);
+    }
   };
 
   const handleSetFeatured = () => {
@@ -306,6 +357,81 @@ export function OverviewClient({
             )}
           </div>
           {bgError && <span className="text-xs text-[var(--error)]">{bgError}</span>}
+        </div>
+
+        {/* Credit fields — shown in the footer 'Background:' line */}
+        <div className="mt-4 pt-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              Credit
+            </h3>
+            {creditSuccess && <span className="text-xs text-[var(--success)]">Saved.</span>}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <div className="sm:col-span-5">
+              <Input
+                value={creditTitle}
+                onChange={(e) => {
+                  setCreditTitle(e.target.value);
+                  setCreditSuccess(false);
+                }}
+                placeholder="Movie title"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Input
+                value={creditYear}
+                onChange={(e) => {
+                  setCreditYear(e.target.value);
+                  setCreditSuccess(false);
+                }}
+                placeholder="Year"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={4}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="sm:col-span-3">
+              <Input
+                value={creditStudio}
+                onChange={(e) => {
+                  setCreditStudio(e.target.value);
+                  setCreditSuccess(false);
+                }}
+                placeholder="Studio"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Input
+                value={creditActor}
+                onChange={(e) => {
+                  setCreditActor(e.target.value);
+                  setCreditSuccess(false);
+                }}
+                placeholder="Actor (optional)"
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              onClick={handleSaveCredit}
+              disabled={isSavingCredit || !bgImageUrl}
+            >
+              {isSavingCredit ? "Saving..." : "Save Credit"}
+            </Button>
+            {creditError && <span className="text-xs text-[var(--error)]">{creditError}</span>}
+            {!bgImageUrl && !creditError && (
+              <span className="text-[11px] text-[var(--text-muted)]">
+                Upload an image first to enable credit.
+              </span>
+            )}
+          </div>
         </div>
       </section>
 

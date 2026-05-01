@@ -1,8 +1,14 @@
-import { getTrendingBackdropUrl } from "@/lib/tmdb/client";
+import { getTrendingBackdrop } from "@/lib/tmdb/client";
 import { LandingHeroClient } from "./LandingHeroClient";
 
 export async function LandingHero() {
-  const backdropUrl = await getTrendingBackdropUrl();
+  const backdrop = await getTrendingBackdrop();
 
-  return <LandingHeroClient backdropUrl={backdropUrl} />;
+  return (
+    <LandingHeroClient
+      backdropUrl={backdrop?.url ?? null}
+      backdropTitle={backdrop?.title ?? null}
+      backdropYear={backdrop?.year ?? null}
+    />
+  );
 }

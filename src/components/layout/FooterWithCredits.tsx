@@ -9,9 +9,9 @@ const FALLBACK_CREDITS: Record<
   { movie: string; year: number; studio: string; actor?: string }
 > = {
   "/": {
-    movie: "Once Upon a Time in Hollywood",
-    year: 2019,
-    studio: "Sony Pictures",
+    movie: "One Battle After Another",
+    year: 2025,
+    studio: "Warner Bros. Pictures",
     actor: "Leonardo DiCaprio",
   },
   "/faq": {

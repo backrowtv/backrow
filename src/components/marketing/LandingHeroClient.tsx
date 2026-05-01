@@ -9,9 +9,15 @@ import { SignInModal } from "@/components/auth/SignInModal";
 
 interface LandingHeroClientProps {
   backdropUrl: string | null;
+  backdropTitle?: string | null;
+  backdropYear?: number | null;
 }
 
-export function LandingHeroClient({ backdropUrl }: LandingHeroClientProps) {
+export function LandingHeroClient({
+  backdropUrl,
+  backdropTitle,
+  backdropYear,
+}: LandingHeroClientProps) {
   const [showSignUp, setShowSignUp] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
 
@@ -127,6 +133,21 @@ export function LandingHeroClient({ backdropUrl }: LandingHeroClientProps) {
             </div>
           </div>
         </div>
+
+        {/* Backdrop attribution — bottom-right, subtle */}
+        {backdropTitle && (
+          <div
+            className="absolute bottom-3 right-4 z-10 text-[10px] tracking-wide pointer-events-none select-none"
+            style={{
+              color: "rgba(255,255,255,0.55)",
+              textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+            }}
+            aria-hidden="true"
+          >
+            Background: {backdropTitle}
+            {backdropYear ? ` (${backdropYear})` : ""}
+          </div>
+        )}
       </div>
 
       {/* Modals */}

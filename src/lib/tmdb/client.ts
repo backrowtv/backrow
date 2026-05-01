@@ -333,14 +333,21 @@ export function getPosterUrl(posterPath: string | null): string | null {
   return `${TMDB_IMAGE_BASE_URL}${posterPath}`;
 }
 
+export interface TrendingBackdrop {
+  url: string;
+  title: string;
+  year: number | null;
+}
+
 /**
- * Get a trending movie backdrop URL for hero/marketing use.
+ * Get a trending movie backdrop for hero/marketing use.
  * Returns a random original-size backdrop from TMDB's weekly trending list
- * (TMDB's largest available — typically 1920×1080, occasionally 3840×2160).
+ * (TMDB's largest available — typically 1920×1080, occasionally 3840×2160) plus
+ * the movie's title and release year so callers can attribute it.
  * Next.js Image optimizes delivery per viewport up to 4K (3840w).
  * Revalidates every hour so the image stays fresh.
  */
-export async function getTrendingBackdropUrl(): Promise<string | null> {
+export async function getTrendingBackdrop(): Promise<TrendingBackdrop | null> {
   try {
     const response = await tmdbFetch(`${TMDB_BASE_URL}/trending/movie/week`, {
       revalidate: 3600,
@@ -351,15 +358,35 @@ export async function getTrendingBackdropUrl(): Promise<string | null> {
     const data = await response.json();
     const movies = (data.results || []).filter(
       (m: { backdrop_path: string | null }) => m.backdrop_path
-    );
+    ) as Array<{
+      backdrop_path: string;
+      title?: string;
+      original_title?: string;
+      release_date?: string;
+    }>;
 
     if (movies.length === 0) return null;
 
     const movie = movies[Math.floor(Math.random() * movies.length)];
-    return `https://image.tmdb.org/t/p/original${movie.backdrop_path}`;
+    const yearStr = (movie.release_date ?? "").slice(0, 4);
+    const yearNum = /^\d{4}$/.test(yearStr) ? parseInt(yearStr, 10) : null;
+    return {
+      url: `https://image.tmdb.org/t/p/original${movie.backdrop_path}`,
+      title: movie.title || movie.original_title || "",
+      year: yearNum,
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * @deprecated Use {@link getTrendingBackdrop} for credit metadata too.
+ * Kept temporarily for any caller that still wants only the URL.
+ */
+export async function getTrendingBackdropUrl(): Promise<string | null> {
+  const result = await getTrendingBackdrop();
+  return result?.url ?? null;
 }
 
 export interface WatchProvider {
