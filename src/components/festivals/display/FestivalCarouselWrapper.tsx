@@ -9,7 +9,7 @@ import { MovieCarousel, type CarouselMovie } from "./MovieCarousel";
 import { MovieGridModal } from "../modals/MovieGridModal";
 import { EndlessRatingModal } from "../endless/EndlessRatingModal";
 import { markMovieWatched, unmarkMovieWatched } from "@/app/actions/endless-festival";
-import { createRating } from "@/app/actions/ratings";
+import { createRating, deleteEndlessRating } from "@/app/actions/ratings";
 import { advanceFestivalPhase, revertFestivalPhase } from "@/app/actions/festivals";
 import type { ClubRatingSettings } from "../endless/EndlessFestivalSection";
 import toast from "react-hot-toast";
@@ -126,6 +126,23 @@ export function FestivalCarouselWrapper({
         toast.error(result.error);
       } else {
         toast.success("Rating submitted!");
+        setRatingModalOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  // Handle remove rating
+  const handleRemoveRating = async () => {
+    if (!selectedMovieId) return;
+
+    startTransition(async () => {
+      const result = await deleteEndlessRating(festivalId, selectedMovieId);
+
+      if (result && "error" in result && result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Rating removed");
         setRatingModalOpen(false);
         router.refresh();
       }
@@ -299,6 +316,7 @@ export function FestivalCarouselWrapper({
         movie={ratingMovie}
         ratingSettings={ratingSettings}
         onSubmit={handleSubmitRating}
+        onDelete={handleRemoveRating}
         isSubmitting={isPending}
       />
     </div>

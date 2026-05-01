@@ -100,19 +100,21 @@ export function EndlessRatingModal({
     return allAvailableRubrics.find((r) => r.id === selectedRubricId) ?? null;
   }, [allAvailableRubrics, selectedRubricId]);
 
-  // Fetch personal rubrics when modal opens
+  // Prefetch personal rubrics on mount (not on open) so the rubric tab
+  // is ready instantly when the user opens the modal — getUserRubrics()
+  // is a server-action round trip that was making the rubric tab feel
+  // laggy when fired on first open.
   useEffect(() => {
-    if (open && !personalRubricsLoaded) {
-      getUserRubrics()
-        .then((result) => {
-          if (result.data) {
-            setPersonalRubrics(result.data);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setPersonalRubricsLoaded(true));
-    }
-  }, [open, personalRubricsLoaded]);
+    if (personalRubricsLoaded) return;
+    getUserRubrics()
+      .then((result) => {
+        if (result.data) {
+          setPersonalRubrics(result.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setPersonalRubricsLoaded(true));
+  }, [personalRubricsLoaded]);
 
   // Auto-select rubric after loading
   useEffect(() => {

@@ -489,7 +489,9 @@ export async function deleteEndlessRating(festivalId: string, nominationId: stri
   const verified = requireVerifiedEmail(user);
   if (!verified.ok) return { error: verified.error };
 
-  // Verify this is an endless festival
+  // Status === "watching" covers both endless festivals (always watching)
+  // AND standard festivals during the watch_rate phase. Outside that
+  // window the rating is locked.
   const { data: festival } = await supabase
     .from("festivals")
     .select("club_id, status, theme")
@@ -497,7 +499,7 @@ export async function deleteEndlessRating(festivalId: string, nominationId: stri
     .single();
 
   if (!festival || festival.status !== "watching") {
-    return { error: "Can only delete ratings in endless festivals" };
+    return { error: "Rating phase is not active" };
   }
 
   const { error } = await supabase

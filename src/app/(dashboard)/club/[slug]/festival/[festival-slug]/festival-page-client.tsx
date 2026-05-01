@@ -33,7 +33,7 @@ import type {
   MemberForResults,
 } from "@/types/results";
 import { markMovieWatched, unmarkMovieWatched } from "@/app/actions/endless-festival";
-import { createRating } from "@/app/actions/ratings";
+import { createRating, deleteEndlessRating } from "@/app/actions/ratings";
 import { EndlessRatingModal } from "@/components/festivals/endless/EndlessRatingModal";
 import type { ClubRatingSettings } from "@/components/festivals/endless/EndlessFestivalSection";
 import toast from "react-hot-toast";
@@ -357,6 +357,23 @@ export function FestivalPageClient({
         toast.error(result.error);
       } else {
         toast.success("Rating submitted!");
+        setRatingModalOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
+  // Handle remove rating
+  const handleRemoveRating = async () => {
+    if (!selectedMovieId) return;
+
+    startTransition(async () => {
+      const result = await deleteEndlessRating(festival.id, selectedMovieId);
+
+      if (result && "error" in result && result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Rating removed");
         setRatingModalOpen(false);
         router.refresh();
       }
@@ -977,6 +994,7 @@ export function FestivalPageClient({
           movie={ratingMovie}
           ratingSettings={ratingSettings}
           onSubmit={handleSubmitRating}
+          onDelete={handleRemoveRating}
           isSubmitting={isPending}
         />
       )}
