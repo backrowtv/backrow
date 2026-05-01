@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,19 @@ export function DiscoverSearch({
       onRemoveFilter(value);
     }
   }
+
+  // Clear only the search query on unmount so navigating away and back
+  // resets the search bar — but preserve filter params (genres, etc.).
+  useEffect(() => {
+    return () => {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      if (url.pathname === "/discover" && url.searchParams.has("q")) {
+        url.searchParams.delete("q");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      }
+    };
+  }, []);
 
   return (
     <div>

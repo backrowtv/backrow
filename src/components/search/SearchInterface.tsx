@@ -67,6 +67,20 @@ export function SearchInterface({ initialQuery = "" }: SearchInterfaceProps) {
     };
   }, [query, updateUrl]);
 
+  // Clear URL ?q= on unmount so navigating back to /search starts fresh.
+  // We use history.replaceState directly to avoid triggering a Next.js
+  // navigation as the component is tearing down.
+  useEffect(() => {
+    return () => {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      if (url.pathname === "/search" && url.searchParams.has("q")) {
+        url.searchParams.delete("q");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      }
+    };
+  }, []);
+
   // Perform search when query changes - always fetch all categories
   useEffect(() => {
     if (!query.trim() || query.trim().length < 2) {

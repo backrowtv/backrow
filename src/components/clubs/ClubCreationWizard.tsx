@@ -90,6 +90,18 @@ export function ClubCreationWizard() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
   }, [state]);
 
+  // Clear wizard draft on unmount so leaving the wizard URL fully resets
+  // it. Step state still survives between wizard steps because the
+  // component stays mounted within the same route.
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      } catch {}
+    };
+  }, []);
+
   const updateState = useCallback((updates: Partial<ClubWizardState>) => {
     setState((prev) => ({ ...prev, ...updates }));
   }, []);

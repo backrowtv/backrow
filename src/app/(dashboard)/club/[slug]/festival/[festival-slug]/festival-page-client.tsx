@@ -675,6 +675,7 @@ export function FestivalPageClient({
                       <CardContent className="p-4 sm:p-6">
                         <DebossedTabs
                           fullWidth
+                          compact
                           options={[
                             { value: "rankings", label: "Rankings", icon: ListNumbers },
                             { value: "ratings", label: "Ratings", icon: Star },
