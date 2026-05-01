@@ -1,7 +1,34 @@
 "use server";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { StandingsEntry } from "./standings.types";
+
+/**
+ * Tally total guesses per user across the given festivals.
+ *
+ * `nomination_guesses.guesses` is a JSONB object keyed by nomination_id; the
+ * key count equals guesses cast. Mutates `userStats` in place to match the
+ * surrounding aggregation style.
+ */
+async function tallyTotalGuesses<T extends { total_guesses: number }>(
+  supabase: SupabaseClient,
+  festivalIds: string[],
+  userStats: Record<string, T>
+): Promise<void> {
+  const { data: guessRecords } = await supabase
+    .from("nomination_guesses")
+    .select("user_id, guesses")
+    .in("festival_id", festivalIds);
+
+  if (!guessRecords) return;
+  guessRecords.forEach((g) => {
+    if (g.user_id && userStats[g.user_id] && g.guesses) {
+      const count = Object.keys(g.guesses as Record<string, string>).length;
+      userStats[g.user_id].total_guesses += count;
+    }
+  });
+}
 
 /**
  * Get season standings stats for a club
@@ -201,20 +228,7 @@ export async function getSeasonStandings(
   }
 
   // Total guesses per user (denominator for the "X/Y" fraction display).
-  // nomination_guesses.guesses is a JSONB object keyed by nomination_id; key count = guesses cast.
-  const { data: guessRecords } = await supabase
-    .from("nomination_guesses")
-    .select("user_id, guesses")
-    .in("festival_id", festivalIds);
-
-  if (guessRecords) {
-    guessRecords.forEach((g) => {
-      if (g.user_id && userStats[g.user_id] && g.guesses) {
-        const count = Object.keys(g.guesses as Record<string, string>).length;
-        userStats[g.user_id].total_guesses += count;
-      }
-    });
-  }
+  await tallyTotalGuesses(supabase, festivalIds, userStats);
 
   // Get nominations for average nomination rating
   const { data: nominations, error: nominationsError } = await supabase
@@ -490,20 +504,7 @@ export async function getLifetimeStandings(
   }
 
   // Total guesses per user (denominator for the "X/Y" fraction display).
-  // nomination_guesses.guesses is a JSONB object keyed by nomination_id; key count = guesses cast.
-  const { data: guessRecords } = await supabase
-    .from("nomination_guesses")
-    .select("user_id, guesses")
-    .in("festival_id", festivalIds);
-
-  if (guessRecords) {
-    guessRecords.forEach((g) => {
-      if (g.user_id && userStats[g.user_id] && g.guesses) {
-        const count = Object.keys(g.guesses as Record<string, string>).length;
-        userStats[g.user_id].total_guesses += count;
-      }
-    });
-  }
+  await tallyTotalGuesses(supabase, festivalIds, userStats);
 
   // Get nominations for average nomination rating
   const { data: nominations, error: nominationsError2 } = await supabase
