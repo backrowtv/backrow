@@ -186,7 +186,7 @@ export async function searchMovies(query: string, year?: number): Promise<TMDBMo
 
 export async function getMovieDetails(movieId: number): Promise<TMDBMovie> {
   const response = await tmdbFetch(
-    `${TMDB_BASE_URL}/movie/${movieId}?append_to_response=credits,external_ids,release_dates,images`,
+    `${TMDB_BASE_URL}/movie/${movieId}?language=en-US&append_to_response=credits,external_ids,release_dates,images`,
     { revalidate: 86400 }
   );
 

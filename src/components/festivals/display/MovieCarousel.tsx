@@ -460,7 +460,7 @@ function BottomSection({
             className="w-[112px] gap-1.5 !border-[var(--warning)] !text-[var(--warning)] disabled:opacity-100 cursor-default"
           >
             <Trophy className="w-3.5 h-3.5 flex-shrink-0" weight="fill" />
-            <span>Your Pick</span>
+            <span className="whitespace-nowrap text-[11px]">Your Pick</span>
           </Button>
         ) : showRating && onRate ? (
           <Button

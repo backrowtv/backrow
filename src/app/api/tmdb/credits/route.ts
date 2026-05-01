@@ -22,9 +22,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${TMDB_BASE_URL}/movie/${movieId}/credits?api_key=${apiKey}`, {
-      next: { revalidate: 86400 }, // Cache for 24 hours
-    });
+    const response = await fetch(
+      `${TMDB_BASE_URL}/movie/${movieId}/credits?api_key=${apiKey}&language=en-US`,
+      {
+        next: { revalidate: 86400 }, // Cache for 24 hours
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);
