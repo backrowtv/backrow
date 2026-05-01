@@ -36,6 +36,8 @@ import { markMovieWatched, unmarkMovieWatched } from "@/app/actions/endless-fest
 import { createRating, deleteEndlessRating } from "@/app/actions/ratings";
 import { EndlessRatingModal } from "@/components/festivals/endless/EndlessRatingModal";
 import type { ClubRatingSettings } from "@/components/festivals/endless/EndlessFestivalSection";
+import { formatRatingDisplay } from "@/lib/ratings/normalize";
+import { friendlyError } from "@/lib/errors/friendly-messages";
 import toast from "react-hot-toast";
 
 type FestivalPhase = "theme_selection" | "nomination" | "watch_rate" | "results";
@@ -252,6 +254,12 @@ export function FestivalPageClient({
   const [isNominateModalOpen, setIsNominateModalOpen] = useState(false);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [selectedMovieId, setSelectedMovieId] = useState<string | null>(null);
+
+  // Optimistic rating state — keyed by nomination id. Merged into
+  // carouselMovies so the UI reflects new/updated/removed ratings instantly
+  // without waiting for the router refresh round trip.
+  const [optimisticRatings, setOptimisticRatings] = useState<Map<string, number>>(new Map());
+  const [optimisticDeletions, setOptimisticDeletions] = useState<Set<string>>(new Set());
   const [resultsTab, setResultsTab] = useState<string>("rankings");
 
   // Reveal replay state
@@ -300,29 +308,36 @@ export function FestivalPageClient({
         )
       : undefined;
 
-  // Convert nominations to CarouselMovie format with watched/rated status
-  const carouselMovies: CarouselMovie[] = nominations.map((nom) => ({
-    id: nom.id,
-    tmdb_id: nom.tmdb_id,
-    slug: nom.slug,
-    title: nom.movie_title || "Unknown",
-    year: nom.year,
-    poster_url: nom.poster_url,
-    runtime: nom.runtime,
-    director: nom.director,
-    genres: null,
-    curator_note: nom.pitch,
-    isWatched: watchedSet.has(nom.tmdb_id),
-    isRated: ratingsMap.has(nom.id),
-    userRating: ratingsMap.get(nom.id),
-    nominator: nom.nominator_name
-      ? {
-          id: nom.user_id,
-          display_name: nom.nominator_name,
-          avatar_url: nom.nominator_avatar,
-        }
-      : null,
-  }));
+  // Convert nominations to CarouselMovie format with watched/rated status,
+  // merging optimistic rating updates so the UI reflects new/updated/removed
+  // ratings instantly without waiting for the router refresh round trip.
+  const carouselMovies: CarouselMovie[] = nominations.map((nom) => {
+    const optimistic = optimisticRatings.get(nom.id);
+    const wasDeleted = optimisticDeletions.has(nom.id);
+    const serverRating = ratingsMap.get(nom.id);
+    return {
+      id: nom.id,
+      tmdb_id: nom.tmdb_id,
+      slug: nom.slug,
+      title: nom.movie_title || "Unknown",
+      year: nom.year,
+      poster_url: nom.poster_url,
+      runtime: nom.runtime,
+      director: nom.director,
+      genres: null,
+      curator_note: nom.pitch,
+      isWatched: watchedSet.has(nom.tmdb_id),
+      isRated: optimistic !== undefined ? true : wasDeleted ? false : ratingsMap.has(nom.id),
+      userRating: optimistic !== undefined ? optimistic : wasDeleted ? undefined : serverRating,
+      nominator: nom.nominator_name
+        ? {
+            id: nom.user_id,
+            display_name: nom.nominator_name,
+            avatar_url: nom.nominator_avatar,
+          }
+        : null,
+    };
+  });
 
   // Get the selected movie for rating modal
   const selectedMovie = selectedMovieId
@@ -343,20 +358,43 @@ export function FestivalPageClient({
 
   // Handle rating submission
   const handleSubmitRating = async (rating: number) => {
-    if (!selectedMovieId) return;
+    if (!selectedMovie || !selectedMovieId) return;
+
+    const movieId = selectedMovieId;
+    const movieTitle = selectedMovie.title;
+    // Capture pre-optimistic state for the toast wording
+    const wasRated = ratingsMap.has(movieId);
+
+    setOptimisticRatings((prev) => new Map(prev).set(movieId, rating));
+    setOptimisticDeletions((prev) => {
+      if (!prev.has(movieId)) return prev;
+      const next = new Set(prev);
+      next.delete(movieId);
+      return next;
+    });
 
     startTransition(async () => {
       const formData = new FormData();
       formData.append("festivalId", festival.id);
-      formData.append("nominationId", selectedMovieId);
+      formData.append("nominationId", movieId);
       formData.append("rating", rating.toString());
 
       const result = await createRating(null, formData);
 
       if (result && "error" in result && result.error) {
-        toast.error(result.error);
+        // Revert optimistic update
+        setOptimisticRatings((prev) => {
+          const next = new Map(prev);
+          next.delete(movieId);
+          return next;
+        });
+        toast.error(friendlyError(result.error));
       } else {
-        toast.success("Rating submitted!");
+        toast.success(
+          wasRated
+            ? `Updated rating for ${movieTitle}: ${formatRatingDisplay(rating)}`
+            : `Rated ${movieTitle}: ${formatRatingDisplay(rating)}`
+        );
         setRatingModalOpen(false);
         router.refresh();
       }
@@ -365,15 +403,32 @@ export function FestivalPageClient({
 
   // Handle remove rating
   const handleRemoveRating = async () => {
-    if (!selectedMovieId) return;
+    if (!selectedMovie || !selectedMovieId) return;
+
+    const movieId = selectedMovieId;
+    const movieTitle = selectedMovie.title;
+
+    setOptimisticDeletions((prev) => new Set(prev).add(movieId));
+    setOptimisticRatings((prev) => {
+      if (!prev.has(movieId)) return prev;
+      const next = new Map(prev);
+      next.delete(movieId);
+      return next;
+    });
 
     startTransition(async () => {
-      const result = await deleteEndlessRating(festival.id, selectedMovieId);
+      const result = await deleteEndlessRating(festival.id, movieId);
 
       if (result && "error" in result && result.error) {
-        toast.error(result.error);
+        // Revert optimistic deletion
+        setOptimisticDeletions((prev) => {
+          const next = new Set(prev);
+          next.delete(movieId);
+          return next;
+        });
+        toast.error(friendlyError(result.error));
       } else {
-        toast.success("Rating removed");
+        toast.success(`Removed rating for ${movieTitle}`);
         setRatingModalOpen(false);
         router.refresh();
       }
@@ -996,6 +1051,7 @@ export function FestivalPageClient({
           onSubmit={handleSubmitRating}
           onDelete={handleRemoveRating}
           isSubmitting={isPending}
+          initialRating={selectedMovie?.userRating}
         />
       )}
     </div>
