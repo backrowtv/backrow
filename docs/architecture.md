@@ -22,9 +22,9 @@ cases we care about:
 
 Current call sites:
 
-| Consumer              | Pattern                                                              |
-| --------------------- | -------------------------------------------------------------------- |
-| `src/lib/tmdb/client.ts` | `retryWithBackoff` + `AbortSignal.timeout(3000)` on every `fetch`.   |
+| Consumer                  | Pattern                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| `src/lib/tmdb/client.ts`  | `retryWithBackoff` + `AbortSignal.timeout(3000)` on every `fetch`.                    |
 | `src/lib/email/resend.ts` | `retryWithBackoff` around Resend SDK calls (bulk-email worker + transactional sends). |
 
 ### When to wrap a new external call
@@ -183,3 +183,85 @@ Signature: `retryWithBackoff(fn, options?: { maxAttempts?: number; backoffMs?: n
 Defaults: `maxAttempts = 3`, `backoffMs = 200` (linear: 200ms before retry 2,
 400ms before retry 3). Pass `shouldRetry: (err) => …` to skip retries on
 non-transient errors (4xx).
+
+## Recent UX/data changes (post-2026-04-28)
+
+Notes on shipped behavior that the migration name or commit message alone
+doesn't fully capture. Anything older than 2026-04-28 is documented in
+the section it belongs to or in `docs/database-baseline.md`.
+
+### Theme pool: duplicate names allowed
+
+Migration `0016_theme_pool_allow_duplicates.sql` dropped the
+`UNIQUE (club_id, theme_name)` constraint on `theme_pool`. Duplicate
+suggestions are intentional signal — multiple members converging on the
+same theme is consensus, not conflict. `addTheme` / `updateTheme` no
+longer special-case duplicates; the pool UI surfaces the count instead.
+
+### Festival nomination averages: 2-decimal precision
+
+Migration `0017_widen_average_rating_precision.sql` widened
+`festival_standings.average_rating` from `numeric(3,1)` to `numeric(4,2)`.
+Standings tables and results modal now display two decimals (`7.78`)
+instead of the prior one-decimal truncation (`7.8`). Per-user personal
+ratings are still rendered with one decimal via `formatRatingDisplay()`;
+only the across-raters average is widened. Standings client code rounds
+with `Math.round(value * 100) / 100`.
+
+### Discussion person tags: collapsed to a single type
+
+Migration `0018_collapse_discussion_person_tags.sql` collapsed the
+`actor` / `director` / `composer` / `writer` tag types into a single
+`person` type and backfilled all rows. `/api/discussions/existing` and
+the discussion creation modal now accept any TMDB person regardless of
+known-for department. `discussion_thread_tags.tag_type` now takes
+`movie` / `person` / `festival` only.
+
+### Movie pool RLS scoping (endless festivals)
+
+Migration `0019_movie_pool_votes_rls_for_club_pool_items.sql` added an
+RLS policy so `movie_pool_votes` can be inserted/updated against
+`club_pool_items` rows the user can see (i.e. members of the owning
+club). Without it, voting on club-pool items in an endless festival
+silently failed with a permissions error.
+
+### Cross-festival ratings popover
+
+`getCrossFestivalRatings(tmdbId)` (`src/app/actions/ratings.ts`) returns
+the user's ratings for a given movie across every themed standard
+festival they've rated it in. The `/movies/[id]` page renders an `ⓘ`
+icon next to the rating card when 2+ entries exist; clicking opens a
+popover listing `(theme · club · score)` rows that deep-link into each
+festival. Endless and non-themed-standard ratings sync to
+`generic_ratings` and are not duplicated in the popover.
+
+### "Your Pick" Trophy badge (own-nomination guard)
+
+In **standard** festivals, when the current user is the nominator of a
+movie, the rate button on `MovieCarousel` and similar surfaces is
+replaced with a non-interactive Trophy badge of equal width labelled
+"Your Pick". This closes the gap left by the server-side block on
+self-rating and prevents layout shift between rate / no-rate states.
+Endless festivals still allow nominator self-rating.
+
+### Trophy + amber/gold rate-button styling (standard festivals)
+
+In standard festivals the rate button uses `Trophy` (Phosphor) +
+`var(--warning)` / amber-gold to signal "this counts toward standings".
+Endless festivals and the global `/movies/[id]` personal-rate UI keep
+`Star` + primary. The visual distinction is a hint to the user that
+their rating affects podium order.
+
+### Movie carousel: simplified metadata row
+
+`MovieCarousel` now renders a uniform `cert · year · runtime` metadata
+row. The trailing `genre[0]` chip was dropped to avoid field-count
+variance between movies that have / don't have genre data.
+
+### Paginated festival progress lists
+
+`FestivalProgressChecklist` (festival winners list) and
+`MemberWatchProgress` (per-member watch progress) replaced their
+"show all / show fewer" toggle with `prev / next` pagination at 5 items
+per page. Both surfaces page on mobile and desktop. The 10-festival hard
+cap on the progress fetch was removed; pagination handles the size now.
