@@ -557,7 +557,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["avatar", "image", "profile picture", "custom", "icon"],
-        link: { href: "/profile/edit", label: "Customize your avatar" },
+        link: { href: "/profile/settings", label: "Customize your avatar" },
       },
       {
         id: "social-links",
@@ -650,7 +650,6 @@ export const faqCategories: FAQCategory[] = [
         priority: 2,
         showOnLanding: false,
         keywords: ["text", "size", "bigger", "zoom", "larger"],
-        link: { href: "/profile/settings/display", label: "Display settings" },
       },
       {
         id: "reduced-motion",
