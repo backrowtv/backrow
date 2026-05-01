@@ -14,7 +14,6 @@ import { UnifiedClubCard } from "@/components/clubs/UnifiedClubCard";
 import { FestivalHeroCardSkeleton } from "@/components/festivals/display/FestivalHeroCard";
 
 import { resolveClub } from "@/lib/clubs/resolveClub";
-import { syncClubLayoutCookie } from "@/lib/preferences/club-layout-cookie";
 import { ClubNavigation } from "@/components/clubs/ClubNavigation";
 import { ClubThemedBackground } from "@/components/clubs/ClubThemedBackground";
 import { AnnouncementsList } from "@/components/clubs/AnnouncementsList";
@@ -216,15 +215,6 @@ export default async function ClubPage({ params }: ClubPageProps) {
     (memberPrefs.hide_club_card_desktop ?? memberPrefs.hide_club_card) === true;
   const hideClubCardMobile =
     (memberPrefs.hide_club_card_mobile ?? memberPrefs.hide_club_card) === true;
-
-  // Mirror these into a path-scoped cookie so loading.tsx can skip the
-  // ID card skeleton when the user has hidden it. No-op when cookie matches.
-  if (isMember) {
-    await syncClubLayoutCookie(club.slug, {
-      idCardDesktop: hideClubCardDesktop,
-      idCardMobile: hideClubCardMobile,
-    });
-  }
 
   // Fetch additional data (including favorite check) in parallel
   const now = new Date().toISOString();

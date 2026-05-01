@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { SkeletonRegion, Skeleton } from "@/components/ui/skeleton";
 import { UnifiedClubCardSkeleton } from "@/components/clubs/UnifiedClubCard";
 import { FestivalHeroCardSkeleton } from "@/components/festivals/display/FestivalHeroCard";
@@ -8,7 +7,6 @@ import { RecentDiscussionsSkeleton } from "@/components/discussions/CollapsibleR
 import { RecentActivitySkeleton } from "@/components/activity/CollapsibleRecentActivity";
 import { ClubResourcesSkeleton } from "@/components/clubs/CollapsibleClubResources";
 import { UpcomingDatesSkeleton } from "@/components/calendar/CollapsibleUpcomingDates";
-import { readClubLayoutCookie } from "@/lib/preferences/club-layout-cookie";
 
 function QuickLinkRowSkeleton() {
   return (
@@ -23,12 +21,7 @@ function QuickLinkRowSkeleton() {
   );
 }
 
-export default async function ClubLoading() {
-  // Path-scoped cookie tells us whether the member has hidden the ID card
-  // on either viewport. If so, omit that skeleton so the layout doesn't
-  // flash a placeholder for nothing.
-  const layout = readClubLayoutCookie(await cookies());
-
+export default function ClubLoading() {
   return (
     <SkeletonRegion label="Loading club home">
       <div className="relative">
@@ -36,7 +29,7 @@ export default async function ClubLoading() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
             {/* Left Sidebar — desktop only */}
             <aside className="hidden lg:block lg:col-span-3 space-y-4">
-              {!layout.idCardDesktop && <UnifiedClubCardSkeleton />}
+              <UnifiedClubCardSkeleton />
               <CollapsibleThemePoolSkeleton />
               <CollapsibleMoviePoolSkeleton />
             </aside>
@@ -44,7 +37,7 @@ export default async function ClubLoading() {
             {/* Main Column */}
             <div className="lg:col-span-6 space-y-4 lg:space-y-6">
               {/* Mobile club header */}
-              {!layout.idCardMobile && <UnifiedClubCardSkeleton collapsed className="lg:hidden" />}
+              <UnifiedClubCardSkeleton collapsed className="lg:hidden" />
 
               {/* Festival hero — defaults to nomination phase, the most common active state */}
               <FestivalHeroCardSkeleton phase="nomination" />
