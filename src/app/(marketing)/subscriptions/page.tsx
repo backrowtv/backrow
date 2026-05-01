@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Star } from "@phosphor-icons/react/dist/ssr";
+import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { MobileBackButton } from "@/components/profile/MobileBackButton";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export default async function SubscriptionsPage() {
   return (
     <div className="bg-[var(--background)]">
+      <MarketingSidebarMount />
       <div className="max-w-3xl mx-auto px-4 lg:px-6 py-6">
         {/* Mobile Back Button */}
         <MobileBackButton href="/" label="Home" />

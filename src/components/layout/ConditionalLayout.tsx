@@ -96,7 +96,11 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/contact") ||
     pathname.startsWith("/blog") ||
     pathname.startsWith("/feedback") ||
-    pathname.startsWith("/acknowledgments");
+    pathname.startsWith("/acknowledgments") ||
+    pathname.startsWith("/do-not-sell-or-share") ||
+    pathname.startsWith("/cookie-settings") ||
+    pathname.startsWith("/subscriptions") ||
+    pathname.startsWith("/create-club");
 
   // Desktop sidebar only shows on specific routes where it makes sense
   // This prevents showing an empty sidebar on marketing pages for unauthenticated users
@@ -125,7 +129,11 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
       (isAuthenticated && pathname.startsWith("/contact")) ||
       (isAuthenticated && pathname.startsWith("/feedback")) ||
       (isAuthenticated && pathname.startsWith("/blog")) ||
-      (isAuthenticated && pathname.startsWith("/acknowledgments")));
+      (isAuthenticated && pathname.startsWith("/acknowledgments")) ||
+      (isAuthenticated && pathname.startsWith("/do-not-sell-or-share")) ||
+      (isAuthenticated && pathname.startsWith("/cookie-settings")) ||
+      (isAuthenticated && pathname.startsWith("/subscriptions")) ||
+      (isAuthenticated && pathname.startsWith("/create-club")));
 
   // Mobile nav shows on ALL routes EXCEPT:
   // - Auth routes (sign-in, sign-up, forgot-password, reset-password)

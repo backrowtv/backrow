@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { ClubCreationWizard } from "@/components/clubs/ClubCreationWizard";
+import { MarketingSidebarMount } from "@/components/marketing/MarketingSidebarMount";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export default function CreateClubPage() {
   return (
     <div className="relative" style={{ backgroundColor: "var(--background)" }}>
+      <MarketingSidebarMount />
       {/* Content */}
       <div className="relative z-10 pt-16 sm:pt-24 pb-12 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">

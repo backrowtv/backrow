@@ -567,7 +567,7 @@ export const faqCategories: FAQCategory[] = [
         priority: 3,
         showOnLanding: false,
         keywords: ["letterboxd", "imdb", "trakt", "social", "links"],
-        link: { href: "/profile/edit", label: "Add your accounts" },
+        link: { href: "/profile/settings/account", label: "Manage linked accounts" },
       },
       {
         id: "activity-feed",
