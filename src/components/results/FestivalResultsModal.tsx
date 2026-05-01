@@ -94,7 +94,6 @@ function transformToMovieResults(
       nominator_name: nominatorInfo?.name || "Unknown",
       nominator_id: resultNom.nominator_user_id,
       nominator_avatar: nominatorInfo?.avatar,
-      points: resultNom.average_rating, // Points based on rating for now
     };
   });
 }

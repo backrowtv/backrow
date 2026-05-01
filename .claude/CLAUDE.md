@@ -47,12 +47,16 @@
 
 ### Ratings
 
-- **ALL ratings display as numbers only** — always 0.0 to 10.0 with one decimal place
+- **ALL ratings display as numbers only** — always 0.0 to 10.0
 - **NO icon/visual display modes** — no stars, popcorn, etc. for rating display
+- **Precision split:**
+  - **Personal ratings** (one user → one movie) display **1 decimal** (`X.X`) via `formatRatingDisplay()` → `rating.toFixed(1)`
+  - **Festival nomination averages** (aggregated across raters) display **2 decimals** (`X.XX`) — migration `0017_widen_average_rating_precision.sql` widened `festival_standings.average_rating` to `numeric(4,2)` so an averages-of-averages math doesn't truncate to a misleading single-digit (`7.78` should not display as `7.8`)
 - Users can still customize: step increment (0.1, 0.5, 1.0) and slider thumb icon
-- Use `formatRatingDisplay(rating)` which always returns `rating.toFixed(1)`
-- Use `RatingDisplay` component for consistent rendering; `RatingBadge` for cards/overlays
+- Use `formatRatingDisplay(rating)` for personal ratings; `RatingDisplay` component for consistent rendering; `RatingBadge` for cards/overlays
 - Rubric ratings: always 0-10 integer steps, weighted final score displayed as X.X/10
+- **Standard-festival rate buttons** swap Star → Trophy and primary → amber/gold styling (counts toward standings); endless-festival and global personal-rate UI keep Star + primary
+- **Own-pick guard:** in standard festivals, if `current_user === nominator`, the rate button is replaced with a disabled "Your Pick" Trophy badge of equal width. Endless festivals still allow nominator self-rating
 
 ### Components
 

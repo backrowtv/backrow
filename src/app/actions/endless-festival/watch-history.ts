@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { handleActionError } from "@/lib/errors/handler";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { invalidateMovie, invalidateDiscussion } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Mark a movie as watched (adds to watch_history)
@@ -20,6 +22,9 @@ export async function markMovieWatched(
     discussionId?: string;
   }
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("markMovieWatched", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -28,6 +33,9 @@ export async function markMovieWatched(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Build contexts as array (matches existing data format)
   const contextEntry: Record<string, unknown> = {
@@ -193,6 +201,9 @@ export async function markMovieWatched(
 export async function unmarkMovieWatched(
   tmdbId: number
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("unmarkMovieWatched", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -201,6 +212,9 @@ export async function unmarkMovieWatched(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Delete from watch_history
   const { error } = await supabase
@@ -239,6 +253,9 @@ export async function updateWatchCount(
   tmdbId: number,
   count: number
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("updateWatchCount", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -247,6 +264,9 @@ export async function updateWatchCount(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate count
   if (count < 1) {

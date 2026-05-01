@@ -96,6 +96,18 @@ if (!verified.ok) return { error: verified.error };
 | `resetSidebarPreferences`         | 10/min          | —                 | ✅                                  |
 | `updateMovieLinkPreferences`      | 30/min          | —                 | ✅                                  |
 | `resetMovieLinkPreferences`       | 10/min          | —                 | ✅                                  |
+| `createThread`                    | 5/min           | —                 | ✅                                  |
+| `updateThread`                    | 20/min          | —                 | ✅                                  |
+| `deleteThread`                    | 20/min          | —                 | ✅                                  |
+| `addTagToThread`                  | 30/min          | —                 | ✅                                  |
+| `removeTagFromThread`             | 30/min          | —                 | ✅                                  |
+| `createRating`                    | 20/min          | —                 | ✅                                  |
+| `updateGenericRating`             | 20/min          | —                 | ✅                                  |
+| `deleteGenericRating`             | 20/min          | —                 | ✅                                  |
+| `deleteEndlessRating`             | 20/min          | —                 | ✅                                  |
+| `markMovieWatched`                | 30/min          | —                 | ✅                                  |
+| `unmarkMovieWatched`              | 30/min          | —                 | ✅                                  |
+| `updateWatchCount`                | 30/min          | —                 | ✅                                  |
 | `submitContactForm`               | 3/min + 20/hr   | —                 | N/A (public)                        |
 
 **Queue workers** (`src/app/api/jobs/*/route.ts`) run as system via Vercel Queues' `experimentalTriggers` and bypass the user-scoped gates above — the upstream producer action enforces them. Workers are not user-callable: they're bound to a topic in `vercel.json`, not exposed as a public HTTP endpoint.

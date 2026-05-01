@@ -49,7 +49,7 @@ retained seed). All other test data is rebuilt on demand by the factories.
 **Test Resources:** Visit `/test-auth` (dev-only auth widget) for:
 
 - Test movies with TMDB IDs
-- Test directors, actors, composers
+- Test people (actors, directors, writers, composers, etc.) — `discussion_thread_tags.tag_type='person'` after migration `0018_collapse_discussion_person_tags.sql`
 - Test festival themes
 - Placeholder image URLs
 

@@ -5,6 +5,7 @@ import { invalidateFestival, invalidateClub } from "@/lib/cache/invalidate";
 import { logMemberActivity } from "@/lib/activity/logger";
 import { normalizeRating, INTERNAL_RATING_SCALE } from "@/lib/ratings/normalize";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { markMovieWatched } from "@/app/actions/endless-festival/watch-history";
 import { isEndlessFestivalClub } from "@/app/actions/endless-festival/data";
 
@@ -31,6 +32,9 @@ export async function createRating(prevState: unknown, formData: FormData) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const festivalId = formData.get("festivalId") as string;
   const nominationId = formData.get("nominationId") as string;
@@ -317,6 +321,9 @@ export async function updateGenericRating(
   ratingMin: number = 0,
   ratingMax: number = 10
 ) {
+  const rateCheck = await actionRateLimit("updateGenericRating", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -325,6 +332,9 @@ export async function updateGenericRating(
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Validate rating is within the provided scale bounds
   if (rating < ratingMin || rating > ratingMax) {
@@ -413,6 +423,9 @@ export async function updateGenericRating(
 }
 
 export async function deleteGenericRating(tmdbId: number) {
+  const rateCheck = await actionRateLimit("deleteGenericRating", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -421,6 +434,9 @@ export async function deleteGenericRating(tmdbId: number) {
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   const { error } = await supabase
     .from("generic_ratings")
@@ -458,6 +474,9 @@ export async function deleteGenericRating(tmdbId: number) {
  * Delete a festival rating (endless festivals only)
  */
 export async function deleteEndlessRating(festivalId: string, nominationId: string) {
+  const rateCheck = await actionRateLimit("deleteEndlessRating", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   const supabase = await createClient();
 
   const {
@@ -466,6 +485,9 @@ export async function deleteEndlessRating(festivalId: string, nominationId: stri
   if (!user) {
     return { error: "You must be signed in" };
   }
+
+  const verified = requireVerifiedEmail(user);
+  if (!verified.ok) return { error: verified.error };
 
   // Verify this is an endless festival
   const { data: festival } = await supabase

@@ -189,7 +189,7 @@ write-path posture in `docs/security.md`.
 
 ### Discussions
 
-- `/api/discussions/existing` - Lookup auto-created discussion threads (movie/actor/director)
+- `/api/discussions/existing` - Lookup auto-created discussion threads (movie/person/festival)
 
 ### Events
 

@@ -26,7 +26,6 @@ interface MovieResult {
     avatar_border_color_index?: number;
     [key: string]: unknown;
   } | null;
-  points?: number;
 }
 
 interface ResultsListTabProps {
