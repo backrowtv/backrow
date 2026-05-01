@@ -16,6 +16,7 @@ import { generateSlug, ensureUniqueSlug } from "./helpers";
 import { getSpoilerStatesForThreads } from "./spoiler-utils";
 import { parseCreateThreadFormData } from "@/lib/validation/server-actions";
 import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 
 /**
  * Get all threads for a club (cached for 5 minutes)
@@ -273,6 +274,9 @@ export async function createThread(
       return { error: "You must be signed in" };
     }
 
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
+
     // Validate input with Zod
     const parseResult = parseCreateThreadFormData(formData);
     if (!parseResult.success) {
@@ -446,6 +450,9 @@ export async function updateThread(
     is_spoiler?: boolean;
   }
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("updateThread", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
     const {
@@ -455,6 +462,9 @@ export async function updateThread(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Get thread to check permissions
     const { data: thread, error: threadError } = await supabase
@@ -553,6 +563,9 @@ export async function updateThread(
 export async function deleteThread(
   threadId: string
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("deleteThread", { limit: 20, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
     const {
@@ -562,6 +575,9 @@ export async function deleteThread(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Get thread to check permissions
     const { data: thread, error: threadError } = await supabase

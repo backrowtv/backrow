@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { invalidateDiscussion } from "@/lib/cache/invalidate";
+import { actionRateLimit } from "@/lib/security/action-rate-limit";
+import { requireVerifiedEmail } from "@/lib/security/require-verified-email";
 import { cacheMovie } from "../movies";
 import { cachePerson } from "../persons";
 import type { DiscussionThreadTag, TagInput } from "./types";
@@ -13,6 +15,9 @@ export async function addTagToThread(
   threadId: string,
   tag: TagInput
 ): Promise<{ success: boolean; tagId?: string } | { error: string }> {
+  const rateCheck = await actionRateLimit("addTagToThread", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
     const {
@@ -22,6 +27,9 @@ export async function addTagToThread(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Get thread to check permissions
     const { data: thread, error: threadError } = await supabase
@@ -104,6 +112,9 @@ export async function addTagToThread(
 export async function removeTagFromThread(
   tagId: string
 ): Promise<{ success: boolean } | { error: string }> {
+  const rateCheck = await actionRateLimit("removeTagFromThread", { limit: 30, windowMs: 60_000 });
+  if (!rateCheck.success) return { error: rateCheck.error };
+
   try {
     const supabase = await createClient();
     const {
@@ -113,6 +124,9 @@ export async function removeTagFromThread(
     if (!user) {
       return { error: "You must be signed in" };
     }
+
+    const verified = requireVerifiedEmail(user);
+    if (!verified.ok) return { error: verified.error };
 
     // Get tag to find the thread
     const { data: tag, error: tagError } = await supabase
