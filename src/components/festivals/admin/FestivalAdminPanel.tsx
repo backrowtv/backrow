@@ -117,6 +117,7 @@ export function FestivalAdminPanel({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showRemoveMemberConfirm, setShowRemoveMemberConfirm] = useState(false);
   const [showRemoveMovieConfirm, setShowRemoveMovieConfirm] = useState(false);
+  const [showAdvanceConfirm, setShowAdvanceConfirm] = useState(false);
   const [showForceAdvanceConfirm, setShowForceAdvanceConfirm] = useState(false);
   const [showForceRevertConfirm, setShowForceRevertConfirm] = useState(false);
 
@@ -145,19 +146,21 @@ export function FestivalAdminPanel({
     startTransition(async () => {
       const result = await advanceFestivalPhase(festivalId);
       if ("error" in result && result.error) {
-        // If advance fails due to requirements, show force dialog
+        // If advance fails due to requirements, swap to the force dialog
         if (
           result.error.includes("required") ||
           result.error.includes("nomination") ||
           result.error.includes("theme") ||
           result.error.includes("rating")
         ) {
+          setShowAdvanceConfirm(false);
           setShowForceAdvanceConfirm(true);
         } else {
           toast.error(result.error);
         }
       } else {
         toast.success(`Advanced to ${PHASE_LABELS[nextPhase!]}`);
+        setShowAdvanceConfirm(false);
         router.refresh();
       }
     });
@@ -361,7 +364,7 @@ export function FestivalAdminPanel({
             <Button
               variant="primary"
               size="sm"
-              onClick={handleAdvancePhase}
+              onClick={() => setShowAdvanceConfirm(true)}
               disabled={isPending}
               className="flex-1 text-[11px] whitespace-nowrap"
             >
@@ -785,6 +788,22 @@ export function FestivalAdminPanel({
         confirmText="Remove Movie"
         onConfirm={handleRemoveMovie}
         variant="danger"
+        isLoading={isPending}
+      />
+
+      <ConfirmationDialog
+        open={showAdvanceConfirm}
+        onOpenChange={setShowAdvanceConfirm}
+        title="Advance Phase?"
+        description={
+          <span>
+            Move this festival to{" "}
+            <strong>{nextPhase ? PHASE_LABELS[nextPhase] : "the next phase"}</strong>? Members will
+            be notified. You can revert from this panel if needed.
+          </span>
+        }
+        confirmText="Advance Phase"
+        onConfirm={handleAdvancePhase}
         isLoading={isPending}
       />
 
