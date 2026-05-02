@@ -69,14 +69,19 @@ export function FooterClient({ movieCredits, isAuthenticated }: FooterClientProp
           </div>
         </div>
 
-        {/* Movie credit - only if exists, subtle */}
-        {currentPageCredit && currentPageCredit.movie && (
-          <div className="mt-2 text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
-            Background: {currentPageCredit.movie}
-            {currentPageCredit.year > 0 && ` (${currentPageCredit.year})`}
-            {currentPageCredit.studio && ` © ${currentPageCredit.studio}`}
-          </div>
-        )}
+        {/* Movie credit - only if exists, subtle.
+            Suppressed on the marketing landing ("/" when signed-out) — that
+            page has its own dynamic in-hero attribution for the trending
+            backdrop, and the footer credit is for the authenticated home. */}
+        {currentPageCredit &&
+          currentPageCredit.movie &&
+          !(pathname === "/" && !isAuthenticated) && (
+            <div className="mt-2 text-[10px]" style={{ color: "var(--text-muted)", opacity: 0.6 }}>
+              Background: {currentPageCredit.movie}
+              {currentPageCredit.year > 0 && ` (${currentPageCredit.year})`}
+              {currentPageCredit.studio && ` © ${currentPageCredit.studio}`}
+            </div>
+          )}
       </div>
     </footer>
   );
