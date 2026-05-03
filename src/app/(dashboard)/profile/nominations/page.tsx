@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { NominationsContainer } from "@/components/profile/NominationsContainer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { profileNominationsTour } from "@/components/onboarding/tour-content";
 
 export default async function NominationsPage() {
   // Opt out of caching to allow useSearchParams in client components
@@ -20,6 +22,7 @@ export default async function NominationsPage() {
 
   return (
     <div className="bg-[var(--background)]">
+      <TourPopup hintKey="tour-profile-nominations" {...profileNominationsTour} />
       <div className="max-w-3xl mx-auto px-4 lg:px-6 py-6">
         {/* Header - Hidden on mobile since TopNav shows "Profile" */}
         <div className="hidden lg:block mb-6">

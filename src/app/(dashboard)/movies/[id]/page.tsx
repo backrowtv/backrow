@@ -17,7 +17,8 @@ import { getGenreColor } from "@/lib/movies/colors";
 import { CollapsibleText } from "@/components/ui/collapsible-text";
 import { Clock } from "@phosphor-icons/react/dist/ssr";
 import { ExternalLink } from "@/components/ui/external-logos";
-import { CustomizeHint } from "@/components/ui/CustomizeHint";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { movieTour } from "@/components/onboarding/tour-content";
 import Image from "next/image";
 import { generateBlurDataURL } from "@/lib/utils/blur-generator";
 import { ClubDiscussionNotes } from "@/components/movies/ClubDiscussionNotes";
@@ -174,7 +175,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
   let userRating: number | null = null;
   let festivalHistory: Awaited<ReturnType<typeof getMovieFestivalHistory>>["data"] = [];
   let existingFavoriteId: string | null = null;
-  let dismissedHints: Record<string, boolean> = {};
 
   let showWatchProviders = true;
 
@@ -189,11 +189,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
       historyResult,
       favoriteResult,
     ] = await Promise.all([
-      supabase
-        .from("users")
-        .select("show_watch_providers, dismissed_hints")
-        .eq("id", user.id)
-        .maybeSingle(),
+      supabase.from("users").select("show_watch_providers").eq("id", user.id).maybeSingle(),
       supabase
         .from("private_notes")
         .select("id, note, created_at, updated_at")
@@ -225,7 +221,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
     // Process profile data
     showWatchProviders = profileResult.data?.show_watch_providers ?? true;
-    dismissedHints = (profileResult.data?.dismissed_hints as Record<string, boolean>) || {};
 
     // Process notes, watch status, rating, favorites
     privateNotes = notesResult.data || [];
@@ -356,6 +351,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
   return (
     <div className="bg-[var(--background)]">
+      <TourPopup hintKey="tour-movie" {...movieTour} />
       <MovieJsonLd
         movie={{
           tmdb_id: finalTmdbId,
@@ -515,12 +511,6 @@ export default async function MoviePage({ params }: MoviePageProps) {
                     </div>
                   )}
                 </div>
-                <CustomizeHint
-                  hintKey="movie-links-customize-hint"
-                  initialDismissed={!!dismissedHints["movie-links-customize-hint"]}
-                  href="/profile/settings/display"
-                  linkText="customize which links appear here"
-                />
                 {/* Action Cards - aligned with bottom of poster */}
                 <MovieActions
                   tmdbId={finalTmdbId}

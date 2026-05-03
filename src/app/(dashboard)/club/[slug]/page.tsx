@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getClubForMetadata } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 import { ClubJsonLd } from "@/components/seo/JsonLd";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { clubCreatorTour, clubMemberTour } from "@/components/onboarding/tour-content";
 import { PublicClubLanding } from "@/components/clubs/PublicClubLanding";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -519,6 +521,8 @@ export default async function ClubPage({ params }: ClubPageProps) {
     }
   }
 
+  const isCreator = membership?.role === "producer";
+
   return (
     <>
       <ClubJsonLd
@@ -530,6 +534,12 @@ export default async function ClubPage({ params }: ClubPageProps) {
         }}
         festivals={completedFestivals ?? undefined}
       />
+      {isMember && (
+        <TourPopup
+          hintKey={isCreator ? "tour-club-creator" : "tour-club-member"}
+          {...(isCreator ? clubCreatorTour : clubMemberTour)}
+        />
+      )}
       <ClubNavigation
         clubSlug={clubSlug}
         clubName={club.name}

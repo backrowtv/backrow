@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { formatRatingDisplay } from "@/lib/ratings/normalize";
 import { getUserRubrics } from "@/app/actions/rubrics";
 import { X, Star, FilmReel, Popcorn, Ticket, FilmStrip, Scales } from "@phosphor-icons/react";
-import { RatingCustomizeHint } from "@/components/ratings/RatingCustomizeHint";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { calculateWeightedScore, RUBRIC_SCALE } from "@/types/club-settings";
 import { getRatingSliderGradient } from "@/lib/utils/rating-gradient";
@@ -537,8 +536,6 @@ export function EndlessRatingModal({
           >
             {initialRating !== undefined ? "Update Rating" : "Submit Rating"}
           </Button>
-
-          <RatingCustomizeHint />
 
           {initialRating !== undefined && onDelete && (
             <button

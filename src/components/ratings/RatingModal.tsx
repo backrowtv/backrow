@@ -22,7 +22,6 @@ import { DEFAULT_RATING_PREFERENCES } from "@/types/user-rating-preferences";
 import type { UserRubric } from "@/app/actions/rubrics.types";
 import { getRatingSliderBackground, getRatingSliderGradient } from "@/lib/utils/rating-gradient";
 import { getTMDBBlurDataURL } from "@/lib/utils/blur-placeholder";
-import { RatingCustomizeHint } from "@/components/ratings/RatingCustomizeHint";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 
 type RatingMode = "generic" | "rubric";
@@ -491,9 +490,6 @@ export function RatingModal({
               "Submit Rating"
             )}
           </Button>
-
-          {/* Customization hint */}
-          <RatingCustomizeHint />
 
           {/* Remove Rating - only show when editing an existing rating */}
           {currentRating != null && onRemoveRating && (

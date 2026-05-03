@@ -6,6 +6,8 @@ import { ProfileActivityFeed } from "@/components/profile/ProfileActivityFeed";
 import { FutureNominations } from "@/components/profile/FutureNominations";
 import { RecentlyWatched } from "@/components/profile/RecentlyWatched";
 import { ProfileCompletionBanner } from "@/components/profile/ProfileCompletionBanner";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { profileTour } from "@/components/onboarding/tour-content";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
@@ -87,6 +89,7 @@ async function ProfilePageContent() {
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
+      <TourPopup hintKey="tour-profile" {...profileTour} />
       {/* Profile completion prompt */}
       {(needsDisplayName || needsBio) && (
         <ProfileCompletionBanner

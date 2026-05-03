@@ -35,6 +35,8 @@ import { DiscoverSortDropdown } from "@/components/discover/DiscoverSortDropdown
 import { GenreTagCloud } from "@/components/discover/GenreTagCloud";
 import { CLUB_GENRES } from "@/lib/genres/constants";
 import type { ClubViewMode } from "@/components/clubs/ClubViewToggle";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { discoverTour } from "@/components/onboarding/tour-content";
 
 const PUBLIC_PRIVACY_TYPES = ["public_open", "public_moderated"];
 
@@ -242,6 +244,7 @@ export default async function DiscoverPage({
 
   return (
     <div className="bg-[var(--background)]">
+      <TourPopup hintKey="tour-discover" {...discoverTour} />
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6">
         {/* Header - hidden on mobile */}
         <div className="hidden md:block mb-6">

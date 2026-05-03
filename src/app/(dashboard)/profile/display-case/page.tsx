@@ -5,6 +5,8 @@ import { getUserFavorites } from "@/app/actions/profile/favorites";
 import { ChallengesSectionWrapper } from "./ChallengesSectionWrapper";
 import { getAllBadgesByCategory } from "@/app/actions/badges";
 import { Text } from "@/components/ui/typography";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { profileDisplayCaseTour } from "@/components/onboarding/tour-content";
 
 export default async function DisplayCasePage() {
   const supabase = await createClient();
@@ -29,6 +31,7 @@ export default async function DisplayCasePage() {
 
   return (
     <div className="bg-[var(--background)]">
+      <TourPopup hintKey="tour-profile-display-case" {...profileDisplayCaseTour} />
       <div className="max-w-3xl mx-auto px-4 lg:px-6 py-6">
         {/* Header - Hidden on mobile since TopNav shows "Profile" */}
         <div className="hidden md:block mb-6">

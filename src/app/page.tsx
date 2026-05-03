@@ -18,6 +18,8 @@ import { HomeThemedBackground } from "@/components/home/HomeThemedBackground";
 import { HomeDesktopLayout } from "@/components/home/HomeDesktopLayout";
 import { DashboardCommandPalette } from "@/components/dashboard/DashboardCommandPalette";
 import { DashboardShortcuts } from "@/components/dashboard/DashboardShortcuts";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { homeTour } from "@/components/onboarding/tour-content";
 import { checkAndAdvanceFestivalPhases } from "@/app/actions/festivals";
 import { checkAndRolloverSeasons } from "@/app/actions/seasons";
 import { LandingPage } from "@/components/marketing/LandingPage";
@@ -81,6 +83,7 @@ async function RootPageContent({
       <div className="relative">
         <DashboardCommandPalette />
         <DashboardShortcuts />
+        <TourPopup hintKey="tour-home" {...homeTour} />
 
         {/* Mobile View - shows below xl (1280px) */}
         <div className="xl:hidden">

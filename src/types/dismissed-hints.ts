@@ -1,10 +1,16 @@
 /** Known static hint keys */
 export type StaticHintKey =
-  | "rating-customize-hint"
-  | "movie-links-customize-hint"
-  | "nav-customize-hint"
-  | "discussion-customize-hint"
-  | "profile-completion";
+  | "profile-completion"
+  | "tour-home"
+  | "tour-profile"
+  | "tour-profile-stats"
+  | "tour-profile-display-case"
+  | "tour-profile-nominations"
+  | "tour-club-creator"
+  | "tour-club-member"
+  | "tour-festival"
+  | "tour-movie"
+  | "tour-discover";
 
 /** Dynamic keys like "year-wrap-2025" */
 export type DynamicHintKey = `year-wrap-${number}`;

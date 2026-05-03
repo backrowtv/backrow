@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { CustomizeHint } from "@/components/ui/CustomizeHint";
-import { useUserProfile } from "@/components/auth/UserProfileProvider";
 import { useSecondarySidebarSafe } from "./SecondarySidebarContext";
 import type { SecondarySidebarItem } from "./SecondarySidebar";
 import type { MenuPosition } from "@/lib/navigation-constants";
@@ -39,7 +37,6 @@ export function MobileMenuPanel({
   hideLabels = false,
 }: MobileMenuPanelProps) {
   const pathname = usePathname();
-  const { isHintDismissed } = useUserProfile();
   const contentRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLAnchorElement>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -493,15 +490,6 @@ export function MobileMenuPanel({
                   </p>
                 )}
               </nav>
-
-              <div className="pt-1 pb-1">
-                <CustomizeHint
-                  hintKey="nav-customize-hint"
-                  initialDismissed={isHintDismissed("nav-customize-hint")}
-                  href="/profile/settings/display"
-                  linkText="customize your navigation"
-                />
-              </div>
             </div>
           </m.div>
         )}

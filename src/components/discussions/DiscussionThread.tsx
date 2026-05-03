@@ -7,8 +7,6 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { CustomizeHint } from "@/components/ui/CustomizeHint";
-import { useUserProfile } from "@/components/auth/UserProfileProvider";
 import {
   ChatCircle,
   DotsThree,
@@ -119,7 +117,6 @@ export function DiscussionThread({
   discussionPreferences,
 }: DiscussionThreadProps) {
   const router = useRouter();
-  const { isHintDismissed } = useUserProfile();
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [showComments, setShowComments] = useState(showFullContent);
@@ -692,13 +689,6 @@ export function DiscussionThread({
             />
           ) : (
             <div className="space-y-4">
-              <CustomizeHint
-                hintKey="discussion-customize-hint"
-                initialDismissed={isHintDismissed("discussion-customize-hint")}
-                href="/profile/settings/display"
-                tipPrefix="Tip: You can"
-                linkText="customize comment collapse & upvote behavior"
-              />
               {comments.slice(0, visibleCommentCount).map((comment) => (
                 <DiscussionComment
                   key={comment.id}

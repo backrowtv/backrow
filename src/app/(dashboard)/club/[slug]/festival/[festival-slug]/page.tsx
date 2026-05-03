@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getFestivalForSeo } from "@/lib/seo/fetchers";
 import { absoluteUrl } from "@/lib/seo/absolute-url";
 import { FestivalJsonLd } from "@/components/seo/JsonLd";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { festivalTour } from "@/components/onboarding/tour-content";
 import Link from "next/link";
 import { resolveClub, resolveFestival } from "@/lib/clubs/resolveClub";
 import { ClubNavigation } from "@/components/clubs/ClubNavigation";
@@ -788,6 +790,7 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
         isAdmin={isAdmin}
         isProducer={isProducer}
       />
+      {isMember && <TourPopup hintKey="tour-festival" {...festivalTour} />}
       <div className="bg-[var(--background)] relative">
         {/* Festival Background */}
         <FestivalThemedBackground

@@ -7,6 +7,8 @@ import { FestivalPerformance } from "@/components/profile/stats/FestivalPerforma
 import { TopGenresDisplay } from "@/components/profile/stats/TopGenresDisplay";
 import { TimingStats } from "@/components/profile/stats/TimingStats";
 import { FunStats } from "@/components/profile/stats/FunStats";
+import { TourPopup } from "@/components/onboarding/TourPopup";
+import { profileStatsTour } from "@/components/onboarding/tour-content";
 
 export default async function StatsPage() {
   const supabase = await createClient();
@@ -36,6 +38,7 @@ export default async function StatsPage() {
 
   return (
     <div className="bg-[var(--background)]">
+      <TourPopup hintKey="tour-profile-stats" {...profileStatsTour} />
       <div className="max-w-3xl mx-auto px-4 lg:px-6 py-6">
         {/* Header - Hidden on mobile since TopNav shows "Profile" */}
         <div className="hidden md:block mb-4">
