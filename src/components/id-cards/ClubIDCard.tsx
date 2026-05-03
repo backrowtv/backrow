@@ -159,12 +159,7 @@ export function ClubIDCard({
                     (descriptionExpanded || needsTruncation) && "cursor-pointer"
                   )}
                 >
-                  <Text
-                    ref={descriptionRef}
-                    size="tiny"
-                    muted
-                    className={cn(!descriptionExpanded && "line-clamp-3")}
-                  >
+                  <Text ref={descriptionRef} size="tiny" muted>
                     {club.description}
                   </Text>
                   {needsTruncation && !descriptionExpanded && (
@@ -175,7 +170,7 @@ export function ClubIDCard({
                   )}
                 </div>
               ) : (
-                <Text size="sm" muted className="mt-1 line-clamp-3">
+                <Text size="sm" muted className="mt-1">
                   {club.description}
                 </Text>
               ))}
@@ -228,12 +223,7 @@ export function ClubIDCard({
                 (descriptionExpanded || needsTruncation) && "cursor-pointer"
               )}
             >
-              <Text
-                ref={descriptionRef}
-                size="sm"
-                muted
-                className={cn(!descriptionExpanded && "line-clamp-5")}
-              >
+              <Text ref={descriptionRef} size="sm" muted>
                 {club.description}
               </Text>
               {needsTruncation && !descriptionExpanded && (

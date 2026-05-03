@@ -1,5 +1,5 @@
 import { Heading, Text } from "@/components/ui/typography";
-import { FestivalDemoVideo } from "@/components/marketing/FestivalDemoVideo";
+import { FestivalDemoSlideshow } from "@/components/marketing/FestivalDemoSlideshow";
 
 const steps = [
   { number: 1, label: "Create", description: "Pick a theme and dates." },
@@ -66,7 +66,7 @@ export function FestivalFlow() {
         className="mx-auto max-w-4xl overflow-hidden rounded-2xl border"
         style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-1)" }}
       >
-        <FestivalDemoVideo />
+        <FestivalDemoSlideshow />
       </div>
     </section>
   );

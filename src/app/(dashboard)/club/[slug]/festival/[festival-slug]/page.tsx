@@ -344,6 +344,9 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
       display_name: userData?.display_name || null,
       username: userData?.username || null,
       avatar_url: userData?.avatar_url || null,
+      avatar_icon: userData?.avatar_icon || null,
+      avatar_color_index: userData?.avatar_color_index ?? null,
+      avatar_border_color_index: userData?.avatar_border_color_index ?? null,
     };
   });
 
@@ -594,6 +597,9 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
     nominator_name: string;
     nominator_id: string | null;
     nominator_avatar: string | null;
+    nominator_avatar_icon: string | null;
+    nominator_avatar_color_index: number | null;
+    nominator_avatar_border_color_index: number | null;
   }
   interface StandingsEntry {
     user_id: string;
@@ -656,11 +662,23 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
       };
 
       // Create member lookup for nominator info
-      const memberLookup = new Map<string, { name: string; avatar: string | null }>();
+      const memberLookup = new Map<
+        string,
+        {
+          name: string;
+          avatar: string | null;
+          avatar_icon: string | null;
+          avatar_color_index: number | null;
+          avatar_border_color_index: number | null;
+        }
+      >();
       members.forEach((m) => {
         memberLookup.set(m.user_id, {
           name: m.display_name || m.username || "Member",
           avatar: m.avatar_url,
+          avatar_icon: m.avatar_icon,
+          avatar_color_index: m.avatar_color_index,
+          avatar_border_color_index: m.avatar_border_color_index,
         });
       });
 
@@ -687,6 +705,9 @@ export default async function FestivalPage({ params }: FestivalPageProps) {
             nominator_name: nominatorInfo?.name || "Member",
             nominator_id: n.nominator_user_id,
             nominator_avatar: nominatorInfo?.avatar || null,
+            nominator_avatar_icon: nominatorInfo?.avatar_icon || null,
+            nominator_avatar_color_index: nominatorInfo?.avatar_color_index ?? null,
+            nominator_avatar_border_color_index: nominatorInfo?.avatar_border_color_index ?? null,
           };
         });
 

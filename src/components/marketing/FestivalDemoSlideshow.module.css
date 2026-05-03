@@ -1,0 +1,32 @@
+.stage .frame {
+  opacity: 0;
+  object-fit: cover;
+  animation: slideshow 20s infinite;
+}
+
+@keyframes slideshow {
+  0% {
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage .frame {
+    animation: none;
+  }
+  .stage .frame:first-child {
+    opacity: 1;
+  }
+}

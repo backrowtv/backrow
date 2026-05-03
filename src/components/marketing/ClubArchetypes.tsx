@@ -1,44 +1,43 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Heading, Text } from "@/components/ui/typography";
 
-type Mode = "Standard" | "Endless";
-
 interface Archetype {
   title: string;
   description: string;
-  mode: Mode;
   artCaption: string;
+  imageSrc: string;
 }
 
 const archetypes: Archetype[] = [
   {
     title: "Friends & Family",
     description:
-      "Five to thirty people, rotating who picks the movie. Built for inside jokes and long-running rivalries.",
-    mode: "Standard",
+      "A rotating cast taking turns picking the movie. Built for inside jokes and long-running rivalries.",
     artCaption: "Friends & family club",
+    imageSrc: "/marketing/archetype-friends-family.jpg",
   },
   {
     title: "Film Podcasts & Creators",
     description:
       "Let listeners and viewers watch alongside you. They nominate, rate, and discuss — you program.",
-    mode: "Endless",
     artCaption: "Podcast / creator club",
+    imageSrc: "/marketing/archetype-podcast.jpg",
   },
   {
     title: "Theaters & Cinemas",
     description:
       "Publish your screening calendar as a living festival. Audiences rate what they saw and follow along.",
-    mode: "Endless",
     artCaption: "Theater / cinema club",
+    imageSrc: "/marketing/archetype-theater.jpg",
   },
   {
     title: "Fandoms & Subreddits",
     description:
-      "Massive communities ranking a genre or filmography together. Thousands can join; scoring scales.",
-    mode: "Endless",
+      "A community ranking a genre or filmography together. Scoring scales however big the room gets.",
     artCaption: "Fandom / subreddit club",
+    imageSrc: "/marketing/archetype-fandom.jpg",
   },
 ];
 
@@ -70,19 +69,19 @@ export function ClubArchetypes() {
             }}
           >
             <div
-              className="relative w-full overflow-hidden rounded border border-dashed"
+              className="relative w-full overflow-hidden rounded border"
               style={{
-                borderColor: "rgba(148, 163, 184, 0.6)",
-                backgroundColor: "var(--surface-2)",
+                borderColor: "var(--border)",
                 aspectRatio: "4 / 3",
               }}
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-                <Text size="small" className="font-semibold">
-                  [Art placeholder]
-                </Text>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">{archetype.artCaption}</p>
-              </div>
+              <Image
+                src={archetype.imageSrc}
+                alt={archetype.artCaption}
+                fill
+                sizes="(min-width: 1280px) 22vw, (min-width: 768px) 45vw, 92vw"
+                className="object-cover"
+              />
             </div>
 
             <Heading level={3} className="mt-5 text-lg font-semibold">
@@ -91,14 +90,6 @@ export function ClubArchetypes() {
             <Text size="body" className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
               {archetype.description}
             </Text>
-            <div
-              className="mt-auto border-t pt-4 text-xs text-[var(--text-muted)]"
-              style={{ borderColor: "var(--border)" }}
-            >
-              Usually runs as a{" "}
-              <span style={{ color: "var(--primary)", fontWeight: 600 }}>{archetype.mode}</span>{" "}
-              festival.
-            </div>
           </div>
         ))}
       </div>

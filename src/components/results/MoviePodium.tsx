@@ -19,6 +19,9 @@ interface PodiumMovie {
   nominator_avatar?: string | null;
   nominator_id?: string | null;
   nominator_email?: string | null;
+  nominator_avatar_icon?: string | null;
+  nominator_avatar_color_index?: number | null;
+  nominator_avatar_border_color_index?: number | null;
   nominator_social_links?: {
     avatar_icon?: string;
     avatar_color_index?: number;
@@ -123,6 +126,16 @@ function PodiumPosition({
             avatar_url: movie.nominator_avatar || null,
             display_name: movie.nominator_name,
             email: movie.nominator_email || null,
+            avatar_icon:
+              movie.nominator_avatar_icon ?? movie.nominator_social_links?.avatar_icon ?? null,
+            avatar_color_index:
+              movie.nominator_avatar_color_index ??
+              movie.nominator_social_links?.avatar_color_index ??
+              null,
+            avatar_border_color_index:
+              movie.nominator_avatar_border_color_index ??
+              movie.nominator_social_links?.avatar_border_color_index ??
+              null,
           })}
           userId={movie.nominator_id}
           size={config.avatarSize}

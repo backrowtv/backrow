@@ -77,6 +77,10 @@ const nextConfig: NextConfig = {
         pathname: "/images/**",
         search: "",
       },
+      {
+        pathname: "/marketing/**",
+        search: "",
+      },
     ],
     remotePatterns: [
       {

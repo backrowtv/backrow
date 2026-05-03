@@ -163,6 +163,9 @@ interface FestivalPageClientProps {
       nominator_name: string;
       nominator_id: string | null;
       nominator_avatar: string | null;
+      nominator_avatar_icon: string | null;
+      nominator_avatar_color_index: number | null;
+      nominator_avatar_border_color_index: number | null;
     }>;
     standings: Array<{
       user_id: string;
