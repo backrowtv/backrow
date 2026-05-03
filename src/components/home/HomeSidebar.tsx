@@ -198,10 +198,12 @@ export async function HomeSidebar() {
                 >
                   <EntityAvatar entity={clubToAvatarData(club)} emojiSet="club" size="lg" />
                 </div>
-                {/* Name floating below */}
-                <span className="mt-1.5 text-[10px] font-medium text-[var(--text-primary)] text-center line-clamp-2 leading-tight group-hover:text-[var(--primary)] transition-colors w-full px-0.5">
-                  <BrandText>{club.name}</BrandText>
-                </span>
+                {/* Name floating below — fixed-height clipping container prevents 3rd-line bleed past line-clamp */}
+                <div className="mt-1.5 w-full overflow-hidden h-[26px]">
+                  <span className="block text-[10px] font-medium text-[var(--text-primary)] text-center line-clamp-2 leading-tight group-hover:text-[var(--primary)] transition-colors px-0.5">
+                    <BrandText>{club.name}</BrandText>
+                  </span>
+                </div>
               </div>
             </Link>
           );
